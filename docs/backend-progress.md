@@ -153,6 +153,31 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
 - P6-02 nadal in_progress: następne są migracja/import, jawny przegląd fragmentów
   i testy PostgreSQL/RustFS. Nie rozpoczęto chatu ani retrievera.
 
+### 2026-11-21 — P6-02, trwały import i decyzje o fragmentach
+
+- Migracja `0013`: źródła i fragmenty z FK, hashami, lokalizacją, osobnym statusem
+  treści/aktualności i decyzją recenzenta. Bez backfillu wcześniejszych danych.
+  Downgrade chroni istniejący korpus. Rejestracja modeli w Alembic.
+- CLI importuje oryginał do prywatnego RustFS i fragmenty w transakcji PostgreSQL.
+  Blokada źródła, stałe ID fragmentów, walidacja oryginału/ekstrakcji/metadanych
+  przy ponowieniu. Zmiana wersji wymaga nowego source_id, bez nadpisywania cytowań.
+- Jawny plik decyzji wiąże approval z hashem oryginału, ekstraktorem, lokalizatorem
+  i hashem fragmentu. Zatwierdzenie części nie zatwierdza całego źródła.
+  Ponowienie bez decyzji nie cofa zatwierdzeń; stare/sprzeczne decyzje są odrzucane.
+- Osobny losowy klucz każdej próby i kompensacja; niepewny COMMIT zachowuje
+  zatwierdzony/niemożliwy do rozstrzygnięcia obiekt. Logi naprawy zawierają tylko klucz.
+- Kontrole z dedykowaną bazą PostgreSQL i rzeczywistym XLSX: pytest dla
+  `test_knowledge_ingestion.py`, `test_knowledge_extraction.py`, `test_catalog.py`
+  i `test_database.py` — **53 passed w 2,49 s**, bez skipów. Upgrade/check i
+  roundtrip w izolowanym schemacie OK; równoległe importy, błędy PUT/flush/COMMIT,
+  częściowe approval, checksum i cofanie decyzji OK. Końcowe celowane testy
+  `tests/test_knowledge_ingestion.py` — **21 passed w 1,16 s**: dodatkowo
+  uszkodzony tekst, constraint approval i odświeżenie starego identity map po
+  blokadzie. Ruff check/format zmienionych plików OK.
+- Commit drugiej części: `feat(knowledge): persist reviewed source documents`.
+- Następne w P6-02: zapisać przegląd wybranych stron oryginałów, odbudować API
+  z zależnościami i wykonać rzeczywisty, powtórny import do Compose/RustFS.
+
 ### 2026-11-21 — P6-01, wymienialny provider LLM
 
 - `LLMProvider` i typowane komunikaty są niezależne od dostawcy. Jeden adapter

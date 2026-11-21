@@ -247,6 +247,34 @@ osadzone obiekty i układ formularzy wymagają przeglądu. XLSX wykorzystuje par
 katalogu, jego stabilne ID i zakresy komórek. Nie importujemy Markdown zamiast
 oryginału. Aktualność prawna jest osobną weryfikacją.
 
+Po migracji `0013` import do PostgreSQL i prywatnego RustFS:
+
+```sh
+uv run python -m app.modules.knowledge.ingestion ../docs/hacknation-materials
+# Jawne decyzje po przeglądzie oryginałów, przypięte do hashy:
+uv run python -m app.modules.knowledge.ingestion ../docs/hacknation-materials \
+  --reviews /path/to/reviews.json
+```
+
+`reviews.json` odpowiada `Reviews` w `knowledge/review.py`: dla źródła podaje
+`source_id`, `original_sha256`, `extractor_version`, `reviewed_by`, `reviewed_at`
+(ISO UTC) i listę `fragments` z `locator`, `content_sha256`, `status`, `reason`.
+Zatwierdza się wyłącznie wymienione, sprawdzone fragmenty. Zmiana pliku lub
+ekstrakcji unieważnia dopasowanie decyzji. Starsza lub sprzeczna decyzja w tej
+samej chwili jest odrzucana. Ponowienie bez pliku decyzji zachowuje zatwierdzenia.
+Legalność/aktualność nie wynika z zatwierdzenia wierności tekstu.
+
+Blokada na `source_id` serializuje importy. Identyczny import odczytuje i sprawdza
+oryginał w RustFS, nie tworzy kolejnego obiektu ani fragmentów. Inna zawartość
+lub metadane pod tym samym ID wymagają nowego ID wersji; nie nadpisujemy cytowań.
+Każda próba nowego zapisu ma własny klucz obiektu. Kompensacja nie usuwa źródła
+innej próby; przy niepewnym COMMIT sprawdza metadane lub zostawia obiekt i loguje
+wyłącznie klucz do ręcznej naprawy. Downgrade `0013` odmawia przy obecnych źródłach.
+
+Przykładowe OSP są rozpoznawane jako osobny typ demonstracyjny, nie jako prawo.
+Prywatne OSP pracowników nadal należą wyłącznie do modułu dokumentów z P5;
+nie ma endpointu importującego je do wspólnego korpusu.
+
 ## Tożsamość i pierwszy administrator
 
 `KOMPAS_SUPABASE_URL` to HTTPS origin projektu Supabase Cloud (bez `/auth/v1`).
