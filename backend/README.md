@@ -100,3 +100,18 @@ katalogu zwraca 404. Nie ma automatycznego pobierania materiałów ani danych de
 Ustaw `KOMPAS_TEST_CATALOG_XLSX` na ścieżkę do źródła, by test porównał każdy opis
 i każdy poziom z oryginałem. Bez pliku ta dodatkowa kontrola jest jawnie pomijana;
 testy parsera i API korzystają z generowanego, fikcyjnego workbooka.
+
+## Reguły ocen
+
+`app/modules/assessments/rules.py` zawiera czyste funkcje bez API, ORM i AI:
+zestawy B/C, walidację do trzech dodatkowych kryteriów z przypiętego katalogu,
+wynik okresowy, sugestię behawioralną i warunki punktowe pierwszej oceny.
+Średnie są dokładnymi ułamkami (`Fraction`), a nie zaokrąglonymi floatami.
+Braki zwracają `incomplete`, nigdy domyślny wynik pozytywny. Do funkcji wyniku
+okresowego przekazuje się tylko oceny zatwierdzone przez człowieka.
+
+Brak obserwacji to `None`, poziomy to 0–4; sugestia ma osobną wersję polityki,
+remis rozstrzyga niższa ocena. Pierwsza ocena wymaga pięciu elementów, jawnej
+informacji o terminowym sprawozdaniu i egzaminie; zwolnienie wymaga podstawy.
+Kwalifikacja, obliczanie terminów i wyjątki prawne zostają do P7-02 po weryfikacji
+aktualnych źródeł. Sam tekst podstawy nie jest jej weryfikacją prawną.

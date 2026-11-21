@@ -6,10 +6,10 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 2 — tożsamość; fundament techniczny zakończony.
-- **Aktywne zadanie:** brak; P3-01 zakończone.
-- **Następny krok:** niezależne P3-02; do testu live P2-01 potrzebne
-  skonfigurowane Supabase Cloud i rzeczywisty token użytkownika.
-- **Ostatnia zakończona praca:** pełny import katalogu i chronione API.
+- **Aktywne zadanie:** brak; P3-02 zakończone.
+- **Następny krok:** P2-02 — logowanie i sesja frontendu; do testu live P2-01
+  potrzebne skonfigurowane Supabase Cloud i rzeczywisty token użytkownika.
+- **Ostatnia zakończona praca:** czyste reguły punktacji i walidacji kryteriów.
 - **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`
   i `/api/v1/health`, połączenie PostgreSQL i historię migracji bez tabel domenowych.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
@@ -34,7 +34,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P2-02 | Logowanie i sesja | pending | — |
 | P2-03 | Pracownicy i przypisania | pending | — |
 | P3-01 | Katalog kompetencji | done | Import i porównanie treści XLSX, 52 testy; `feat(catalog): add competency model` |
-| P3-02 | Reguły i testy domenowe | pending | — |
+| P3-02 | Reguły i testy domenowe | done | 99 testów, dokładne progi i kompletność; `feat(assessments): implement scoring rules` |
 | P4-01 | Utworzenie i wznowienie oceny C | pending | — |
 | P4-02 | Kryteria i terminy | pending | — |
 | P4-03 | Obserwacje i rozmowa | pending | — |
@@ -63,6 +63,19 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P3-02
+
+- Czyste reguły B/C, unikalne i znane kryteria, do trzech dodatkowych,
+  średnia okresowa >4 i brak 1, kompletność, odrębna wersjonowana sugestia,
+  punktowe warunki pierwszej oceny i jawna podstawa zwolnienia z egzaminu.
+- Średnie jako `Fraction`; brak danych nie daje formalnego wyniku. Ustalanie
+  terminów i kwalifikacji prawnej pozostaje do weryfikacji źródeł w P7-02.
+- `uv run ruff check .`, `uv run ruff format .`, `uv run pytest` z testowym
+  PostgreSQL i źródłowym XLSX — OK, 99 testów. Test źródła potwierdza także,
+  że wymagane kryteria B/C odpowiadają rzeczywistym UUID zaimportowanego katalogu.
+- Commit: `feat(assessments): implement scoring rules`.
+- Następny krok: P2-02; weryfikacja realnego Supabase nadal blocked.
 
 ### 2026-11-21 — P3-01
 

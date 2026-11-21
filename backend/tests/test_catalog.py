@@ -10,6 +10,7 @@ from test_security import claims, sign
 
 from app.core.database import get_session
 from app.main import create_app
+from app.modules.assessments.rules import REQUIRED_CRITERIA
 from app.modules.catalog.importer import (
     LEVEL_NAMES,
     import_catalog,
@@ -131,6 +132,8 @@ def test_original_source_content():
     if not source:
         pytest.skip("Set KOMPAS_TEST_CATALOG_XLSX to the supplied source workbook")
     criteria = parse_workbook(Path(source))
+    for required in REQUIRED_CRITERIA.values():
+        assert set(required).issubset(c.id for c in criteria)
     workbook = load_workbook(source, read_only=True, data_only=False)
     try:
         assert len(criteria) == len(workbook.worksheets) - 1 == 14

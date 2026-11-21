@@ -1,8 +1,7 @@
 import argparse
 import hashlib
-import unicodedata
 from pathlib import Path
-from uuid import NAMESPACE_URL, UUID, uuid5
+from uuid import uuid5
 from zipfile import ZipFile
 
 from openpyxl import load_workbook
@@ -11,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.core.database import create_database_engine
+from app.modules.catalog.identifiers import CATALOG_NAMESPACE, stable_id
 from app.modules.catalog.models import CatalogVersion
 from app.modules.catalog.schemas import Criterion, Indicator, Level
 
@@ -21,13 +21,6 @@ LEVEL_NAMES = (
     "Powyżej oczekiwań",
     "Znacznie powyżej oczekiwań",
 )
-CATALOG_NAMESPACE = uuid5(NAMESPACE_URL, "urn:kompas:competency-model")
-
-
-def stable_id(text: str, parent: UUID = CATALOG_NAMESPACE) -> UUID:
-    return uuid5(
-        parent, " ".join(unicodedata.normalize("NFC", text).split()).casefold()
-    )
 
 
 def source_text(value: object) -> str:
