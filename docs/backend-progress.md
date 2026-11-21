@@ -5,13 +5,14 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 1 — fundament techniczny, w toku.
-- **Aktywne zadanie:** brak; P1-02 zakończone.
-- **Następny krok:** P1-03 — wspólne środowisko Compose.
-- **Ostatnia zakończona praca:** PostgreSQL, Alembic i readiness.
+- **Etap:** 1 — fundament techniczny zakończony.
+- **Aktywne zadanie:** brak; P1-03 zakończone.
+- **Następny krok:** P2-01 — użytkownicy, role, JWT i bootstrap administratora.
+- **Ostatnia zakończona praca:** działające środowisko Compose.
 - **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`
   i `/api/v1/health`, połączenie PostgreSQL i historię migracji bez tabel domenowych.
-  Supabase, RustFS, OpenRouter i VPS nie zostały zintegrowane.
+  RustFS działa lokalnie; integracja plików z API jest w P5-01.
+  Supabase, OpenRouter i VPS nie zostały zintegrowane.
 - **Kontrole frontendu:** `npm run precommit` — format, Oxlint, TypeScript oraz
   19 testów Vitest przeszły przed commitami zmian frontendu.
 - **Frontend commity:** `5b1375c` (`chore(frontend): add react doctor diagnostics`),
@@ -27,7 +28,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | --- | --- | --- | --- |
 | P1-01 | Projekt FastAPI i health | done | 8 testów; `chore(backend): initialize api` |
 | P1-02 | PostgreSQL, Alembic, readiness | done | 14 testów z PostgreSQL; `feat(backend): add database readiness` |
-| P1-03 | Compose: frontend, API, PostgreSQL, RustFS | pending | — |
+| P1-03 | Compose: frontend, API, PostgreSQL, RustFS | done | Build, HTTP, S3, restart i 19 testów UI; `chore(infra): add local compose environment` |
 | P2-01 | Tożsamość, role, weryfikacja JWT | pending | — |
 | P2-02 | Logowanie i sesja | pending | — |
 | P2-03 | Pracownicy i przypisania | pending | — |
@@ -61,6 +62,24 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P1-03
+
+- Dockerfile obu aplikacji, Compose z czterema usługami i jednorazowym `migrate`,
+  trwałe wolumeny, dev reload, porty wyłącznie loopback, `.env.example` i instrukcja.
+- `docker compose --env-file .env.compose-check -f infra/compose.yaml
+  -f infra/compose.dev.yaml config --quiet` i `up --build --detach --wait
+  --wait-timeout 180` — OK po ponowieniu powolnych pobrań. Docker Hub zwracał 429;
+  oficjalne obrazy Node/Python pobrano z publicznego mirroru ECR.
+- HTTP frontend 200 (treść Kompas), API readiness 200; podpisany boto3 S3
+  create/put/get — OK. `restart db rustfs`, ponowne `up --wait`, odczyt rewizji
+  `0001` z bazy i wcześniejszego obiektu S3 — OK; obiekty smoke-testu usunięte.
+- RustFS 1.0.6: `/health` działa, `id` potwierdza UID/GID 10001, zapis na nazwanym
+  wolumenie działa bez roota. `npm run precommit` — OK, 19 testów frontendu.
+- Testowe środowisko używa ignorowanego `.env.compose-check` i niestandardowych
+  portów 33080/33081/35432/39000/39001; wyłącznie dane lokalnej weryfikacji.
+- Commit: `chore(infra): add local compose environment`.
+- Następny krok: P2-01. Nie sprawdzano wyglądu w przeglądarce ani produkcji.
 
 ### 2026-11-21 — P1-02
 
