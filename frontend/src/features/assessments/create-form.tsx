@@ -27,7 +27,15 @@ export function CreateAssessmentForm({
   const [state, action, pending] = useActionState(createAssessment, { error: "" });
   const employee = employees.find(({ id }) => id === employeeId);
   if (!employee)
-    return <Note>Brak przypisanych pracowników. Poproś administratora o przypisanie.</Note>;
+    return (
+      <Note>
+        Nie masz jeszcze przypisanych pracowników. Poproś administratora o przypisanie osób, których
+        oceny masz prowadzić. Podaj swój adres logowania oraz imiona i nazwiska pracowników.{" "}
+        <ButtonLink href="/help" className="mt-4">
+          Sprawdź role i dostęp
+        </ButtonLink>
+      </Note>
+    );
   const form =
     employee.position_kind === "OTHER"
       ? "C"
@@ -73,7 +81,7 @@ export function CreateAssessmentForm({
               <h2 className="mt-4 text-lg font-semibold">Ocena okresowa · Arkusz C</h2>
               <p className="mt-3 text-body leading-6 text-muted-foreground">
                 Proces dla pozostałych stanowisk, bez bezpośredniego kierowania pracownikami.
-                Formularz ustali API na podstawie profilu. Pierwsza ocena i arkusze A/B nie są
+                Formularz dobierzemy na podstawie profilu. Pierwsza ocena i arkusze A/B nie są
                 jeszcze dostępne.
               </p>
             </Card>
@@ -155,8 +163,8 @@ export function CreateAssessmentForm({
                 </div>
               </div>
               <p className="mt-6 border-t pt-5 text-body leading-6 text-muted-foreground">
-                Zapis utrwali migawkę danych pracownika i aktualną wersję katalogu kompetencji.
-                Każda nowa ocena ma osobny identyfikator.
+                Zapiszemy dane pracownika i kryteria obowiązujące w chwili rozpoczęcia oceny.
+                Poprzednie oceny pozostaną w historii.
               </p>
               {form !== "C" ? (
                 <Note className="mt-5">

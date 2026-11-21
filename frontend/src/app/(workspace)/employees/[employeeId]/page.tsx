@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, PageHeading } from "@/components/ui/card";
-import { getEmployee } from "@/features/employees/server";
+import { getEmployee, getEmployees } from "@/features/employees/server";
 import { requireUser } from "@/features/auth/session";
 import { getAssessments } from "@/features/assessments/server";
-import { AssessmentRows } from "@/features/assessments/assessment-list";
+import { AssessmentRows, AssessmentEmptyState } from "@/features/assessments/assessment-list";
 import { NewAssessmentButton } from "@/features/assessments/components/new-assessment-button";
 
 export const metadata: Metadata = { title: "Profil pracownika" };
@@ -27,6 +27,9 @@ export default async function EmployeePage({
     requireUser(),
     getAssessments(employeeId),
   ]);
+  const canCreate =
+    user.roles.includes("MANAGER") &&
+    (await getEmployees(true)).some((person) => person.id === employee.id);
   return (
     <>
       <PageHeading
@@ -53,10 +56,21 @@ export default async function EmployeePage({
       </Card>
       <div className="mt-6 mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">Oceny prowadzone przez Ciebie</h2>
-        {user.roles.includes("MANAGER") ? <NewAssessmentButton employeeId={employee.id} /> : null}
+        {canCreate && assessments.length > 0 ? (
+          <NewAssessmentButton employeeId={employee.id} />
+        ) : null}
       </div>
       <Card className="overflow-hidden">
-        <AssessmentRows assessments={assessments} />
+        <AssessmentRows
+          assessments={assessments}
+          emptyState={
+            <AssessmentEmptyState
+              roles={user.roles}
+              canCreate={canCreate}
+              employeeId={employee.id}
+            />
+          }
+        />
       </Card>
       <ButtonLink href="/employees" className="mt-5">
         Wróć do pracowników

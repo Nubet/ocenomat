@@ -44,8 +44,8 @@ export function AssistantDrawer() {
     return (
       <Dialog title="Zapytaj Kompas" onClose={closeAssistant} drawer="right">
         <Note className="m-5">
-          Asystent nie jest jeszcze podłączony do zapisanych ocen. Integracja z autoryzowanym
-          kontekstem oceny jest zaplanowana w etapie AI.
+          Asystent dla zapisanych ocen jest w przygotowaniu. Na razie skorzystaj z sekcji Pomoc —
+          znajdziesz tam instrukcję rozpoczęcia oceny, zapisu ustaleń i sprawdzania dostępu.
         </Note>
       </Dialog>
     );

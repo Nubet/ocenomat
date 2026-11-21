@@ -1,101 +1,130 @@
-"use client";
-
-import { useState } from "react";
-import { Card, PageHeading } from "@/components/ui/card";
+import { Card, Note, PageHeading } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
+import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { useWorkspace } from "@/features/workspace/workspace-provider";
+import type { WorkspaceUser } from "@/features/auth/session";
+
+const roles = [
+  {
+    id: "MANAGER",
+    title: "Przełożony",
+    description: "Prowadzisz własne oceny przypisanych Ci pracowników.",
+    items: [
+      "Widzisz profile przypisanych pracowników oraz oceny, które samodzielnie prowadzisz.",
+      "Możesz rozpocząć ocenę okresową C, wybrać kryteria, zapisać terminy i potwierdzić ustalenia z rozmowy.",
+      "Nie widzisz ocen prowadzonych przez innego przełożonego, nawet jeśli ten sam pracownik jest również Tobie przypisany.",
+    ],
+    action: "Przejdź do swoich ocen",
+    href: "/assessments",
+  },
+  {
+    id: "HR",
+    title: "HR",
+    description: "Wspierasz organizację procesu ocen w urzędzie.",
+    items: [
+      "Widzisz podstawowe dane pracowników w organizacji.",
+      "Sama rola HR nie pozwala prowadzić ani zatwierdzać ocen. Nie udostępnia też notatek ani ocen cząstkowych przełożonego.",
+      "Monitoring postępów i terminów jest w przygotowaniu. Obecny widok HR pokazuje dane demonstracyjne — nie traktuj ich jako aktualnego stanu ocen.",
+    ],
+    action: "Przejdź do pracowników",
+    href: "/employees",
+  },
+  {
+    id: "ADMIN",
+    title: "Administrator",
+    description: "Odpowiadasz za dostęp do aplikacji i przypisanie osób.",
+    items: [
+      "Widzisz podstawowe profile pracowników w organizacji.",
+      "Sama rola administratora nie daje dostępu do treści ocen ani do panelu HR. Do prowadzenia ocen potrzebujesz również roli przełożonego i przypisania pracownika.",
+      "Panel zarządzania kontami, rolami i przypisaniami nie jest jeszcze dostępny. Zmiany wykonuje obecnie osoba obsługująca wdrożenie.",
+    ],
+    action: "Sprawdź listę pracowników",
+    href: "/employees",
+  },
+] as const;
 
 const questions = [
   [
-    "Kto zatwierdza ocenę?",
-    "Ostateczny poziom każdej kompetencji zatwierdza przełożony. Kompas wyłącznie pomaga uporządkować obserwacje.",
+    "Jak rozpocząć ocenę?",
+    "Jeśli jesteś przełożonym, otwórz Oceny → Nowa ocena. Wybierz przypisaną osobę i utwórz ocenę okresową C. Następnie wybierz kryteria, zapisz terminy i odnotuj czynności z rozmowy. Arkusze A/B i pierwsza ocena nie są jeszcze dostępne.",
   ],
   [
-    "Czy mogę wrócić do rozpoczętej oceny?",
-    "Tak. W tym prototypie stan pracy zapisuje się lokalnie w przeglądarce.",
+    "Nie widzę pracownika lub jego oceny. Co zrobić?",
+    "Poproś administratora o sprawdzenie Twojej roli i przypisania pracownika. Jeśli masz już przypisanie, ale nie ma oceny, jako przełożony możesz rozpocząć nową. Ocena prowadzona przez inną osobę nie pojawi się na Twojej liście. HR i administrator nie otrzymują dostępu do jej treści tylko z racji swojej roli.",
   ],
   [
-    "Skąd pochodzą opisy zachowań?",
-    "Są przygotowane wyłącznie na potrzeby demonstracji. W produkcie należy je zastąpić opisami z odpowiedniego Modelu kompetencji.",
+    "Jak wrócić do zapisanej pracy?",
+    "Otwórz Oceny i wybierz rozpoczętą ocenę. Własną historię ocen znajdziesz też na profilu pracownika. Używaj przycisków zapisu — niewysłane wpisy nie zapisują się automatycznie. Zapisane dane są w bazie i możesz do nich wrócić po ponownym zalogowaniu.",
   ],
   [
-    "Czy wydruk jest oficjalnym arkuszem?",
-    "Nie. W tej makiecie jest to przykładowy podgląd. Docelowy eksport ma wypełniać autentyczny wzór dokumentu B/C.",
+    "Co zrobić, gdy ocena zmieniła się w innej karcie?",
+    "Nie zamykaj formularza z własnymi wpisami. Otwórz zapisaną wersję w nowej karcie za pomocą odnośnika w komunikacie, porównaj dane i przenieś potrzebne zmiany. Aplikacja nie nadpisze nowszego zapisu automatycznie.",
+  ],
+  [
+    "Co oznacza potwierdzenie ustaleń?",
+    "Rejestrujesz, że rozmowa i wskazane czynności się odbyły. Najpierw zapisz kryteria, obie daty i trzy potwierdzenia. Po potwierdzeniu ustaleń kryteria i terminy są na tym etapie tylko do odczytu. To nie jest podpis pracownika ani potwierdzenie doręczenia dokumentu.",
+  ],
+  [
+    "Skąd pochodzą kryteria i co jest jeszcze w przygotowaniu?",
+    "Kryteria pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. Zapisywanie obserwacji, ocen cząstkowych, wyniku i dokumentów oraz analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
   ],
 ];
 
-export function Help() {
-  const { openAssistant, reset } = useWorkspace();
-  const [confirm, setConfirm] = useState(false);
+export function Help({ userRoles }: { userRoles: WorkspaceUser["roles"] }) {
   return (
     <>
       <PageHeading
         eyebrow="Centrum pomocy"
-        title="W czym możemy pomóc?"
-        description="Najczęstsze pytania i zasady działania demonstracyjnego Kompasu."
+        title="Jak pracować z Kompasem?"
+        description="Sprawdź, co możesz zrobić na swoim koncie i jak przejść do kolejnego kroku."
       />
-      <div className="grid gap-4 lg:grid-cols-[1fr_18.75rem]">
-        <Card className="p-6 sm:p-7">
-          <h2 className="mb-5 text-sm font-semibold">Częste pytania</h2>
-          {questions.map(([question, answer]) => (
-            <details key={question} className="group border-b py-4">
-              <summary className="flex list-none items-center justify-between gap-3 text-body font-semibold">
-                {question}
-                <Icon
-                  name="chevron-down"
-                  size={17}
-                  className="shrink-0 text-subtle-foreground group-open:rotate-180"
-                />
-              </summary>
-              <p className="mt-3 pr-5 text-body leading-6 text-muted-foreground">{answer}</p>
-            </details>
-          ))}
-        </Card>
-        <Card className="h-fit p-6">
-          <span className="mb-4 grid size-10 place-items-center rounded-xl bg-primary-muted text-primary">
-            <Icon name="sparkles" size={20} />
-          </span>
-          <h2 className="text-[0.8125rem] font-semibold">Asystent w kontekście</h2>
-          <p className="mt-3 mb-5 text-label leading-6 text-muted-foreground">
-            Zapytaj Kompas na dowolnym etapie pracy. Wersja demo korzysta z gotowych odpowiedzi.
-          </p>
-          <Button className="w-full" onClick={openAssistant}>
-            Otwórz asystenta
-          </Button>
-        </Card>
-      </div>
-      <div className="mt-6 flex flex-wrap items-center gap-2">
-        <Button onClick={() => setConfirm(true)}>
-          <Icon name="refresh" size={15} />
-          Zresetuj demo
-        </Button>
-        <Badge>Bez backendu · tylko dane testowe</Badge>
-      </div>
-      {confirm ? (
-        <Dialog title="Zresetować dane demonstracyjne?" onClose={() => setConfirm(false)}>
-          <div className="p-6">
-            <p className="text-body leading-6 text-muted-foreground">
-              Przywrócimy przykładowe postępy, oceny i notatki. Zmiany zapisane w tej przeglądarce
-              zostaną utracone.
-            </p>
-            <div className="mt-6 flex justify-end gap-2">
-              <Button onClick={() => setConfirm(false)}>Anuluj</Button>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  reset();
-                  setConfirm(false);
-                }}
-              >
-                Resetuj demo
-              </Button>
+      <div className="mb-6 grid gap-4 lg:grid-cols-3">
+        {roles.map((role) => (
+          <Card
+            key={role.id}
+            className={`flex flex-col p-6 ${userRoles.includes(role.id) ? "border-primary-border" : ""}`}
+          >
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold">{role.title}</h2>
+              {userRoles.includes(role.id) ? <Badge tone="primary">Twoja rola</Badge> : null}
             </div>
-          </div>
-        </Dialog>
-      ) : null}
+            <p className="mb-5 text-body font-medium">{role.description}</p>
+            <ul className="mb-6 list-disc space-y-3 pl-5 text-body leading-6 text-muted-foreground">
+              {role.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            {userRoles.includes(role.id) ? (
+              <ButtonLink href={role.href} className="mt-auto">
+                {role.action}
+                <Icon name="arrow-up-right" size={15} />
+              </ButtonLink>
+            ) : null}
+          </Card>
+        ))}
+      </div>
+      <Note className="mb-6">
+        Jedno konto może mieć kilka ról. Do prowadzenia oceny zawsze potrzebujesz roli przełożonego
+        i przypisania pracownika. Jeśli brakuje Ci dostępu, podaj administratorowi swój adres
+        logowania oraz imię i nazwisko pracownika. Administrator zleci zmianę osobie obsługującej
+        wdrożenie.
+      </Note>
+      <Card className="p-6 sm:p-7">
+        <h2 className="mb-3 text-sm font-semibold">Najczęstsze pytania</h2>
+        {questions.map(([question, answer]) => (
+          <details key={question} className="group border-b py-4 last:border-0">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-body font-semibold">
+              {question}
+              <Icon
+                name="chevron-down"
+                size={17}
+                className="shrink-0 text-subtle-foreground group-open:rotate-180"
+              />
+            </summary>
+            <p className="mt-3 pr-5 text-body leading-6 text-muted-foreground">{answer}</p>
+          </details>
+        ))}
+      </Card>
     </>
   );
 }

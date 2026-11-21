@@ -75,6 +75,12 @@ There is no automatic migration of demo data.
 Live Auth/API/SSR HTTP checks passed; browser verification remains outstanding.
 See `docs/backend-progress.md` at the repo root.
 
+Help describes the current MANAGER/HR/ADMIN capabilities and labels unavailable
+features explicitly. Empty states use the verified user's roles and current
+assignments to offer a next step. A profile visible via HR/ADMIN does not offer
+assessment creation unless that account also has MANAGER and that assignment.
+Role visibility is presentation only; the API independently authorizes mutations.
+
 API types in `src/lib/api/schema.d.ts` are generated from FastAPI OpenAPI:
 
 ```sh

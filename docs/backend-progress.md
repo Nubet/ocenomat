@@ -11,6 +11,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   i autorzy, wznowienie oraz podłączenie ekranów do API.
 - **Ostatnia zakończona praca:** P4-02 — zapis kryteriów, uzasadnień, terminów
   i czynności z rozmowy; jawne potwierdzenie ustaleń, zdarzenia i konflikty rewizji.
+  Pomoc i komunikaty pustych list wyjaśniają role oraz dostępne następne kroki.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -102,6 +103,31 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — pomoc i komunikaty według uprawnień
+
+- Pomoc opisuje osobno przełożonego, HR i administratora, oznacza role bieżącego
+  konta i pokazuje odpowiadające im odnośniki. Wyjaśnia własne autorstwo oceny,
+  aktualne przypisanie, wiele ról, powrót do zapisu i postępowanie przy konflikcie.
+- Usunięto nieaktualne informacje o braku backendu, wyłącznie lokalnym zapisie
+  i demonstracyjnych kryteriach oraz reset demo z Pomocy. Funkcje niegotowe
+  (monitoring HR, panel ról/przypisań, dokumenty, AI) są opisane zgodnie ze stanem.
+- Pusta lista ocen: przełożony z przypisaniem dostaje przycisk Nowa ocena;
+  bez przypisania instrukcję kontaktu z administratorem i wskazanie, jakie dane
+  podać. HR dostaje przejście do pracowników; administrator instrukcję zlecenia
+  zmiany roli/przypisania operatorowi. Nie sugerujemy im prowadzenia ocen bez MANAGER.
+- Profil pracownika sprawdza `assigned_only=true`, także dla kont z MANAGER+ADMIN,
+  zanim zaproponuje nową ocenę. Szeroki dostęp do profili nie zastępuje przypisania.
+- Przy pustej liście pracowników, błędach tworzenia i wyszukiwaniu komunikaty
+  podają prosty następny krok. Usunięto techniczny język o API/kluczach żądania
+  z tworzenia oceny. Nowa ocena nie jest proponowana dwukrotnie na pustym ekranie.
+- `npm run precommit` i `npm run build` — OK, 94 testy w 17 plikach. Testy obejmują
+  treści/akcje według ról i brak przycisku dla nieprzypisanego profilu widocznego
+  przez dodatkową rolę administratora. Live SSR HTTP: Pomoc i pusta lista HR/ADMIN
+  z właściwymi komunikatami i bez przycisku tworzenia — OK.
+- Przeglądarkowego E2E nie wykonano zgodnie z wcześniejszym zakazem. Następny
+  etap pozostaje P4-03; nie zmieniano uprawnień kont w środowisku.
+- Commit: `fix(frontend): explain roles and actionable next steps`.
 
 ### 2026-11-21 — P4-02, kryteria i terminy
 

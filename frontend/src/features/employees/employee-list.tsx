@@ -2,14 +2,21 @@ import { Card, PageHeading } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
 import { employeeHref, type EmployeeRecord } from "./types";
+import type { WorkspaceUser } from "@/features/auth/session";
 
-export function EmployeeList({ employees }: { employees: EmployeeRecord[] }) {
+export function EmployeeList({
+  employees,
+  roles,
+}: {
+  employees: EmployeeRecord[];
+  roles: WorkspaceUser["roles"];
+}) {
   return (
     <>
       <PageHeading
         eyebrow="Zespół"
         title="Pracownicy"
-        description="Pracownicy widoczni zgodnie z Twoimi uprawnieniami."
+        description="Otwórz profil pracownika, aby sprawdzić jego dane i własną historię ocen."
       />
       <div className="grid gap-4 md:grid-cols-2">
         {employees.map((employee) => (
@@ -30,7 +37,21 @@ export function EmployeeList({ employees }: { employees: EmployeeRecord[] }) {
       </div>
       {employees.length === 0 ? (
         <Card className="p-6 text-body text-muted-foreground">
-          Brak pracowników dostępnych dla Twojego konta. Przełożony widzi tylko przypisane osoby.
+          <h2 className="font-semibold text-foreground">
+            Nie ma jeszcze pracowników na tej liście
+          </h2>
+          <p className="mt-2 leading-6">
+            {roles.includes("ADMIN")
+              ? "Zleć osobie obsługującej wdrożenie dodanie pracowników i przypisanie ich przełożonym. Panel do tych zmian nie jest jeszcze dostępny w aplikacji."
+              : roles.includes("HR")
+                ? "Poproś administratora o sprawdzenie, czy pracownicy zostali dodani do organizacji."
+                : roles.includes("MANAGER")
+                  ? "Poproś administratora o przypisanie osób, których oceny masz prowadzić. Podaj swój adres logowania oraz imiona i nazwiska pracowników."
+                  : "Poproś administratora o sprawdzenie roli Twojego konta. Podaj adres, którym logujesz się do aplikacji."}
+          </p>
+          <ButtonLink href="/help" className="mt-4">
+            Sprawdź role i dostęp
+          </ButtonLink>
         </Card>
       ) : null}
     </>

@@ -53,7 +53,9 @@ export function CommandSearch({
           ))
         ) : (
           <output className="block p-5 text-center text-body text-muted-foreground">
-            Brak wyników.
+            Nie znaleźliśmy pasujących wyników. Wpisz krótszą nazwę lub sprawdź pisownię. Jeśli
+            szukasz pracownika, którego nie widzisz na liście, poproś administratora o sprawdzenie
+            dostępu.
           </output>
         )}
       </div>
