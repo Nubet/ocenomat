@@ -5,15 +5,28 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     String,
     Text,
     UniqueConstraint,
     func,
+    literal_column,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
+
+
+def search_vector(content):
+    return func.to_tsvector(
+        literal_column("'simple'::regconfig"),
+        func.translate(
+            func.lower(content),
+            literal_column("'ąćęłńóśźż'"),
+            literal_column("'acelnoszz'"),
+        ),
+    )
 
 
 class KnowledgeSource(Base):
@@ -111,3 +124,12 @@ class KnowledgeChunk(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+KnowledgeChunk.__table__.append_constraint(
+    Index(
+        "ix_knowledge_chunks_search",
+        search_vector(KnowledgeChunk.content),
+        postgresql_using="gin",
+    )
+)

@@ -324,6 +324,57 @@ ekstrakcji unieważnia dopasowanie decyzji. Starsza lub sprzeczna decyzja w tej
 samej chwili jest odrzucana. Ponowienie bez pliku decyzji zachowuje zatwierdzenia.
 Legalność/aktualność nie wynika z zatwierdzenia wierności tekstu.
 
+### Wyszukiwanie zatwierdzonej wiedzy (P6-03)
+
+`KnowledgeRetriever` ma implementację `PostgresKnowledgeRetriever(session)`.
+Korzysta ze wspólnego korpusu, nie z dokumentów pracowników. Nie ma jeszcze
+endpointu asystenta; P6-04 podłączy ten kontrakt do providera i walidacji cytowań.
+
+```python
+from app.modules.knowledge.retriever import PostgresKnowledgeRetriever, RetrievalQuery
+
+result = PostgresKnowledgeRetriever(session).retrieve(
+    RetrievalQuery(
+        question="Ile kryteriów dodatkowych można wybrać?",
+        assessment_kind="periodic",  # first / periodic / unspecified
+        limit=5,
+        max_characters=20000,
+    )
+)
+```
+
+- Migracja `0015` tworzy współbieżnie indeks GIN wyrażenia `to_tsvector` bez
+  zmiany oryginałów, fragmentów lub decyzji review. Używa jawnego `simple`, bez
+  założenia obecności słownika polskiego. Translacja polskich znaków i prefiksy
+  pięcioliterowe służą wyłącznie wyszukiwaniu; zwracana treść pozostaje identyczna
+  z zatwierdzoną ekstrakcją. To dopasowanie leksykalne, nie pełna analiza fleksyjna.
+- Pytanie ma limit 1000 znaków; operatory użytkownika nie stają się składnią
+  tsquery. Jawne `§ N` i `art. N` wskazują locatory strukturalne. Nieistniejący
+  przepis nie jest zastępowany wynikiem o podobnym numerze.
+- Filtry SQL wymagają `approved` fragmentu, źródła innego niż `rejected`,
+  `verified_current`, właściwego rodzaju oceny i dozwolonego typu źródła.
+  OSP, drugi katalog i `example_only`/`validation_only`/`duplicate_subset` są
+  wykluczone przed zwróceniem treści. Częściowe approval nie wymaga zatwierdzenia
+  całego źródła. Następnie sprawdzane są hash treści i datowane oficjalne provenance.
+- Dla jednego canonical ID preferowane są kompletne paragrafy HTML; reprezentacja
+  PDF i powielony załącznik nie są liczone jako niezależne dowody. Przy nierozpoznanej
+  strukturze `original-v1` PDF fallback wymaga całego zatwierdzonego dokumentu
+  mieszczącego się w limitach, aby granica strony nie odcięła dalszego wyjątku.
+- `required_context` jest rozwiązywane przechodnio wyłącznie w tym samym źródle,
+  z obsługą cykli. Brak fragmentu/approval, niezgodny hash lub niezweryfikowane
+  warianty czasowe blokują dany wynik. Nie wybieramy przyszłego brzmienia ustawy.
+- Kontekst jest przyjmowany w całości albo pomijany, nigdy ucinany. Domyślnie
+  najwyżej 5 fragmentów / 20 tys. znaków treści, maksymalnie 10 / 40 tys.; przed
+  wywołaniem modelu P6-04 musi uwzględnić także tokeny instrukcji i odpowiedzi.
+- `matched` oznacza znalezione fragmenty, **nie potwierdzoną odpowiedź**.
+  Brak wyników daje `insufficient_evidence`. Diagnostyka wskazuje brak dopasowania,
+  limit kandydatów/kontekstu lub niekompletną podstawę. Ranking nie rozstrzyga
+  sprzeczności ani prawnej stosowalności do konkretnego pracownika.
+
+Test jakości P6-03 sprawdza dziewięć pytań i właściwe źródło w pierwszych pięciu
+wynikach na oryginałach. Nie jest to pełna ewaluacja 30–50 pytań P6-07 ani pomiar
+jakości odpowiedzi LLM. Ustawa/FAQ nadal nie są zatwierdzonym korpusem aktualnego prawa.
+
 Blokada na `source_id` serializuje importy. Identyczny import odczytuje i sprawdza
 oryginał w RustFS, nie tworzy kolejnego obiektu ani fragmentów. Inna zawartość
 lub metadane pod tym samym ID wymagają nowego ID wersji; nie nadpisujemy cytowań.

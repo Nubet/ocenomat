@@ -133,6 +133,27 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
 
 ## Wykonane zadania
 
+### 2026-11-21 — P6-03, wyszukiwanie zatwierdzonego korpusu
+
+- Dodano kontrakt `KnowledgeRetriever`, modele zapytania/wyniku oraz implementację
+  PostgreSQL FTS. `simple` + translacja polskich znaków/prefiksy, bez nowych
+  zależności ani bazy wektorowej; oryginalna treść pozostaje niezmieniona.
+- `0015` dodaje współbieżny indeks GIN wyrażenia; test potwierdza jego używalność.
+  Migracje upgrade/retry/check i roundtrip w oddzielnym schemacie testowym OK.
+- Filtry approval/aktualności/rodzaju oceny/typu źródła i przeznaczenia wykluczają
+  OSP i kopie walidacyjne. Sprawdzane są hash treści i oficjalne provenance;
+  częściowe approval nie zatwierdza całego źródła.
+- Deduplikacja canonical ID preferuje HTML z całymi paragrafami. Zależności
+  `required_context` są przechodnie i ograniczone do źródła. Cykle obsługiwane;
+  brak approval, przyszłe/niezweryfikowane warianty lub przekroczenie limitu
+  pomijają cały kontekst. PDF bez struktury wymaga całego zatwierdzonego dokumentu
+  mieszczącego się w limitach. Nie ma arbitralnego odcinania stron/wyjątków.
+- Celowana regresja wiedzy/CLI/ekstrakcji/importu/migracji: **104 passed,
+  20,65 s, bez skipów**; Ruff lint/format OK. Dziewięć pytań na oryginałach ma
+  właściwy paragraf w top-5; to nie pełna ewaluacja P6-07. Znane ostrzeżenie
+  deprecjacji Starlette/httpx, bez wpływu na wynik.
+- Pozostaje wdrożenie `0015` i smoke na bazie aplikacji, po nim finalny status.
+
 ### 2026-11-21 — P6-02, zapis zmian i selektywny import CLI
 
 - Dotychczasowe zmiany zapisano: `ec1091a` (ekstrakcja/provenance), `cb17381`
