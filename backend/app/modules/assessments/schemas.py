@@ -1,8 +1,16 @@
 from datetime import date, datetime
+from fractions import Fraction
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_serializer,
+    model_validator,
+)
 
 from app.modules.assessments.models import AssessmentStatus
 from app.modules.assessments.rules import PERIODIC_SCORES, REQUIRED_CRITERIA
@@ -41,6 +49,8 @@ class AssessmentResponse(BaseModel):
     observations: list["ObservationResponse"]
     conversation: "ConversationResponse | None"
     ratings: list["RatingResponse"]
+    summary: "SummaryResponse | None"
+    result: "ResultResponse"
 
 
 class CriterionSelection(BaseModel):
@@ -87,7 +97,9 @@ class DatesUpdate(RevisionCommand):
 
 
 class AssessmentTransition(RevisionCommand):
-    action: Literal["agree_criteria", "start_period", "confirm_conversation"]
+    action: Literal[
+        "agree_criteria", "start_period", "confirm_conversation", "complete"
+    ]
 
 
 class ObservationCreate(RevisionCommand):
@@ -165,3 +177,34 @@ class RatingResponse(BaseModel):
     score: int | None
     confirmed_by: UUID | None
     confirmed_at: datetime | None
+
+
+class SummaryUpdate(RevisionCommand):
+    negative_justification: Annotated[
+        str, StringConstraints(strip_whitespace=True, max_length=10000)
+    ]
+    development_conclusions: Annotated[
+        str, StringConstraints(strip_whitespace=True, max_length=10000)
+    ]
+
+
+class SummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    negative_justification: str
+    development_conclusions: str
+    author_id: UUID
+    recorded_at: datetime
+    completed_by: UUID | None
+    completed_at: datetime | None
+
+
+class ResultResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    outcome: Literal["incomplete", "positive", "negative"]
+    mean: Fraction | None
+
+    @field_serializer("mean")
+    def display_mean(self, value: Fraction | None) -> str | None:
+        return format(value, ".2f") if value is not None else None

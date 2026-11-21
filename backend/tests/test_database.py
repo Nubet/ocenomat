@@ -68,7 +68,7 @@ def test_postgresql_readiness_and_migrations(monkeypatch):
 
 
 @pytest.mark.integration
-def test_rating_migration_roundtrip_in_isolated_schema(monkeypatch):
+def test_assessment_migrations_roundtrip_in_isolated_schema(monkeypatch):
     url = os.environ.get("KOMPAS_TEST_DATABASE_URL")
     if not url:
         pytest.skip("Requires a dedicated PostgreSQL test database")
@@ -84,6 +84,8 @@ def test_rating_migration_roundtrip_in_isolated_schema(monkeypatch):
         monkeypatch.setenv(
             "KOMPAS_DATABASE_URL", isolated_url.render_as_string(hide_password=False)
         )
+        command.upgrade(config, "head")
+        command.downgrade(config, "0008")
         command.upgrade(config, "head")
         command.downgrade(config, "0007")
         command.upgrade(config, "head")

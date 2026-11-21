@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from enum import StrEnum
+from fractions import Fraction
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -17,6 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+from app.modules.assessments.rules import Result, periodic_result
 
 
 class AssessmentStatus(StrEnum):
@@ -86,6 +88,23 @@ class Assessment(Base):
         cascade="all, delete-orphan",
         order_by="CriterionRating.criterion_id",
     )
+    summary: Mapped["AssessmentSummary | None"] = relationship(
+        lazy="selectin", cascade="all, delete-orphan"
+    )
+
+    @property
+    def result(self) -> Result:
+        if self.summary is not None and self.summary.outcome is not None:
+            return Result(
+                self.summary.outcome,
+                Fraction(self.summary.score_total, self.summary.score_count),
+            )
+        if len(self.criteria) < 5:
+            return Result("incomplete", None)
+        return periodic_result(
+            [item.criterion_id for item in self.criteria],
+            {item.criterion_id: item.score for item in self.ratings},
+        )
 
 
 class AssessmentCriterion(Base):
@@ -217,3 +236,35 @@ class IndicatorAnswer(Base):
     indicator_id: Mapped[UUID] = mapped_column(primary_key=True)
     level: Mapped[int | None] = mapped_column()
     note: Mapped[str] = mapped_column(String(4000))
+
+
+class AssessmentSummary(Base):
+    __tablename__ = "assessment_summaries"
+    __table_args__ = (
+        CheckConstraint("outcome IN ('positive', 'negative')"),
+        CheckConstraint("score_count BETWEEN 5 AND 8"),
+        CheckConstraint("score_total BETWEEN score_count AND 9 * score_count"),
+        CheckConstraint(
+            "(outcome IS NULL AND score_total IS NULL AND score_count IS NULL "
+            "AND completed_by IS NULL AND completed_at IS NULL) OR "
+            "(outcome IS NOT NULL AND score_total IS NOT NULL "
+            "AND score_count IS NOT NULL "
+            "AND completed_by IS NOT NULL AND completed_at IS NOT NULL)"
+        ),
+        CheckConstraint(
+            "outcome != 'negative' OR length(trim(negative_justification)) > 0"
+        ),
+    )
+
+    assessment_id: Mapped[UUID] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), primary_key=True
+    )
+    negative_justification: Mapped[str] = mapped_column(String(10000))
+    development_conclusions: Mapped[str] = mapped_column(String(10000))
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    outcome: Mapped[str | None] = mapped_column(String(10))
+    score_total: Mapped[int | None] = mapped_column()
+    score_count: Mapped[int | None] = mapped_column()
+    completed_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

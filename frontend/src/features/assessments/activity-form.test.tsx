@@ -8,6 +8,8 @@ import { ActivityForm } from "./activity-form";
 
 const assessment: AssessmentRecord = {
   ratings: [],
+  summary: null,
+  result: { outcome: "incomplete", mean: null },
   id: "test",
   employee_id: "employee",
   assessor_id: "manager",

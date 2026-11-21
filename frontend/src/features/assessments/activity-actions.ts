@@ -63,9 +63,19 @@ export async function saveActivity(
       break;
     case "start_period":
     case "confirm_conversation":
+    case "complete":
       suffix = "/transitions";
       method = "POST";
       body = { revision, action: operation };
+      break;
+    case "summary":
+      suffix = "/summary";
+      method = "PUT";
+      body = {
+        revision,
+        negative_justification: form.get("negative_justification"),
+        development_conclusions: form.get("development_conclusions"),
+      };
       break;
     case "answers":
     case "rating": {
@@ -121,11 +131,13 @@ export async function saveActivity(
         404: "Nie masz już dostępu do tej oceny. Zachowaj swoje notatki i poproś administratora o sprawdzenie przypisania pracownika.",
         409: "Ocena zmieniła się w innej karcie lub ten etap jest już zamknięty. Twoje wpisy pozostają w formularzu. Otwórz zapisaną wersję w nowej karcie i porównaj dane.",
         422:
-          operation === "answers" || operation === "rating"
-            ? "Sprawdź wybrane opisy zachowań i notatki (do 4000 znaków). Możesz też zaznaczyć brak obserwacji. Przed zatwierdzeniem zapisz odpowiedzi i wybierz ocenę 1, 3, 5, 7 lub 9."
-            : operation === "observation"
-              ? "Wpisz konkretną obserwację (do 10 000 znaków), wybierz kryterium tej oceny i datę od rozmowy rozpoczynającej do dzisiaj."
-              : "Każda notatka może mieć do 10 000 znaków. Data odbytej rozmowy musi przypadać między rozmową rozpoczynającą a dzisiaj. Przed potwierdzeniem zapisz jej datę.",
+          operation === "summary" || operation === "complete"
+            ? "Zatwierdź wszystkie wybrane kryteria i zapisz podsumowanie. Wynik negatywny wymaga uzasadnienia. Każde pole podsumowania może mieć do 10 000 znaków."
+            : operation === "answers" || operation === "rating"
+              ? "Sprawdź wybrane opisy zachowań i notatki (do 4000 znaków). Możesz też zaznaczyć brak obserwacji. Przed zatwierdzeniem zapisz odpowiedzi i wybierz ocenę 1, 3, 5, 7 lub 9."
+              : operation === "observation"
+                ? "Wpisz konkretną obserwację (do 10 000 znaków), wybierz kryterium tej oceny i datę od rozmowy rozpoczynającej do dzisiaj."
+                : "Każda notatka może mieć do 10 000 znaków. Data odbytej rozmowy musi przypadać między rozmową rozpoczynającą a dzisiaj. Przed potwierdzeniem zapisz jej datę.",
       };
       return {
         error:
@@ -154,6 +166,8 @@ export async function saveActivity(
     answers:
       "Odpowiedzi zapisane. Propozycja oceny została zaktualizowana. Jeśli zmieniono odpowiedzi, zatwierdź ocenę tego kryterium ponownie.",
     rating: "Ocena kryterium została zatwierdzona. Cały proces oceny nie jest jeszcze zakończony.",
+    summary: "Podsumowanie zapisane. Sprawdź wynik i zakończ ocenę, gdy wszystkie dane są gotowe.",
+    complete: "Ocena zakończona. Zapisane dane są teraz tylko do odczytu.",
   };
   return { error: "", conflict: false, assessment, message: messages[operation] };
 }

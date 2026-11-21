@@ -161,6 +161,19 @@ decyzję tylko tego kryterium. Identyczny zapis nie unieważnia decyzji. Zapis
 decyzji nie finalizuje całej oceny. Wszystkie mutacje używają wspólnej blokady,
 rewizji i atomowego zdarzenia; nie zapisujemy treści notatek w zdarzeniach.
 
+Uszczegółowienie DEC-006/007/008 (2026-11-21, P4-05): wynik bieżący pochodzi
+wyłącznie z zatwierdzonych ocen wszystkich wybranych kryteriów. Odpowiedź zawiera
+`outcome` i średnią wyświetlaną do dwóch miejsc; decyzja używa dokładnego ułamka.
+Osobny zapis podsumowania przyjmuje uzasadnienie i opcjonalne wnioski rozwojowe
+(po 10 000 znaków). Można zapisać niepełny szkic. Jawne `complete` wymaga zapisania
+podsumowania, a przy wyniku negatywnym niepustego uzasadnienia. Nie dodajemy wymogu
+niepustych wniosków bez ustalonej podstawy. Pod wspólną blokadą sprawdzamy ponownie
+ustalenia, rozmowę i komplet decyzji; utrwalamy wynik, sumę/liczbę ocen i osobny
+autor/czas zakończenia. Odczyt zamkniętej oceny korzysta z tej migawki wyniku.
+Retry `complete` w `completed` akceptuje tylko rewizję źródłową lub wynikową,
+bez ponownej mutacji/zdarzenia, nadal z kontrolą aktualnego dostępu. Inne rewizje
+zwracają 409. Zamkniętej oceny nie można edytować ani otworzyć do korekty.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

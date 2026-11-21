@@ -55,6 +55,8 @@ const assessment: AssessmentRecord = {
   observations: [],
   conversation: null,
   ratings: [],
+  summary: null,
+  result: { outcome: "incomplete", mean: null },
 };
 function render(record = assessment, visible = true) {
   return renderToStaticMarkup(
@@ -64,6 +66,7 @@ function render(record = assessment, visible = true) {
       visible={visible}
       onSaved={() => {}}
       onPendingChange={() => {}}
+      onDirtyChange={() => {}}
     />,
   );
 }

@@ -10,6 +10,7 @@ import type { components } from "@/lib/api/schema";
 import { saveArrangements } from "./actions";
 import { ActivityForm } from "./activity-form";
 import { EvaluationForm } from "./evaluation-form";
+import { CompletionForm } from "./completion-form";
 import {
   assessmentHref,
   assessmentStatusLabels,
@@ -17,7 +18,15 @@ import {
   type AssessmentActionState,
 } from "./types";
 
-const steps = ["analysis", "criteria", "timing", "period", "conversation", "evaluation"] as const;
+const steps = [
+  "analysis",
+  "criteria",
+  "timing",
+  "period",
+  "conversation",
+  "evaluation",
+  "summary",
+] as const;
 const labels = [
   "Stanowisko i kontekst",
   "Kryteria",
@@ -25,6 +34,7 @@ const labels = [
   "Obserwacje",
   "Rozmowa oceniająca",
   "Ocena zachowań",
+  "Wynik i zakończenie",
 ];
 const confirmations = [
   ["duties_discussed", "Omówiono obowiązki wynikające z opisu stanowiska"],
@@ -46,11 +56,14 @@ export function ArrangementForm({
     steps.find((value) => value === requestedStep) ??
       (assessment.status === "draft"
         ? "analysis"
-        : assessment.status === "evaluation" || assessment.status === "completed"
-          ? "evaluation"
-          : "period"),
+        : assessment.status === "completed"
+          ? "summary"
+          : assessment.status === "evaluation"
+            ? "evaluation"
+            : "period"),
   );
   const [activityPending, setActivityPending] = useState(false);
+  const [evaluationDirty, setEvaluationDirty] = useState(false);
   const [additional, setAdditional] = useState(
     assessment.criteria.filter((item) => !item.required).map((item) => item.criterion_id),
   );
@@ -121,8 +134,9 @@ export function ArrangementForm({
       </div>
       {readonly ? (
         <Note className="mb-5">
-          Ustalenia zostały potwierdzone. Możesz je przeglądać, ale nie zmienisz już kryteriów ani
-          terminów na tym etapie. Obserwacje i notatki znajdziesz w kolejnych zakładkach.
+          {current.status === "completed"
+            ? "Ocena została zakończona. Wszystkie zapisane dane są tylko do odczytu."
+            : "Ustalenia zostały potwierdzone. Możesz je przeglądać, ale nie zmienisz już kryteriów ani terminów na tym etapie. Obserwacje i notatki znajdziesz w kolejnych zakładkach."}
         </Note>
       ) : null}
       <nav aria-label="Etapy oceny" className="mb-6 flex flex-wrap gap-2">
@@ -365,12 +379,21 @@ export function ArrangementForm({
         onSaved={setCurrent}
         onPendingChange={setActivityPending}
       />
+      <CompletionForm
+        assessment={current}
+        catalog={catalog}
+        visible={step === "summary"}
+        evaluationDirty={evaluationDirty}
+        onSaved={setCurrent}
+        onPendingChange={setActivityPending}
+      />
       <EvaluationForm
         assessment={current}
         catalog={catalog}
         visible={step === "evaluation"}
         onSaved={setCurrent}
         onPendingChange={setActivityPending}
+        onDirtyChange={setEvaluationDirty}
       />
       <div className="mt-6 flex flex-wrap justify-between gap-3">
         <ButtonLink href="/assessments">Wróć do ocen</ButtonLink>

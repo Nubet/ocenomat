@@ -101,8 +101,10 @@ def test_note_change_invalidates_only_its_criterion(evaluation):
     access = evaluation
     assert answers(access).status_code == 200
     assert confirm(access).status_code == 200
-    other = (
-        access.session.get(Assessment, access.assessment["id"]).criteria[0].criterion_id
+    other = next(
+        item.criterion_id
+        for item in access.session.get(Assessment, access.assessment["id"]).criteria
+        if item.criterion_id != access.criterion
     )
     access.criterion = other
     assert confirm(access, revision=9, score=3).status_code == 200

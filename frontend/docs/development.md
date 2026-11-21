@@ -77,7 +77,7 @@ Observation and conversation editing also uses the API:
   mounted while reviewing arrangement screens; they never use the demo workspace.
 - Confirmation requires the saved date and no unsent changes, and is separate from saving.
   It advances to `evaluation`, where journal and conversation editing is locked.
-  Criterion rating is available in `evaluation`; final result/completion remains for P4-05.
+  Criterion rating, result and completion are available in `evaluation`.
 - Pending saves block navigation and duplicate submits. Errors preserve text; an unresolved
   conflict blocks resubmission and links to the saved version in a separate tab.
 
@@ -95,11 +95,25 @@ Behavioral evaluation and manual decisions use the same authorized Server Action
 - Interface text uses “Proponowana ocena” and explains the next step without displaying
   policy identifiers, author UUIDs, or backend implementation terminology.
 - Reload restores saved answers, suggestions, decisions and dates. Completed records are
-  read-only; there is no simulated finalization action.
+  read-only.
+
+Result and completion use the API, with no browser-side scoring:
+
+- `?step=summary` shows the API outcome and display mean alongside all selected
+  criterion decisions. Missing approvals are visible; suggestions never fill them in.
+- `CompletionForm` saves controlled justification/development drafts separately from
+  the explicit `complete` command. Negative results require a saved justification;
+  development conclusions may be empty. Pending/error/conflict handling uses the
+  existing Server Action transport and preserves input.
+- Unsaved behavioral answers/score choices and unsaved summary text block completion.
+  Summary and evaluation remain mounted across tabs; no localStorage or demo autofill.
+- Completed assessments open on the summary, show the server completion date and lock
+  all edits. Retried completion does not duplicate its event or change its timestamp.
+  Completion does not claim the document was signed or delivered; PDF is part of P5.
 
 Dashboard, deadlines and HR monitoring still
 contain labelled demo data until P7. Legacy flow components remain as the visual
-reference for the remaining P4 screens; the UUID route no longer mounts them.
+reference for document and later process screens; the UUID route no longer mounts them.
 Do not enter real employee information into the legacy local workspace.
 There is no automatic migration of demo data.
 Live Auth/API/SSR HTTP checks passed; browser verification remains outstanding.

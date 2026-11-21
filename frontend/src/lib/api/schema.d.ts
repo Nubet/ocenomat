@@ -210,6 +210,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Summary */
+    put: operations["update_summary_api_v1_assessments__assessment_id__summary_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/result": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Result */
+    get: operations["assessment_result_api_v1_assessments__assessment_id__result_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -338,6 +372,8 @@ export interface components {
       conversation: components["schemas"]["ConversationResponse"] | null;
       /** Ratings */
       ratings: components["schemas"]["RatingResponse"][];
+      summary: components["schemas"]["SummaryResponse"] | null;
+      result: components["schemas"]["ResultResponse"];
     };
     /**
      * AssessmentStatus
@@ -352,7 +388,7 @@ export interface components {
        * Action
        * @enum {string}
        */
-      action: "agree_criteria" | "start_period" | "confirm_conversation";
+      action: "agree_criteria" | "start_period" | "confirm_conversation" | "complete";
     };
     /** CatalogResponse */
     CatalogResponse: {
@@ -611,11 +647,51 @@ export interface components {
       /** Confirmed At */
       confirmed_at: string | null;
     };
+    /** ResultResponse */
+    ResultResponse: {
+      /**
+       * Outcome
+       * @enum {string}
+       */
+      outcome: "incomplete" | "positive" | "negative";
+      /** Mean */
+      mean: string | null;
+    };
     /**
      * Role
      * @enum {string}
      */
     Role: "MANAGER" | "HR" | "ADMIN";
+    /** SummaryResponse */
+    SummaryResponse: {
+      /** Negative Justification */
+      negative_justification: string;
+      /** Development Conclusions */
+      development_conclusions: string;
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
+      /** Completed By */
+      completed_by: string | null;
+      /** Completed At */
+      completed_at: string | null;
+    };
+    /** SummaryUpdate */
+    SummaryUpdate: {
+      /** Revision */
+      revision: number;
+      /** Negative Justification */
+      negative_justification: string;
+      /** Development Conclusions */
+      development_conclusions: string;
+    };
     /** UserResponse */
     UserResponse: {
       /**
@@ -1095,6 +1171,72 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_summary_api_v1_assessments__assessment_id__summary_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SummaryUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  assessment_result_api_v1_assessments__assessment_id__result_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResultResponse"];
         };
       };
       /** @description Validation Error */

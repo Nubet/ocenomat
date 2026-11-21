@@ -155,6 +155,7 @@ def edit_assessment(
     *,
     allowed_status: AssessmentStatus = AssessmentStatus.DRAFT,
     occurred_on: date | None = None,
+    replay_status: AssessmentStatus | None = None,
 ) -> Iterator[Assessment]:
     try:
         assessment = session.scalar(
@@ -170,6 +171,13 @@ def edit_assessment(
         )
         if assessment is None:
             raise AssessmentError("not_found", "Assessment not found")
+        if assessment.status == replay_status and revision in (
+            assessment.revision - 1,
+            assessment.revision,
+        ):
+            yield assessment
+            session.commit()
+            return
         if assessment.revision != revision or assessment.status != allowed_status:
             raise AssessmentError(
                 "conflict",

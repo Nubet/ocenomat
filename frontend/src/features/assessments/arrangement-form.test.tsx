@@ -33,6 +33,8 @@ const assessment: AssessmentRecord = {
   arrangements_shared: false,
   observations: [],
   ratings: [],
+  summary: null,
+  result: { outcome: "incomplete", mean: null },
   conversation: null,
 };
 const catalog: components["schemas"]["CatalogResponse"] = {
@@ -76,5 +78,12 @@ describe("persisted arrangement screens", () => {
     expect(html).toContain('<fieldset disabled="">');
     expect(html).toContain("Ustalenia zostały potwierdzone");
     expect(html).toContain("Zapisane uzasadnienie");
+  });
+  it("opens completed assessments on the read-only summary", () => {
+    const html = renderToStaticMarkup(
+      <ArrangementForm assessment={{ ...assessment, status: "completed" }} catalog={catalog} />,
+    );
+    expect(html).toMatch(/aria-current="step"[^>]*>7\. Wynik i zakończenie/);
+    expect(html).toContain("Wszystkie zapisane dane są tylko do odczytu");
   });
 });

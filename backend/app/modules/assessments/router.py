@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
+from app.modules.assessments.completion import complete_assessment, save_summary
 from app.modules.assessments.evaluation import confirm_rating, save_answers
 from app.modules.assessments.models import Assessment
+from app.modules.assessments.rules import Result
 from app.modules.assessments.schemas import (
     AnswersUpdate,
     AssessmentCreate,
@@ -17,6 +19,8 @@ from app.modules.assessments.schemas import (
     DatesUpdate,
     ObservationCreate,
     RatingConfirm,
+    ResultResponse,
+    SummaryUpdate,
 )
 from app.modules.assessments.service import (
     AssessmentError,
@@ -127,6 +131,7 @@ def transition(
             "agree_criteria": agree_criteria,
             "start_period": start_period,
             "confirm_conversation": confirm_conversation,
+            "complete": complete_assessment,
         }[data.action]
         result = operation(session, user, assessment_id, data.revision)
     except AssessmentError as error:
@@ -204,6 +209,32 @@ def approve_rating(
         raise assessment_http_error(error) from None
     response.headers["Cache-Control"] = "private, no-store"
     return result
+
+
+@router.put("/{assessment_id}/summary", response_model=AssessmentResponse)
+def update_summary(
+    assessment_id: UUID,
+    data: SummaryUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = save_summary(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.get("/{assessment_id}/result", response_model=ResultResponse)
+def assessment_result(
+    assessment_id: UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Result:
+    return assessment_detail(assessment_id, user, session, response).result
 
 
 @router.get("/{assessment_id}", response_model=AssessmentResponse)

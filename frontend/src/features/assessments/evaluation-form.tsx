@@ -21,20 +21,33 @@ export function EvaluationForm({
   visible,
   onSaved,
   onPendingChange,
+  onDirtyChange,
 }: {
   assessment: AssessmentRecord;
   catalog: components["schemas"]["CatalogResponse"];
   visible: boolean;
   onSaved: (assessment: AssessmentRecord) => void;
   onPendingChange: (pending: boolean) => void;
+  onDirtyChange: (dirty: boolean) => void;
 }) {
+  const [drafts, setDrafts] = useState<Record<string, boolean>>({});
+  function markDraft(criterionId: string, dirty: boolean) {
+    const next = { ...drafts, [criterionId]: dirty };
+    setDrafts(next);
+    onDirtyChange(Object.values(next).some(Boolean));
+  }
   const [state, action, pending] = useActionState(
     async (previous: AssessmentActionState, data: FormData) => {
       if (previous.conflict) return previous;
       onPendingChange(true);
       try {
         const result = await saveActivity(assessment.id, previous, data);
-        if (result.assessment) onSaved(result.assessment);
+        if (result.assessment) {
+          onSaved(result.assessment);
+          const criterionId = String(data.get("criterion_id"));
+          const saved = result.assessment.ratings.find((item) => item.criterion_id === criterionId);
+          markDraft(criterionId, (data.get("score") ?? "") !== (saved?.score?.toString() ?? ""));
+        }
         return result;
       } finally {
         onPendingChange(false);
@@ -76,8 +89,8 @@ export function EvaluationForm({
         <>
           <p className="mb-5 text-body">
             Zatwierdzono {assessment.ratings.filter((item) => item.score !== null).length} z{" "}
-            {selected.length} kryteriów. Podsumowanie wyniku i zakończenie procesu oceny są jeszcze
-            w przygotowaniu.
+            {selected.length} kryteriów. Wynik i zakończenie procesu znajdziesz w zakładce „Wynik i
+            zakończenie”.
           </p>
           <div className="space-y-5">
             {selected.map((criterion) => (
@@ -88,6 +101,7 @@ export function EvaluationForm({
                 action={action}
                 pending={pending}
                 conflict={state.conflict}
+                onDraftChange={() => markDraft(criterion.id, true)}
               />
             ))}
           </div>
@@ -103,12 +117,14 @@ function CriterionEvaluation({
   action,
   pending,
   conflict,
+  onDraftChange,
 }: {
   criterion: components["schemas"]["Criterion"];
   assessment: AssessmentRecord;
   action: (data: FormData) => void;
   pending: boolean;
   conflict: boolean;
+  onDraftChange: () => void;
 }) {
   const rating = assessment.ratings.find((item) => item.criterion_id === criterion.id);
   const [answers, setAnswers] = useState(() =>
@@ -136,7 +152,7 @@ function CriterionEvaluation({
           {rating?.score != null ? `Zatwierdzono: ${rating.score}` : "Wymaga decyzji"}
         </Badge>
       </div>
-      <form action={action}>
+      <form action={action} onChange={onDraftChange}>
         <input type="hidden" name="revision" value={assessment.revision} />
         <input type="hidden" name="criterion_id" value={criterion.id} />
         <fieldset disabled={pending || assessment.status !== "evaluation"}>

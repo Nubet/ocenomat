@@ -31,6 +31,8 @@ function form(operation = "observation") {
     strengths: "Mocne strony",
     growth: "Rozwój",
     conversation_date: "2026-03-12",
+    negative_justification: "Powody oceny",
+    development_conclusions: "Plan rozwoju",
     author_id: "untrusted",
     confirmed_at: "untrusted",
     status: "completed",
@@ -87,6 +89,22 @@ describe("persistent observations and conversation actions", () => {
       method: "POST",
       suffix: "/transitions",
       body: { revision: 5, action: "confirm_conversation" },
+    },
+    {
+      operation: "summary",
+      method: "PUT",
+      suffix: "/summary",
+      body: {
+        revision: 5,
+        negative_justification: "Powody oceny",
+        development_conclusions: "Plan rozwoju",
+      },
+    },
+    {
+      operation: "complete",
+      method: "POST",
+      suffix: "/transitions",
+      body: { revision: 5, action: "complete" },
     },
   ])("sends only the $operation command fields", async ({ operation, method, suffix, body }) => {
     const result = await saveActivity(id, previous, form(operation));
@@ -156,7 +174,7 @@ describe("persistent observations and conversation actions", () => {
   );
 
   it("rejects unknown commands and invalid assessment IDs", async () => {
-    expect((await saveActivity(id, previous, form("complete"))).error).toBeTruthy();
+    expect((await saveActivity(id, previous, form("unknown"))).error).toBeTruthy();
     expect((await saveActivity("bad", previous, form())).error).toBeTruthy();
     expect(apiRequest).not.toHaveBeenCalled();
   });
@@ -224,5 +242,17 @@ describe("persistent observations and conversation actions", () => {
     expect(result.assessment).toBeUndefined();
     expect(data.get(`note:${id}`)).toBe("Własny tekst");
     expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it.each([409, 422, 500])("preserves summary text on completion failure %s", async (status) => {
+    vi.mocked(apiRequest).mockResolvedValue(new Response(null, { status }));
+    const data = form("complete");
+    const result = await saveActivity(id, previous, data);
+    expect(result.error).toBeTruthy();
+    expect(result.conflict).toBe(status === 409);
+    expect(data.get("negative_justification")).toBe("Powody oceny");
+    expect(data.get("development_conclusions")).toBe("Plan rozwoju");
+    expect(revalidatePath).not.toHaveBeenCalled();
+    expect(apiRequest).toHaveBeenCalledTimes(1);
   });
 });

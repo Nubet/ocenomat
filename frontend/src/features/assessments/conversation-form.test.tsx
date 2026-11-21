@@ -11,6 +11,8 @@ const draft: ConversationDraft = {
 };
 const assessment: AssessmentRecord = {
   ratings: [],
+  summary: null,
+  result: { outcome: "incomplete", mean: null },
   id: "assessment",
   employee_id: "employee",
   assessor_id: "manager",

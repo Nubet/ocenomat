@@ -261,7 +261,41 @@ POST /api/v1/assessments/{id}/criteria/{criterion_id}/rating
   sprawdza serwis wobec snapshotu JSONB. Wszystkie mutacje używają wspólnej
   blokady oceny/przypisania i atomowej transakcji. Konflikt → 409, brak dostępu → 404.
 - GET odtwarza odpowiedzi, sugestie i decyzje w `ratings`. Nawigacja nie zapisuje
-  danych. Wynik zbiorczy i finalizacja pozostają zakresem P4-05.
+  danych. Wynik zbiorczy i finalizacja są opisane poniżej.
+
+## Wynik i zakończenie oceny C
+
+Migracja `0009` dodaje `assessment_summaries`: tekst podsumowania, autora/czas
+zapisu oraz osobny niezmienny wynik i autor/czas zakończenia.
+
+```text
+GET /api/v1/assessments/{id}/result
+{"outcome": "positive", "mean": "5.00"}
+
+PUT /api/v1/assessments/{id}/summary
+{"revision": 15, "negative_justification": "", "development_conclusions": "Plan rozwoju"}
+
+POST /api/v1/assessments/{id}/transitions
+{"revision": 16, "action": "complete"}
+```
+
+- Odczyt oceny zawiera ten sam `result` i zapisane `summary` (lub `null`).
+  Przed kompletem zatwierdzeń wynik to `incomplete`, a średnia `null`.
+  Sugestie nigdy nie zastępują formalnych decyzji. Reguła: dokładna średnia > 4
+  i brak oceny 1; średnia w odpowiedzi to tekst z dwoma miejscami po przecinku.
+- Podsumowanie można zapisywać w `evaluation`, także jako niepełny szkic.
+  Oba teksty są przycinane i ograniczone do 10 000 znaków. Wnioski rozwojowe
+  są opcjonalne; wynik negatywny wymaga niepustego zapisanego uzasadnienia.
+- `complete` ponownie sprawdza ustalenia, potwierdzoną rozmowę, wszystkie wybrane
+  kryteria i zapis podsumowania. Wspólna blokada/rewizja chroni przed równoległą
+  zmianą odpowiedzi. Wynik, suma/liczba ocen, autor/czas, status `completed`,
+  nowa rewizja i jedno zdarzenie są zapisywane atomowo.
+- Ponowienie zakończenia z rewizją źródłową lub wynikową zwraca ten sam zapis
+  bez nowego zdarzenia, czasu ani rewizji. Starsza/inna rewizja → 409.
+  Nadal obowiązują własne autorstwo, MANAGER i aktualne przypisanie, również przy retry.
+- Po zakończeniu wszystkie mutacje danych są odrzucane. Wynik odczytuje utrwaloną
+  decyzję i dokładną sumę/liczbę ocen, a nie ponownie stosowaną przyszłą wersję reguł.
+  To zamknięcie w aplikacji, nie podpis ani doręczenie; pliki/PDF pozostają do P5.
 
 ## Reguły ocen
 

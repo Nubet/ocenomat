@@ -13,6 +13,7 @@ from test_security import claims, sign
 
 from app.core.database import create_database_engine, get_session
 from app.main import create_app
+from app.modules.assessments.completion import complete_assessment, save_summary
 from app.modules.assessments.evaluation import confirm_rating, save_answers
 from app.modules.assessments.models import Assessment
 from app.modules.assessments.rules import REQUIRED_CRITERIA
@@ -24,6 +25,7 @@ from app.modules.assessments.schemas import (
     DatesUpdate,
     ObservationCreate,
     RatingConfirm,
+    SummaryUpdate,
 )
 from app.modules.assessments.service import (
     AssessmentError,
@@ -550,6 +552,97 @@ def test_concurrent_retries_create_exactly_one_record(database):
         with Session(engine) as session:
             rating = session.get(Assessment, assessment_id).ratings[0]
             assert (rating.suggested_score, rating.score) in {(9, None), (None, 9)}
+            user = session.get(User, user_id)
+            for criterion_id in REQUIRED_CRITERIA["C"]:
+                saved = session.get(Assessment, assessment_id)
+                confirm_rating(
+                    session,
+                    user,
+                    assessment_id,
+                    criterion_id,
+                    RatingConfirm(revision=saved.revision, score=5),
+                )
+            saved = save_summary(
+                session,
+                user,
+                assessment_id,
+                SummaryUpdate(
+                    revision=saved.revision,
+                    negative_justification="",
+                    development_conclusions="",
+                ),
+            )
+            revision = saved.revision
+
+        barrier = Barrier(2)
+
+        def completion_worker(index):
+            with Session(engine) as session:
+                user = session.get(User, user_id)
+                stale = session.get(Assessment, assessment_id)
+                assert all(rating.score == 5 for rating in stale.ratings)
+                barrier.wait(timeout=5)
+                try:
+                    if index == 0:
+                        saved = complete_assessment(
+                            session, user, assessment_id, revision
+                        )
+                    else:
+                        saved = save_answers(
+                            session,
+                            user,
+                            assessment_id,
+                            REQUIRED_CRITERIA["C"][0],
+                            AnswersUpdate(
+                                revision=revision,
+                                answers=[
+                                    {
+                                        "indicator_id": indicator_id,
+                                        "level": 0,
+                                        "note": "Changed",
+                                    }
+                                ],
+                            ),
+                        )
+                    return saved.revision
+                except AssessmentError as error:
+                    return error.code
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            assert set(pool.map(completion_worker, range(2))) == {
+                revision + 1,
+                "conflict",
+            }
+        with Session(engine) as session:
+            saved = session.get(Assessment, assessment_id)
+            user = session.get(User, user_id)
+            if saved.status.value == "completed":
+                assert saved.result.outcome == "positive"
+                assert all(rating.score == 5 for rating in saved.ratings)
+            else:
+                assert saved.result.outcome == "incomplete"
+                saved = confirm_rating(
+                    session,
+                    user,
+                    assessment_id,
+                    REQUIRED_CRITERIA["C"][0],
+                    RatingConfirm(revision=saved.revision, score=5),
+                )
+            revision = saved.revision
+
+        barrier = Barrier(2)
+
+        def retry_completion(_):
+            with Session(engine) as session:
+                user = session.get(User, user_id)
+                stale = session.get(Assessment, assessment_id)
+                assert stale.revision == revision
+                barrier.wait(timeout=5)
+                saved = complete_assessment(session, user, assessment_id, revision)
+                return saved.revision, saved.summary.completed_at
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            assert len(set(pool.map(retry_completion, range(2)))) == 1
     finally:
         with Session(engine) as session, session.begin():
             session.execute(delete(Assessment).where(Assessment.assessor_id == user_id))

@@ -5,13 +5,12 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 4 — trwały proces oceny C; P4-04 zakończone.
+- **Etap:** 4 — trwały proces oceny C zakończony do wyniku i zamknięcia w aplikacji.
 - **Aktywne zadanie:** brak.
-- **Następny krok:** P4-05 — wynik zbiorczy z zatwierdzonych ocen, uzasadnienie
-  wyniku negatywnego, wnioski rozwojowe i jawne zakończenie procesu wraz z UI/testami.
-- **Ostatnia zakończona praca:** P4-04 — pełne opisy zachowań, trwałe odpowiedzi,
-  wersjonowane sugestie i osobne decyzje przełożonego; zmiana odpowiedzi unieważnia
-  potwierdzenie tylko danego kryterium.
+- **Następny krok:** P5-01 — prywatny storage RustFS: autoryzowany upload/download,
+  metadane, walidacja PDF/DOCX, kompensacja błędów i testy; następnie OSP/PDF w P5-02.
+- **Ostatnia zakończona praca:** P4-05 — wynik z zatwierdzonych ocen, trwałe
+  podsumowanie, uzasadnienie wyniku negatywnego i jawne, idempotentne zakończenie.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -25,8 +24,11 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
    W `evaluation` zapisujemy odpowiedzi wskaźników z przypiętego katalogu oraz
    sugestię backendu; przełożony osobno wybiera i zatwierdza każdą ocenę cząstkową.
    Zmiana poziomu lub notatki wymaga ponowienia decyzji dla tego kryterium.
-  Frontend ma ekran logowania, cookie session i chroniony workspace; jego ekrany
-   wyniku/finalizacji i monitoringu pozostają do podłączenia w P4/P7. Bez Supabase
+   Wynik API pozostaje niekompletny do zatwierdzenia wszystkich kryteriów. Osobny
+   zapis podsumowania i polecenie `complete` zamykają proces w `completed`;
+   wynik, autor/czas i dane są odtąd niezmienne. Finalizacja nie oznacza podpisu/doręczenia.
+  Frontend ma ekran logowania, cookie session i chroniony workspace; monitoring
+   pozostaje do podłączenia w P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
@@ -34,7 +36,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
   OpenRouter i VPS niezintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  143 testy Vitest. Backend: 243 testy z rzeczywistym PostgreSQL i źródłowym XLSX.
+  157 testów Vitest. Backend: 270 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
   pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
@@ -62,7 +64,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P4-02 | Kryteria i terminy | done | Migracja 0006, kryteria/uzasadnienia, daty/czynności, potwierdzenie, zdarzenia i atomowa rewizja; 172 testy backendu, 94 UI, build i live HTTP/SSR OK. |
 | P4-03 | Obserwacje i rozmowa | done | Migracja 0007, datowane wpisy i szkic rozmowy, jawne przejścia, autorzy/czasy, rewizje i UI; 206 testów backendu, 123 UI, build i live HTTP/SSR OK. |
 | P4-04 | Wskaźniki i decyzje | done | Migracja 0008, trwałe odpowiedzi/notatki, wersjonowana sugestia i ręczne zatwierdzenie; izolowane unieważnianie decyzji, rewizje i UI. 243 testy backendu, 143 UI, build i live HTTP/SSR OK. |
-| P4-05 | Wynik i zakończenie | pending | — |
+| P4-05 | Wynik i zakończenie | done | Migracja 0009, wynik API, trwałe podsumowanie, idempotentne zakończenie i blokada edycji; 270 testów backendu, 157 UI, build i live HTTP/SSR OK. |
 | P5-01 | Prywatny storage | pending | — |
 | P5-02 | OSP i PDF C | pending | — |
 | P6-01 | Provider i baza wiedzy | pending | — |
@@ -109,6 +111,58 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P4-05, wynik i zakończenie oceny C
+
+- Migracja `0009` dodaje `assessment_summaries` z tekstami, autorem/czasem zapisu,
+  osobnym autorem/czasem zakończenia i migawką wyniku (outcome, suma/liczba ocen).
+  FK/CHECK pilnują wartości i spójności zakończenia. Istniejące dane pozostają bez zmian.
+- `result` w odpowiedzi oceny i GET `/{id}/result` używają reguły `periodic_result`
+  wyłącznie dla zatwierdzonych decyzji. Przed kompletem: `incomplete` i średnia `null`.
+  Dokładny ułamek ustala wynik; tekst średniej z dwoma miejscami służy wyświetlaniu.
+  Po zakończeniu odczyt korzysta z utrwalonego wyniku/sumy/liczby ocen.
+- PUT `/{id}/summary`: osobny szkic uzasadnienia i wniosków, po 10 000 znaków,
+  normalizacja tekstu, serwerowy autor/czas i rewizja. Wnioski są opcjonalne.
+- Jawne `complete` sprawdza ustalenia, potwierdzoną rozmowę, komplet wybranych
+  kryteriów i zapis podsumowania; wynik negatywny wymaga niepustego uzasadnienia.
+  Wspólny `edit_assessment` blokuje ocenę/przypisanie i odświeża ORM. Migawka,
+  `completed`, rewizja i zdarzenie są atomowe. Retry źródłowej/wynikowej rewizji
+  zwraca ten sam rekord bez nowego zdarzenia; nadal sprawdza aktualny dostęp.
+- Zakładka „Wynik i zakończenie” pokazuje wyłącznie wynik API i zatwierdzone oceny,
+  braki oraz formularz podsumowania. Niezapisane odpowiedzi/wybrane oceny lub teksty
+  blokują zakończenie. Szkice pozostają zamontowane przy zmianie zakładek i błędzie.
+  Pending blokuje zapis/nawigację; konflikt daje odnośnik do nowej karty.
+  Zamknięta ocena otwiera podsumowanie i wszystkie pola ma tylko do odczytu.
+  Bez autofill demo, nowych zależności ani lokalnego obliczania wyniku.
+- Kontrole:
+  - `uv run ruff format app tests alembic`, `uv run ruff check app tests alembic`
+    oraz pytest z `KOMPAS_TEST_DATABASE_URL` i `KOMPAS_TEST_CATALOG_XLSX` —
+    **270 passed**, bez skipów. Znane ostrzeżenie Starlette o httpx pozostaje.
+  - Testy API: średnia dokładnie 4, ponad 4, ocena 1 mimo wysokiej średniej,
+    unieważniona decyzja/sama sugestia, szkic i uzasadnienie, komplet czynności,
+    stare rewizje, role/odwołane przypisanie (także retry), rollback zdarzenia,
+    wszystkie mutacje po zamknięciu, odczyt bez mutacji i jeden event zakończenia.
+  - Dwie rzeczywiste sesje PostgreSQL: zakończenie kontra zmiana odpowiedzi —
+    jeden sukces i jeden konflikt, także ze wcześniej załadowanymi danymi ORM.
+    Dwa równoległe zakończenia/retry zwracają ten sam wynik i czas.
+  - Upgrade/downgrade `0009` do `0008`, upgrade, roundtrip do `0007` i check — OK
+    w izolowanym schemacie; danych operatora nie cofano.
+  - Naprawiono zastany losowy test izolacji kryteriów: wybierał pierwszy UUID,
+    który czasem był tym samym dodatkowym kryterium. Teraz jawnie wybiera inne.
+  - `npm run api:types -- http://127.0.0.1:33081/openapi.json` — typy odświeżone.
+    `npm run precommit` — format/lint/typecheck i **157 testów / 22 pliki** OK;
+    `npm run build` — OK.
+  - `npm run doctor` — 31 wskazań doradczych. Nowe dotyczy rozgałęzień formularza
+    podsumowania (niekompletność, wynik negatywny, konflikt, tryb odczytu).
+    Zachowano jawne stany bez wyciszeń i niepowiązanego refaktoru.
+  - Compose rebuild/up dla `frontend` wraz z API/migracją — OK, migracja `0009`
+    wdrożona. `node /tmp/opencode/p4-05-smoke.mjs` — pełny proces HTTP/SSR:
+    niekompletny/pozytywny/negatywny wynik, wymagane uzasadnienie, stale 409,
+    zapis i zakończenie/retry, reload tylko do odczytu, HR/ADMIN → 404.
+    Usunięto tylko własną ocenę smoke i wylogowano utworzone sesje.
+- Zaktualizowano kontrakt, instrukcje backendu/frontendu i Pomoc. Następny krok:
+  P5-01. Nie uruchamiano przeglądarki ani E2E; P8-01 pozostaje blocked.
+  PDF, podpisy/doręczenie i procedura korekty nie są częścią tego zakończenia.
 
 ### 2026-11-21 — P4-04, wskaźniki i decyzje przełożonego
 
