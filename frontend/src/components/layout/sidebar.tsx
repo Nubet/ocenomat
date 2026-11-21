@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { signOut } from "@/features/auth/actions";
+import type { WorkspaceUser } from "@/features/auth/session";
 import { Icon } from "@/components/ui/icon";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { findEmployee } from "@/features/assessments/data/employees";
@@ -10,9 +12,11 @@ import { navigation } from "./navigation";
 import { AssessmentNavigation } from "./assessment-navigation";
 
 export function Sidebar({
+  user,
   onNavigate,
   onSearch,
 }: {
+  user: WorkspaceUser;
   onNavigate?: () => void;
   onSearch: () => void;
 }) {
@@ -112,14 +116,26 @@ export function Sidebar({
         </div>
         <div className="mt-4 flex items-center gap-2 px-2">
           <span className="grid size-8 place-items-center rounded-full bg-avatar-peach text-label font-bold text-avatar-peach-foreground">
-            AN
+            {user.display_name
+              .split(/\s+/)
+              .slice(0, 2)
+              .map((part) => part[0])
+              .join("")}
           </span>
           <div>
-            <p className="text-label font-semibold">Anna Nowak</p>
-            <p className="text-caption text-subtle-foreground">Przełożona · Demo</p>
+            <p className="text-label font-semibold">{user.display_name}</p>
+            <p className="text-caption text-subtle-foreground">{user.roles.join(" · ")}</p>
           </div>
           <Icon name="more" size={17} className="ml-auto text-subtle-foreground" />
         </div>
+        <form action={signOut} className="mt-3">
+          <button
+            type="submit"
+            className={`${linkClass} border-transparent text-muted-foreground hover:bg-surface`}
+          >
+            Wyloguj się
+          </button>
+        </form>
       </div>
     </div>
   );

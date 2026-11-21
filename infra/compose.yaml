@@ -48,6 +48,8 @@ services:
       context: ../frontend
     environment:
       API_BASE_URL: http://backend:8000
+      KOMPAS_SUPABASE_URL: ${KOMPAS_SUPABASE_URL:-}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
     depends_on:
       backend:
         condition: service_healthy

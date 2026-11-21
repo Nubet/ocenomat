@@ -38,5 +38,8 @@ bez przygotowania właściciela. Healthcheck `/health` sprawdza wybraną wersję
 RustFS, nie uprawnienia bucketu. Bucket i integracja API powstaną w P5-01.
 
 To konfiguracja developerska (Next dev, reload API), nie wdrożenie produkcyjne.
-Nie podłączaj prawdziwych danych pracowników. Supabase Cloud jest konfigurowany
-w etapie 2, a OpenRouter w etapie 6; nie są lokalnymi serwisami Compose.
+Nie podłączaj prawdziwych danych pracowników. Ustaw `KOMPAS_SUPABASE_URL`,
+`KOMPAS_JWT_ALGORITHM` i `SUPABASE_PUBLISHABLE_KEY` z projektu Supabase Cloud,
+wyłącz publiczną rejestrację i utwórz lokalny profil zgodnie z `backend/README.md`.
+Bez konfiguracji frontend pokazuje ekran logowania z informacją o braku usługi;
+API nie ma trybu bypass. Supabase i OpenRouter nie są lokalnymi serwisami Compose.

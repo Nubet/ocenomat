@@ -6,16 +6,19 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 2 — tożsamość; fundament techniczny zakończony.
-- **Aktywne zadanie:** brak; P3-02 zakończone.
-- **Następny krok:** P2-02 — logowanie i sesja frontendu; do testu live P2-01
-  potrzebne skonfigurowane Supabase Cloud i rzeczywisty token użytkownika.
-- **Ostatnia zakończona praca:** czyste reguły punktacji i walidacji kryteriów.
+- **Aktywne zadanie:** brak; kod P2-02 sprawdzony, integracja live blocked.
+- **Następny krok:** P2-03 — pracownicy, przypisania i integracja listy/wyszukiwarki;
+  P2-01/P2-02 wymagają Supabase Cloud do testu live, bez obejścia autoryzacji.
+- **Ostatnia zakończona praca:** logowanie SSR, ochrona workspace i profil z `/me`.
 - **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`
-  i `/api/v1/health`, połączenie PostgreSQL i historię migracji bez tabel domenowych.
+  i `/api/v1/health`, PostgreSQL, tabele użytkowników/ról i wersjonowany katalog.
+  Frontend ma ekran logowania, cookie session i chroniony workspace; jego ekrany
+  biznesowe nadal korzystają z demo do czasu P2-03/P4. Bez konfiguracji Supabase
+  dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
   Supabase, OpenRouter i VPS nie zostały zintegrowane.
-- **Kontrole frontendu:** `npm run precommit` — format, Oxlint, TypeScript oraz
-  19 testów Vitest przeszły przed commitami zmian frontendu.
+- **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
+  33 testy Vitest. Backend: 99 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
 - **Frontend commity:** `5b1375c` (`chore(frontend): add react doctor diagnostics`),
   `c37a8e0` (`perf(frontend): stabilize workspace context value`).
 
@@ -31,7 +34,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P1-02 | PostgreSQL, Alembic, readiness | done | 14 testów z PostgreSQL; `feat(backend): add database readiness` |
 | P1-03 | Compose: frontend, API, PostgreSQL, RustFS | done | Build, HTTP, S3, restart i 19 testów UI; `chore(infra): add local compose environment` |
 | P2-01 | Tożsamość, role, weryfikacja JWT | blocked | Kod i 45 testów OK; brak konfiguracji Supabase blokuje próbę live. `feat(auth): verify identities and load roles` |
-| P2-02 | Logowanie i sesja | pending | — |
+| P2-02 | Logowanie i sesja | blocked | SSR, 33 testy UI, build i HTTP OK; brak Supabase i zakaz przeglądarki blokują live/E2E. `feat(auth): add sign in and session handling` |
 | P2-03 | Pracownicy i przypisania | pending | — |
 | P3-01 | Katalog kompetencji | done | Import i porównanie treści XLSX, 52 testy; `feat(catalog): add competency model` |
 | P3-02 | Reguły i testy domenowe | done | 99 testów, dokładne progi i kompletność; `feat(assessments): implement scoring rules` |
@@ -63,6 +66,24 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P2-02 (kod gotowy, integracja live blocked)
+
+- Server Actions logowania/wylogowania, `@supabase/ssr`, cookie HttpOnly, proxy
+  odświeżania z nagłówkami bez cache, `getClaims()` i serwerowe przekazanie tokenu
+  do FastAPI `/me`; sidebar używa profilu z API. Brak konfiguracji nie otwiera demo.
+- Typy wygenerowano z aktualnego OpenAPI przez `openapi-typescript`; instrukcja
+  regeneracji i `.env.example` frontendu. Workspace wymuszony dynamicznie.
+- `npm run precommit` — OK, format/Oxlint/TypeScript i 33 testy. `npm run build`
+  — OK; workspace routes są dynamiczne. Testy obejmują odrzucenie niezweryfikowanej
+  sesji, konto nieaktywne, awarię API/providera, wylogowanie i propagację cookie.
+- Compose `config --quiet`, `up --build --detach --wait` — OK po nowych zależnościach.
+  HTTP bez przeglądarki: `/` → 307 `/login`, `/login` → 200 z informacją o braku
+  konfiguracji; obie odpowiedzi bez współdzielonego cache.
+- Brak realnej konfiguracji Supabase; nie sprawdzono rzeczywistego logowania,
+  odświeżenia i wylogowania ani wyglądu w przeglądarce. P2-02 pozostaje `blocked`.
+- Commit: `feat(auth): add sign in and session handling`.
+- Następny krok: P2-03. Ekrany biznesowe nadal są demo i nie służą do realnych danych.
 
 ### 2026-11-21 — P3-02
 

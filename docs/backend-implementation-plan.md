@@ -123,6 +123,13 @@ pozycji w arkuszu. Zachowujemy wszystkie oryginalne opisy i polskie znaki.
 Odczyt całego katalogu nie wymaga osobnych tabel wskaźników; relacyjne powiązania
 odpowiedzi w P4 muszą walidować ID wobec przypiętego snapshotu wersji.
 
+Uszczegółowienie DEC-003/004 (2026-11-21, P2-02): logowanie e-mail/hasło używa
+Server Actions i serwerowego klienta `@supabase/ssr`, bez klienta Auth w przeglądarce.
+Sesja jest w ciasteczkach HttpOnly/SameSite=Lax (Secure w produkcji), proxy
+odświeża token i przenosi ciasteczka oraz nagłówki bez cache. Next.js sprawdza
+claims i przesyła access token serwer-serwer do FastAPI; API niezależnie sprawdza
+podpis i konto. Żaden token nie jest przekazywany do komponentu klienckiego.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

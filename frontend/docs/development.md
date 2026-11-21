@@ -7,8 +7,45 @@ npm ci
 npm run dev
 ```
 
-The application is available at `http://localhost:3000`. No environment variables,
-backend, AI account, or network-loaded fonts are needed at runtime.
+The application is available at `http://localhost:3000`. Copy `.env.example` to
+`.env.local` and configure the backend URL, Supabase Cloud HTTPS origin, and an
+`sb_publishable_` key. Without Auth configuration, `/login` shows a configuration
+message and workspace routes redirect there. No demo identity bypass is available.
+Fonts are local; AI integration remains a separate backend phase.
+
+## Authentication
+
+The Supabase account must be created by an administrator; disable public sign-up
+in the Supabase project. Provision the first local account with the backend
+bootstrap command described in `../backend/README.md` (relative to the repo root).
+The backend signing algorithm must match the project's asymmetric signing key.
+
+Password sign-in and local sign-out use Server Actions. `@supabase/ssr` stores
+the session in HttpOnly, SameSite=Lax cookies (Secure in production); the browser
+does not receive tokens in props or application localStorage. Next.js Proxy
+refreshes the session, copies updated cookies to the request and response, and
+preserves non-cacheable headers. Server Actions use Next.js origin/host CSRF
+checks; do not disable them or add broad allowed-origin exceptions.
+
+The workspace layout verifies claims, then forwards the access token to `/me`.
+The backend independently verifies it and loads active account roles. The sidebar
+uses that profile. Protected routes are dynamic and data fetches use `no-store`.
+Future endpoints and Server Actions must perform their own authorization; a
+layout or hidden link is not an authorization boundary.
+
+Business screens still contain clearly labelled demo assessment data until
+P2-03/P4. Do not enter real employee information into the legacy local workspace.
+There is no automatic migration of demo data. Live Auth and browser verification
+remain outstanding; see `docs/backend-progress.md` at the repo root.
+
+API types in `src/lib/api/schema.d.ts` are generated from FastAPI OpenAPI:
+
+```sh
+npm run api:types -- http://localhost:8000/openapi.json
+npm run format
+```
+
+Review and commit generated types whenever an integrated endpoint changes.
 
 ## Commands
 

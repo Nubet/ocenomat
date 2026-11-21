@@ -9,10 +9,11 @@ import { Dialog } from "@/components/ui/dialog";
 import { AssistantDrawer } from "@/features/assistant/assistant-drawer";
 import { CommandSearch } from "@/features/search/command-search";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
+import type { WorkspaceUser } from "@/features/auth/session";
 import { Sidebar } from "./sidebar";
 import { navigation } from "./navigation";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, user }: { children: ReactNode; user: WorkspaceUser }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -56,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           className="no-print sticky top-0 hidden h-dvh overflow-y-auto border-r navigation:block"
           aria-label="Nawigacja główna"
         >
-          <Sidebar onSearch={search} />
+          <Sidebar user={user} onSearch={search} />
         </aside>
         <div className="print-layout min-w-0">
           <header className="no-print flex h-[3.9375rem] items-center justify-between gap-3 border-b bg-surface px-[1.1875rem] navigation:h-18 navigation:px-[2.375rem]">
@@ -102,7 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
       {mobileOpen ? (
         <Dialog title="Menu" onClose={() => setMobileOpen(false)} drawer="left">
-          <Sidebar onNavigate={() => setMobileOpen(false)} onSearch={search} />
+          <Sidebar user={user} onNavigate={() => setMobileOpen(false)} onSearch={search} />
         </Dialog>
       ) : null}
       {searchOpen ? <CommandSearch onClose={() => setSearchOpen(false)} /> : null}
