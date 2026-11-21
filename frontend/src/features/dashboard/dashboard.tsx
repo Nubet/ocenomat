@@ -10,8 +10,9 @@ import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { employees } from "@/features/assessments/data/employees";
 import { assessmentStatus } from "@/features/assessments/components/assessment-status";
 
-export function Dashboard({ canCreate }: { canCreate: boolean }) {
+export function Dashboard({ canCreate, displayName }: { canCreate: boolean; displayName: string }) {
   const { state } = useWorkspace();
+  const name = displayName?.trim();
   const tasks = [
     {
       number: "01",
@@ -38,7 +39,7 @@ export function Dashboard({ canCreate }: { canCreate: boolean }) {
         <div>
           <p className="eyebrow mb-3">Twoja przestrzeń robocza / listopad 2026</p>
           <h1 className="text-[1.875rem] font-semibold tracking-heading sm:text-[2.125rem]">
-            Dzień dobry, Anno <span aria-hidden="true">✳</span>
+            Dzień dobry{name ? `, ${name}` : ""}
           </h1>
           <p className="mt-3 text-[0.8125rem] text-muted-foreground">
             Twoje oceny i najbliższe decyzje.
