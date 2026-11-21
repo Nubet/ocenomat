@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.config import Settings
 from app.core.database import create_database_engine, get_session
 from app.core.security import TokenVerifier
+from app.integrations.llm.factory import create_llm_provider
 from app.integrations.storage import ObjectStorage
 from app.modules.assessments.router import router as assessments_router
 from app.modules.catalog.router import router as catalog_router
@@ -47,9 +48,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         app.state.object_storage = storage
         app.state.pdf_font_path = settings.pdf_font_path
+        llm = create_llm_provider(settings)
+        app.state.llm_provider = llm
         try:
             yield
         finally:
+            if llm is not None:
+                llm.close()
             if engine is not None:
                 engine.dispose()
             if storage is not None:

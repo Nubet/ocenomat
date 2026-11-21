@@ -1,5 +1,55 @@
 # Kompas Kompetencji API
 
+## Provider językowy (P6-01)
+
+`app.integrations.llm.protocol.LLMProvider` jest kontraktem generowania tekstu
+oraz odpowiedzi Pydantic (`response_model=...`). Adapter korzysta z istniejącego
+HTTPX, bez dodatkowego SDK. Lifecycle aplikacji tworzy i zamyka klienta;
+`get_llm_provider` można zastąpić przez `dependency_overrides` w testach.
+Brak klucza daje 503 przy pobraniu zależności, nie blokuje reszty aplikacji.
+Endpoint asystenta i RAG powstaną dopiero po przygotowaniu źródeł P6-02–P6-04.
+
+Konfiguracja serwerowa (nazwy również w `.env.example` i Compose):
+
+```dotenv
+KOMPAS_LLM_PROVIDER=openrouter
+KOMPAS_LLM_MODEL=anthropic/claude-sonnet-5.5
+KOMPAS_LLM_API_KEY=<secret>
+KOMPAS_LLM_BASE_URL=https://openrouter.ai/api/v1
+KOMPAS_LLM_TIMEOUT_SECONDS=60
+KOMPAS_LLM_MAX_TOKENS=8192
+KOMPAS_LLM_REASONING_EFFORT=medium
+```
+
+Klucz nie trafia do frontendu. Na polecenie użytkownika model domyślny jest płatny:
+priorytet skuteczność, następnie czas odpowiedzi, następnie cena. Sonnet 5.5 miał
+2026-11-21 aktywne endpointy i parametry `max_tokens`, `reasoning`, `response_format`,
+`structured_outputs` w publicznym API `/models/anthropic/claude-sonnet-5.5/endpoints`.
+Ceny katalogowe: $2/1M tokenów wejścia, $10/1M tokenów wyjścia (w tym reasoning).
+10 tys. wejścia + 2 tys. wyjścia/rozumowania to około $0,04, bez dodatkowych opłat
+operatora, cache i narzędzi. To rekomendacja startowa, nie pomiar jakości na naszym
+korpusie ani gwarancja opóźnień. Nie używamy automatycznych aliasów `latest/auto`.
+
+Przed pierwszym generowaniem proces pobiera i buforuje metadane endpointów;
+brak zgodnej, aktywnej trasy blokuje wywołanie. Żądanie wymaga obsługi parametrów
+i zakazu trenowania na danych (`data_collection=deny`, nie oznacza zerowej retencji).
+Routing według latency, z awaryjną zmianą dostawcy tego samego modelu. Bez fallbacku
+do innych modeli, bez streamingu.
+Brak trasy zgodnej z polityką kończy się błędem, bez osłabiania ustawień.
+Nawet JSON Schema nie zastępuje lokalnej walidacji Pydantic. Odmowa modelu,
+ucięta/niepoprawna odpowiedź i błędy sieci/limitu mają kontrolowane kody `LLMError`,
+bez treści odpowiedzi dostawcy, promptu czy klucza. Nie ma automatycznych retry.
+
+Limity: 32 komunikaty, 48 000 znaków kontekstu, maksymalnie skonfigurowana liczba
+tokenów wyjścia (domyślnie 8192, zakres 1–32768), odpowiedź HTTP do 1 MiB.
+Budget wyjścia obejmuje również reasoning; jest limitem, nie docelową długością
+odpowiedzi. Rozumowanie domyślnie medium, bez zwracania jego treści; dla modelu bez
+reasoning można przekazać w Settings `llm_reasoning_effort=None`. Timeout HTTPX dotyczy operacji
+sieciowych (connect/read/write/pool), nie jest gwarancją całkowitego czasu zadania.
+Nie zapisujemy promptów/odpowiedzi. Testy `tests/test_llm.py` używają wyłącznie
+MockTransport i atrapy; realnego generowania ani jakości modelu jeszcze nie badano.
+
+
 Python 3.13 i uv. Polecenia uruchamiaj w `backend/`:
 
 ```sh

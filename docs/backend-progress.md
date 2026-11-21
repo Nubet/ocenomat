@@ -6,12 +6,12 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-01 — wymienialny provider LLM (`in_progress`).
-- **Następny krok:** kontrakt LLM, adapter OpenRouter i celowane testy bez sieci;
-  następnie P6-02 — inwentaryzacja i weryfikacja oryginałów. Obowiązuje szczegółowy
+- **Aktywne zadanie:** P6-02 — inwentaryzacja i weryfikacja oryginałów (`in_progress`).
+- **Następny krok:** manifest źródeł, ekstrakcja i raport różnic wobec Markdown,
+  bez automatycznego zatwierdzania treści. Obowiązuje szczegółowy
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P5-02 — wersjonowane OSP pracownika,
-  generowanie PDF arkusza C i autoryzowane pobieranie w UI.
+- **Ostatnia zakończona praca:** P6-01 — wymienialny provider LLM, konfiguracja,
+  kontrola możliwości i testy bez zewnętrznych generowań; płatny Sonnet 5.5.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -36,7 +36,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
-  OpenRouter i VPS niezintegrowane.
+  Adapter OpenRouter jest podłączony przez lifecycle/zależność; endpoint asystenta
+  i RAG jeszcze nie istnieją. VPS niezintegrowany.
 - **Kontrole P5-02:** końcowy `npm run precommit` — OK, 170 testów Vitest;
   wcześniejszy `npm run build` — OK. Końcowe testy dokumentów i migracji:
   37 passed w 9,17 s; Ruff lint/format OK. Wcześniej pełny backend: 371 passed
@@ -72,8 +73,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P4-05 | Wynik i zakończenie | done | Migracja 0009, wynik API, trwałe podsumowanie, idempotentne zakończenie i blokada edycji; 270 testów backendu, 157 UI, build i live HTTP/SSR OK. |
 | P5-01 | Prywatny storage | done | Migracja 0010, prywatny bucket, autoryzowane API, walidacja, rewizje i kompensacja/niepewny COMMIT; 351 testów backendu, 157 UI, build i live RustFS/HTTP OK. |
 | P5-02 | OSP i PDF C | done | Migracje 0011–0012, wersje OSP pracownika, wybór w draft, PDF zakończonej oceny i UI pobrania; końcowe 37 testów backendu, 170 UI, wcześniejszy build/live HTTP OK. |
-| P6-01 | Wymienialny provider LLM | in_progress | Przegląd rzeczywistego backendu: istnieje tylko integracja storage; brak AI/knowledge. |
-| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | pending | — |
+| P6-01 | Wymienialny provider LLM | done | Kontrakt, adapter, Settings/Compose i dependency injection; 63 celowane testy OK w 0,58 s. `feat(ai): add configurable llm provider` |
+| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | in_progress | Następna część: manifest i raport ekstrakcji; brak zatwierdzonego korpusu. |
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | pending | — |
 | P6-04 | Asystent formalny RAG i cytowania | pending | — |
 | P6-05 | Integracja istniejącego draweru Next.js | pending | — |
@@ -89,8 +90,10 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 
 - Integracja auth wymaga skonfigurowanego projektu Supabase Cloud z kluczami
   asymetrycznymi i rzeczywistych danych konfiguracyjnych; nie zapisuj sekretów tutaj.
-- Żywe testy AI wymagają dostępu do OpenRouter i zgodnego z regulaminem darmowego
-  modelu. Nie przełączaj się na płatne modele automatycznie.
+- Żywe testy AI wymagają klucza OpenRouter. Użytkownik zmienił ograniczenie
+  darmowego modelu: płatny model jest dozwolony, priorytet skuteczność → czas → cena.
+  Ustawiono Sonnet 5.5, bez automatycznej zmiany modelu. Nie deklarujemy zgodności
+  tego wyboru z wcześniejszym ograniczeniem konkursowym bez jego wyjaśnienia.
 - Aktualność dostarczonych rozporządzeń i brakująca w materiałach ustawa o służbie
   cywilnej wymagają weryfikacji przed deklarowaniem zgodności formalnej.
 - Materiały w `docs/hacknation-materials/`, `.idea/` i `.opencode/` są obecnie
@@ -120,6 +123,36 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P6-01, wymienialny provider LLM
+
+- `LLMProvider` i typowane komunikaty są niezależne od dostawcy. Jeden adapter
+  HTTPX: tekst i odpowiedzi Pydantic, lokalna walidacja, ograniczenie kontekstu,
+  tokenów i bajtów odpowiedzi; kontrolowane błędy, bez automatycznych retry.
+- Lifecycle tworzy/zamyka klienta, zależność FastAPI zwraca 503 bez konfiguracji
+  i może być zastąpiona atrapą. Nie dodano przedwcześnie endpointu chatu.
+- Pydantic Settings (`KOMPAS_LLM_*`), `.env.example` i Compose, klucz `SecretStr`
+  wyłącznie po stronie backendu. HTTPX przeniesiony z dev do runtime, lock odświeżony.
+- Po pierwszej wersji użytkownik zmienił wymóg darmowego modelu i poprosił o
+  skuteczność przed czasem i ceną. Domyślnie `anthropic/claude-sonnet-5.5`,
+  limit wyjścia **8192** (obejmuje reasoning), reasoning **medium**, timeout 60 s.
+  Publiczne metadane OpenRouter potwierdziły aktywne endpointy i parametry
+  `max_tokens/reasoning/response_format/structured_outputs`, ceny $2/$10 za milion
+  tokenów wejścia/wyjścia. Sprawdzono też alternatywy GPT-5.4 i Gemini 3.5 Flash;
+  wybór Sonnet to rekomendacja, nie pomiar skuteczności/opóźnień na naszym korpusie.
+  Adapter weryfikuje możliwości przy pierwszym użyciu; routing latency pozwala
+  zmienić dostawcę tego samego modelu, bez automatycznej zmiany modelu. Polityka
+  `data_collection=deny` blokuje trening na danych, nie gwarantuje zerowej retencji.
+- Kontrole: `uv lock`, Ruff check/format zmienionych plików — OK;
+  `uv run pytest -q tests/test_llm.py tests/test_health.py` — **63 passed w 0,58 s**,
+  znane ostrzeżenie Starlette/httpx. Testy obejmują tekst/JSON Schema, atrapę,
+  lifecycle, niedostępny model, timeout/sieć/429, błędne i ucięte odpowiedzi,
+  limity i brak promptów/sekretów w błędach/logach. Brak zewnętrznych generowań.
+  `docker compose --env-file .env.compose-check -f infra/compose.yaml -f infra/compose.dev.yaml config --quiet`
+  — OK, bez wypisywania sekretów i bez rebuilda/smoke.
+- Dokumentacja: Context7 OpenRouter i HTTPX, publiczny endpoint modelu. Nie
+  mierzono jeszcze jakości modelu ani skuteczności źródeł — to P6-07.
+- Commit: `feat(ai): add configurable llm provider`.
 
 ### 2026-11-21 — plan etapu 6
 

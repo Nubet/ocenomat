@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from typing import Literal
 
-from pydantic import AnyHttpUrl, SecretStr, field_validator
+from pydantic import AnyHttpUrl, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
@@ -25,6 +25,35 @@ class Settings(BaseSettings):
     storage_secret_key: SecretStr | None = None
     storage_bucket: str = "kompas-private"
     pdf_font_path: Path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    llm_provider: Literal["openrouter"] = "openrouter"
+    llm_model: str = "anthropic/claude-sonnet-5.5"
+    llm_api_key: SecretStr | None = None
+    llm_base_url: AnyHttpUrl = AnyHttpUrl("https://openrouter.ai/api/v1")
+    llm_timeout_seconds: float = Field(default=60, gt=0, le=120)
+    llm_max_tokens: int = Field(default=8192, ge=1, le=32768)
+    llm_reasoning_effort: Literal["low", "medium", "high"] | None = "medium"
+
+    @field_validator("llm_model")
+    @classmethod
+    def validate_llm_model(cls, value: str) -> str:
+        if not re.fullmatch(
+            r"[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+(?::free)?", value
+        ) or value in ("openrouter/auto", "openrouter/free"):
+            raise ValueError("Select an explicit model, not an automatic router")
+        return value
+
+    @field_validator("llm_base_url")
+    @classmethod
+    def validate_llm_base_url(cls, value: AnyHttpUrl) -> AnyHttpUrl:
+        if (
+            value.scheme != "https"
+            or value.username
+            or value.password
+            or value.query
+            or value.fragment
+        ):
+            raise ValueError("LLM base URL must use HTTPS without credentials or query")
+        return value
 
     @field_validator("storage_endpoint")
     @classmethod

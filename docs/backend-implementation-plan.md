@@ -415,7 +415,11 @@ ewentualny późniejszy dokument podpisany.
 model je obsługuje; `OpenRouterProvider` jest jedyną implementacją w pierwszym
 zakresie. Streaming i dodatkowych providerów nie tworzymy na zapas. Adapter
 obsługuje timeout, limity i błędy; API nie zwraca surowych sekretów lub promptów.
-Model wybieramy z darmowych narzędzi zgodnych z regulaminem, bez płatnego fallbacku.
+Na polecenie użytkownika z 2026-11-21 wybieramy płatny model do prezentacji:
+priorytet skuteczność, następnie czas, następnie koszt. Domyślnie Sonnet 5.5,
+8192 tokenów wyjścia i reasoning medium; bez automatycznej zmiany modelu.
+To zmienia wcześniejszy wymóg darmowego modelu; zgodności z ograniczeniem
+konkursowym dotyczącym darmowych narzędzi nie deklarujemy bez jego wyjaśnienia.
 
 Original First, Evidence First: manifest wiąże oryginały z pomocniczym Markdown.
 CLI importuje niezmienne źródła do prywatnego RustFS i lokalizowane fragmenty do
@@ -577,7 +581,12 @@ Commitami po udanych, spójnych częściach. Nie zaczynać od chatu bez źróde�
 **P6-01 — wymienialny provider LLM.** `LLMProvider`, pojedynczy adapter OpenRouter,
 Pydantic Settings, tekst i odpowiedzi strukturalne walidowane lokalnie, timeout,
 limity tokenów i kontrolowane błędy. Sprawdzić faktyczne możliwości konkretnego
-darmowego modelu; bez płatnego fallbacku, bez streamingu/tool calling na zapas.
+modelu; bez automatycznego fallbacku do innego modelu, bez streamingu/tool calling
+na zapas. Zmiana decyzji 2026-11-21: użytkownik dopuszcza płatne modele i stawia
+skuteczność przed czasem i ceną, co zastępuje wymóg darmowego modelu z phase6-plan.
+Domyślnie `anthropic/claude-sonnet-5.5`, reasoning medium, limit wyjścia 8192,
+timeout operacji 60 s. Routing według latency z awaryjną zmianą dostawcy tego
+samego modelu, z zachowaniem parametrów i polityki danych; bez obniżania jakości.
 Testy bez sieci: poprawny przepływ i zastąpienie providera, błędny model/brak
 klucza, timeout/sieć/limit, błędna struktura, brak wycieku sekretów.
 Gotowe: backend używa kontraktu i pełny przepływ przechodzi z atrapą.
