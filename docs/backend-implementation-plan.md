@@ -130,6 +130,16 @@ odświeża token i przenosi ciasteczka oraz nagłówki bez cache. Next.js sprawd
 claims i przesyła access token serwer-serwer do FastAPI; API niezależnie sprawdza
 podpis i konto. Żaden token nie jest przekazywany do komponentu klienckiego.
 
+Uszczegółowienie DEC-006/007 (2026-11-21, P4-02): kryteria i terminy są zapisywane
+oddzielnie w `draft`. Jawne polecenie `agree_criteria` sprawdza komplet i zmienia
+status na `criteria_agreed`; odtąd ustalenia są tylko do odczytu. Korekta po tym
+potwierdzeniu wymaga osobnej decyzji i nie jest obecnie obsługiwana. Każdy zapis
+blokuje ocenę i aktualne przypisanie, sprawdza rewizję, inkrementuje ją i zapisuje
+zdarzenie z autorem oraz czasem UTC w tej samej transakcji. Potwierdzenie zapisuje
+także datę rozmowy jako datę czynności. Kontrolujemy kolejność dat i nie pozwalamy
+potwierdzać przyszłej rozmowy jako wykonanej (dzień w Europe/Warsaw); nie obliczamy
+terminów ustawowych ani wyjątków bez zweryfikowanych źródeł.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

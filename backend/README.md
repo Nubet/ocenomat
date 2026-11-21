@@ -162,7 +162,39 @@ GET /api/v1/assessments/{assessment_id}
   Samo HR/ADMIN ani przypisanie drugiego przełożonego nie otwiera cudzej oceny.
   Brak dostępu do szczegółu zwraca 404, lista bez dostępnych procesów jest pusta.
 - GET, odświeżenie i parametry nawigacji nie zmieniają statusu ani rewizji.
-  Nie ma jeszcze API edycji/przejść; kryteria, terminy i konflikty rewizji to P4-02.
+  Edycja ustaleń jest dostępna w szkicu przez poniższe operacje.
+
+## Kryteria i terminy oceny C
+
+Migracja `0006` dodaje kryteria oceny, daty/czynności i zdarzenia audytowe.
+
+```text
+PUT   /api/v1/assessments/{id}/criteria
+{"revision": 1, "additional": [{"criterion_id": "UUID", "justification": "Obowiązki z OSP"}]}
+
+PATCH /api/v1/assessments/{id}
+{"revision": 2, "date_talk": "2026-01-10", "date_assessment": "2027-01-10",
+ "duties_discussed": true, "expectations_discussed": true, "arrangements_shared": true}
+
+POST  /api/v1/assessments/{id}/transitions
+{"revision": 3, "action": "agree_criteria"}
+```
+
+- API dobiera pięć obowiązkowych kryteriów C. Dodatkowe: 0–3 unikalne ID z katalogu
+  przypiętego do oceny, bez powielania obowiązkowych, z niepustym uzasadnieniem
+  do 4000 znaków. Zapis zastępuje zestaw tylko w szkicu, bez zmiany katalogu.
+- Daty są `date`, termin oceny nie może poprzedzać rozmowy. Można zaplanować
+  przyszłą rozmowę i zapisać niepełne potwierdzenia; nie można odnotować przyszłej
+  rozmowy jako wykonanej. Nie obliczamy terminów prawnych na podstawie demo.
+- Potwierdzenie wymaga zapisanego zestawu, obu dat i trzech wykonanych czynności;
+  dopiero to polecenie zmienia `draft` na `criteria_agreed`. Kolejne zmiany ustaleń
+  są odrzucane. To rejestr czynności, nie podpis ani dowód doręczenia.
+- Wszystkie mutacje sprawdzają autorstwo, MANAGER i aktualne przypisanie. Ocena
+  i przypisanie są blokowane w transakcji; rewizja jest sprawdzana po uzyskaniu
+  blokady. Starsza rewizja lub niedozwolony stan → 409, błędne dane → 422,
+  cudzy/brakujący zasób → 404. Zapis i zdarzenie z autorem/czasem są atomowe.
+- GET zwraca zapisane kryteria/daty/czynności i obowiązkowe ID; nie przesuwa stanu.
+  Frontend pobiera katalog wyłącznie przez `version_id` zapisany w ocenie.
 
 ## Reguły ocen
 

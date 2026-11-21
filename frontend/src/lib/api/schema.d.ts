@@ -90,6 +90,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/criteria": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Criteria */
+    put: operations["update_criteria_api_v1_assessments__assessment_id__criteria_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/assessments/{assessment_id}": {
     parameters: {
       query?: never;
@@ -101,6 +118,24 @@ export interface paths {
     get: operations["assessment_detail_api_v1_assessments__assessment_id__get"];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update Dates */
+    patch: operations["update_dates_api_v1_assessments__assessment_id__patch"];
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/transitions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Transition */
+    post: operations["transition_api_v1_assessments__assessment_id__transitions_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -145,6 +180,26 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AdditionalCriterion */
+    AdditionalCriterion: {
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Justification */
+      justification: string;
+    };
+    /** AgreeCriteria */
+    AgreeCriteria: {
+      /** Revision */
+      revision: number;
+      /**
+       * Action
+       * @constant
+       */
+      action: "agree_criteria";
+    };
     /** AssessmentCreate */
     AssessmentCreate: {
       /**
@@ -199,6 +254,20 @@ export interface components {
        * Format: date-time
        */
       created_at: string;
+      /** Required Criterion Ids */
+      required_criterion_ids?: string[];
+      /** Criteria */
+      criteria: components["schemas"]["CriterionSelection"][];
+      /** Date Talk */
+      date_talk: string | null;
+      /** Date Assessment */
+      date_assessment: string | null;
+      /** Duties Discussed */
+      duties_discussed: boolean;
+      /** Expectations Discussed */
+      expectations_discussed: boolean;
+      /** Arrangements Shared */
+      arrangements_shared: boolean;
     };
     /**
      * AssessmentStatus
@@ -221,6 +290,13 @@ export interface components {
       /** Criteria */
       criteria: components["schemas"]["Criterion"][];
     };
+    /** CriteriaUpdate */
+    CriteriaUpdate: {
+      /** Revision */
+      revision: number;
+      /** Additional */
+      additional: components["schemas"]["AdditionalCriterion"][];
+    };
     /** Criterion */
     Criterion: {
       /**
@@ -232,6 +308,39 @@ export interface components {
       name: string;
       /** Indicators */
       indicators: components["schemas"]["Indicator"][];
+    };
+    /** CriterionSelection */
+    CriterionSelection: {
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Required */
+      required: boolean;
+      /** Justification */
+      justification: string | null;
+    };
+    /** DatesUpdate */
+    DatesUpdate: {
+      /** Revision */
+      revision: number;
+      /**
+       * Date Talk
+       * Format: date
+       */
+      date_talk: string;
+      /**
+       * Date Assessment
+       * Format: date
+       */
+      date_assessment: string;
+      /** Duties Discussed */
+      duties_discussed: boolean;
+      /** Expectations Discussed */
+      expectations_discussed: boolean;
+      /** Arrangements Shared */
+      arrangements_shared: boolean;
     };
     /** EmployeeResponse */
     EmployeeResponse: {
@@ -507,6 +616,41 @@ export interface operations {
       };
     };
   };
+  update_criteria_api_v1_assessments__assessment_id__criteria_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CriteriaUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   assessment_detail_api_v1_assessments__assessment_id__get: {
     parameters: {
       query?: never;
@@ -517,6 +661,76 @@ export interface operations {
       cookie?: never;
     };
     requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_dates_api_v1_assessments__assessment_id__patch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DatesUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  transition_api_v1_assessments__assessment_id__transitions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AgreeCriteria"];
+      };
+    };
     responses: {
       /** @description Successful Response */
       200: {

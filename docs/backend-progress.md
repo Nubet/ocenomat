@@ -5,18 +5,19 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 4 — trwały proces oceny C; P4-01 zakończone.
+- **Etap:** 4 — trwały proces oceny C; P4-02 zakończone.
 - **Aktywne zadanie:** brak.
-- **Następny krok:** P4-02 — kryteria i terminy: zapis wyboru z przypiętego katalogu,
-  walidacja do trzech dodatkowych kryteriów, uzasadnienia i daty, atomowe sprawdzenie
-  rewizji/409, autoryzacja i podłączenie istniejących ekranów do API.
-- **Ostatnia zakończona praca:** utworzenie, lista, historia i wznowienie oceny C;
-  czterokrokowy wybór, UUID procesu, snapshoty, idempotencja i testy live HTTP.
+- **Następny krok:** P4-03 — autoryzowany zapis obserwacji i rozmowy, daty czynności
+  i autorzy, wznowienie oraz podłączenie ekranów do API.
+- **Ostatnia zakończona praca:** P4-02 — zapis kryteriów, uzasadnień, terminów
+  i czynności z rozmowy; jawne potwierdzenie ustaleń, zdarzenia i konflikty rewizji.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
   i wersjonowany katalog. Lista pracowników, profile, wyszukiwarka oraz utworzenie,
-  historia i szczegół ocen korzystają z API. Rewizja nowej oceny to 1, status `draft`.
+   historia i szczegół ocen korzystają z API. Rewizja nowej oceny to 1, status `draft`.
+   Dobór kryteriów i terminy są zapisywane w API; osobna czynność potwierdza komplet
+   i zmienia status na `criteria_agreed`. Potwierdzone ustalenia są tylko do odczytu.
   Frontend ma ekran logowania, cookie session i chroniony workspace; jego ekrany
   dalszych etapów oceny i monitoringu pozostają do podłączenia w P4/P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
@@ -26,7 +27,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
   OpenRouter i VPS niezintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  68 testów Vitest. Backend: 144 testy z rzeczywistym PostgreSQL i źródłowym XLSX.
+  94 testy Vitest. Backend: 172 testy z rzeczywistym PostgreSQL i źródłowym XLSX.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
   pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
@@ -51,7 +52,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P3-01 | Katalog kompetencji | done | Import i porównanie treści XLSX, 52 testy; `feat(catalog): add competency model` |
 | P3-02 | Reguły i testy domenowe | done | 99 testów, dokładne progi i kompletność; `feat(assessments): implement scoring rules` |
 | P4-01 | Utworzenie i wznowienie oceny C | done | Migracja 0005, API create/list/detail, snapshoty, współbieżna idempotencja, historia i UI UUID; 144 testy backendu, 68 UI, build i live HTTP OK. |
-| P4-02 | Kryteria i terminy | pending | — |
+| P4-02 | Kryteria i terminy | done | Migracja 0006, kryteria/uzasadnienia, daty/czynności, potwierdzenie, zdarzenia i atomowa rewizja; 172 testy backendu, 94 UI, build i live HTTP/SSR OK. |
 | P4-03 | Obserwacje i rozmowa | pending | — |
 | P4-04 | Wskaźniki i decyzje | pending | — |
 | P4-05 | Wynik i zakończenie | pending | — |
@@ -101,6 +102,48 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P4-02, kryteria i terminy
+
+- Dotychczasowe P2-03/P4-01 zapisano po ponownej kontroli (144 testy backendu,
+  68 UI) jako `64b5a18 feat(assessments): persist employee assessment workflows`.
+- Migracja `0006`: daty i trzy jawne potwierdzenia domyślnie false, relacyjne
+  `assessment_criteria` i `assessment_events`. Istniejące szkice zachowane;
+  brak migracji z demo i fikcyjnych dat. Katalog oceny pozostaje niezmieniony.
+- PUT kryteriów: pięć obowiązkowych C z reguł backendu i 0–3 dodatkowe UUID
+  z przypiętej wersji; bez duplikatów, każde dodatkowe z uzasadnieniem 1–4000 znaków.
+- PATCH dat/czynności: obie daty, kolejność, jawne booleany; można zaplanować
+  przyszłą rozmowę, ale nie potwierdzić przyszłych czynności jako wykonanych.
+  Nie automatyzujemy terminów ustawowych bez zweryfikowanych źródeł.
+- POST `transitions` / `agree_criteria`: komplet kryteriów, dat i czynności,
+  dopiero wtedy `draft` → `criteria_agreed`. Ustalenia po potwierdzeniu zablokowane.
+  Zapis czynności nie jest podpisem ani potwierdzeniem doręczenia.
+- Wspólny serwis transakcyjny blokuje ocenę i aktualne przypisanie, odświeża stan
+  po blokadzie i sprawdza rewizję. Zmiana + inkrementacja + zdarzenie z autorem
+  i czasem UTC są atomowe; potwierdzenie ma też datę rozmowy. Konflikt → 409,
+  błędne dane → 422, cudza/brakująca ocena → 404.
+- UI kontekstu stanowiska, kryteriów i terminów korzysta z API i przypiętego
+  katalogu, bez localStorage i bez udawanej analizy OSP. Przy błędzie wpisy zostają;
+  konflikt blokuje kolejne zapisy i daje link do zapisanej wersji w nowej karcie.
+  Pola pozostają dostępne do skopiowania. Nawigacja/GET nie zmieniają statusu.
+- `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest` z
+  `KOMPAS_TEST_DATABASE_URL` (oddzielny PostgreSQL) i `KOMPAS_TEST_CATALOG_XLSX`
+  (źródłowy XLSX) — OK, 172 testy bez skipów. Nowe przypadki: limit, duplikaty,
+  przypięty katalog, błędne daty, niepełne czynności, izolacja i cofnięte przypisanie,
+  równoległe połączenia z rewizją 1 (jeden zapis, jeden konflikt), rollback zdarzenia.
+- `npm run api:types -- http://127.0.0.1:33081/openapi.json`, `npm run precommit`
+  i `npm run build` — OK; 94 testy w 17 plikach, także kontrole UI i komunikatów ról.
+- Compose `up --build --detach --wait --wait-timeout 180 backend`, następnie
+  `frontend` — OK; migracja 0006 wdrożona bez resetu danych. Pierwsza próba SSR
+  wykryła stary moduł po hot reload; po przebudowie frontendu test przeszedł.
+- Live HTTP bez przeglądarki: rzeczywisty MANAGER, create → kryteria (6) → retry
+  starej rewizji 409 → daty/czynności → potwierdzenie (rewizja 4), ponowny odczyt
+  i SSR kryteriów/uzasadnienia/dat/stanu — OK. HR/ADMIN: cudza ocena 404.
+  Dwa kolejne uruchomienia smoke usunęły wyłącznie własne rekordy według autora
+  i losowego klucza żądania; konta i inne oceny nietknięte. Sesje smoke wylogowano.
+- Nie uruchamiano przeglądarki. Dalsze obserwacje, rozmowa oceniająca, cząstkowe
+  decyzje i wynik pozostają do P4-03–05. Następny krok: P4-03.
+- Commit: `feat(assessments): persist criteria and dates`.
 
 ### 2026-11-21 — P4-01, trwałe rozpoczęcie i wznowienie C
 

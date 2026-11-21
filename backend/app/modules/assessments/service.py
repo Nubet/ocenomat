@@ -1,11 +1,25 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import Select, false, select, text
 from sqlalchemy.orm import Session
 
-from app.modules.assessments.models import Assessment
-from app.modules.assessments.schemas import AssessmentCreate
+from app.modules.assessments.models import (
+    Assessment,
+    AssessmentCriterion,
+    AssessmentEvent,
+    AssessmentStatus,
+)
+from app.modules.assessments.rules import periodic_criteria
+from app.modules.assessments.schemas import (
+    AssessmentCreate,
+    CriteriaUpdate,
+    DatesUpdate,
+)
 from app.modules.catalog.models import CatalogVersion
 from app.modules.employees.models import (
     Employee,
@@ -19,7 +33,12 @@ class AssessmentError(Exception):
     def __init__(
         self,
         code: Literal[
-            "not_found", "forbidden", "unsupported", "conflict", "catalog_unavailable"
+            "not_found",
+            "forbidden",
+            "unsupported",
+            "conflict",
+            "catalog_unavailable",
+            "invalid",
         ],
         message: str,
     ):
@@ -38,6 +57,7 @@ def accessible_assessments(user: User) -> Select[tuple[Assessment]]:
             ManagerEmployeeAssignment.manager_id == user.id,
             ManagerEmployeeAssignment.employee_id == Assessment.employee_id,
         )
+        .correlate(Assessment)
         .exists(),
     )
 
@@ -119,3 +139,141 @@ def create_assessment(
     except Exception:
         session.rollback()
         raise
+
+
+@contextmanager
+def edit_assessment(
+    session: Session,
+    user: User,
+    assessment_id: UUID,
+    revision: int,
+    event: Literal["criteria_updated", "dates_updated", "criteria_agreed"],
+) -> Iterator[Assessment]:
+    try:
+        assessment = session.scalar(
+            accessible_assessments(user)
+            .join(
+                ManagerEmployeeAssignment,
+                (ManagerEmployeeAssignment.employee_id == Assessment.employee_id)
+                & (ManagerEmployeeAssignment.manager_id == user.id),
+            )
+            .where(Assessment.id == assessment_id)
+            .with_for_update(of=[Assessment, ManagerEmployeeAssignment])
+            .execution_options(populate_existing=True)
+        )
+        if assessment is None:
+            raise AssessmentError("not_found", "Assessment not found")
+        if (
+            assessment.revision != revision
+            or assessment.status != AssessmentStatus.DRAFT
+        ):
+            raise AssessmentError(
+                "conflict", "Assessment changed or arrangements are already confirmed"
+            )
+        yield assessment
+        assessment.revision += 1
+        session.add(
+            AssessmentEvent(
+                assessment_id=assessment.id,
+                actor_id=user.id,
+                revision=assessment.revision,
+                kind=event,
+                occurred_on=assessment.date_talk
+                if event == "criteria_agreed"
+                else None,
+            )
+        )
+        session.flush()
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+
+def save_criteria(
+    session: Session, user: User, assessment_id: UUID, data: CriteriaUpdate
+) -> Assessment:
+    with edit_assessment(
+        session, user, assessment_id, data.revision, "criteria_updated"
+    ) as assessment:
+        catalog = session.get(CatalogVersion, assessment.catalog_version_id)
+        additional = [item.criterion_id for item in data.additional]
+        try:
+            selected = periodic_criteria(
+                assessment.form,
+                additional,
+                {UUID(item["id"]) for item in catalog.criteria},
+            )
+        except ValueError as error:
+            raise AssessmentError("invalid", str(error)) from None
+        reasons = {item.criterion_id: item.justification for item in data.additional}
+        # Remove and flush before replacing rows with the same composite identity.
+        assessment.criteria.clear()
+        session.flush()
+        assessment.criteria = [
+            AssessmentCriterion(
+                criterion_id=id,
+                required=id not in reasons,
+                justification=reasons.get(id),
+            )
+            for id in selected
+        ]
+    return assessment
+
+
+def save_dates(
+    session: Session, user: User, assessment_id: UUID, data: DatesUpdate
+) -> Assessment:
+    with edit_assessment(
+        session, user, assessment_id, data.revision, "dates_updated"
+    ) as assessment:
+        if data.date_talk > datetime.now(ZoneInfo("Europe/Warsaw")).date() and (
+            data.duties_discussed
+            or data.expectations_discussed
+            or data.arrangements_shared
+        ):
+            raise AssessmentError(
+                "invalid", "A future conversation cannot be confirmed as completed"
+            )
+        for name, value in data.model_dump(exclude={"revision"}).items():
+            setattr(assessment, name, value)
+    return assessment
+
+
+def agree_criteria(
+    session: Session, user: User, assessment_id: UUID, revision: int
+) -> Assessment:
+    with edit_assessment(
+        session, user, assessment_id, revision, "criteria_agreed"
+    ) as assessment:
+        catalog = session.get(CatalogVersion, assessment.catalog_version_id)
+        try:
+            expected = periodic_criteria(
+                assessment.form,
+                [
+                    item.criterion_id
+                    for item in assessment.criteria
+                    if not item.required
+                ],
+                {UUID(item["id"]) for item in catalog.criteria},
+            )
+        except ValueError as error:
+            raise AssessmentError("invalid", str(error)) from None
+        if set(expected) != {
+            item.criterion_id for item in assessment.criteria
+        } or not all(
+            (
+                assessment.date_talk,
+                assessment.date_assessment,
+                assessment.duties_discussed,
+                assessment.expectations_discussed,
+                assessment.arrangements_shared,
+            )
+        ):
+            raise AssessmentError(
+                "invalid",
+                "Save criteria, dates and all completed actions "
+                "before confirming arrangements",
+            )
+        assessment.status = AssessmentStatus.CRITERIA_AGREED
+    return assessment

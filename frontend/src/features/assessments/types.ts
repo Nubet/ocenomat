@@ -2,6 +2,13 @@ import type { components } from "@/lib/api/schema";
 
 export type AssessmentRecord = components["schemas"]["AssessmentResponse"];
 
+export type ArrangementActionState = {
+  error: string;
+  conflict: boolean;
+  assessment?: AssessmentRecord;
+  message?: string;
+};
+
 export const assessmentStatusLabels: Record<AssessmentRecord["status"], string> = {
   draft: "Szkic",
   criteria_agreed: "Uzgodnione kryteria",

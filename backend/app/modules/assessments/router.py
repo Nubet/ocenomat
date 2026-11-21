@@ -6,16 +6,37 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.modules.assessments.models import Assessment
-from app.modules.assessments.schemas import AssessmentCreate, AssessmentResponse
+from app.modules.assessments.schemas import (
+    AgreeCriteria,
+    AssessmentCreate,
+    AssessmentResponse,
+    CriteriaUpdate,
+    DatesUpdate,
+)
 from app.modules.assessments.service import (
     AssessmentError,
     accessible_assessments,
+    agree_criteria,
     create_assessment,
+    save_criteria,
+    save_dates,
 )
 from app.modules.users.models import User
 from app.modules.users.router import get_current_user
 
 router = APIRouter(prefix="/api/v1/assessments", tags=["assessments"])
+
+
+def assessment_http_error(error: AssessmentError) -> HTTPException:
+    status = {
+        "not_found": 404,
+        "forbidden": 403,
+        "unsupported": 422,
+        "invalid": 422,
+        "conflict": 409,
+        "catalog_unavailable": 503,
+    }[error.code]
+    return HTTPException(status_code=status, detail=str(error))
 
 
 @router.get("", response_model=list[AssessmentResponse])
@@ -45,18 +66,59 @@ def create(
     try:
         assessment, created = create_assessment(session, user, data, key)
     except AssessmentError as error:
-        status = {
-            "not_found": 404,
-            "forbidden": 403,
-            "unsupported": 422,
-            "conflict": 409,
-            "catalog_unavailable": 503,
-        }[error.code]
-        raise HTTPException(status_code=status, detail=str(error)) from None
+        raise assessment_http_error(error) from None
     response.status_code = 201 if created else 200
     response.headers["Cache-Control"] = "private, no-store"
     response.headers["Location"] = f"/api/v1/assessments/{assessment.id}"
     return assessment
+
+
+@router.put("/{assessment_id}/criteria", response_model=AssessmentResponse)
+def update_criteria(
+    assessment_id: UUID,
+    data: CriteriaUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = save_criteria(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.patch("/{assessment_id}", response_model=AssessmentResponse)
+def update_dates(
+    assessment_id: UUID,
+    data: DatesUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = save_dates(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.post("/{assessment_id}/transitions", response_model=AssessmentResponse)
+def transition(
+    assessment_id: UUID,
+    data: AgreeCriteria,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = agree_criteria(session, user, assessment_id, data.revision)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
 
 
 @router.get("/{assessment_id}", response_model=AssessmentResponse)

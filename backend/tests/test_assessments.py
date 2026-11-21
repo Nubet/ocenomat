@@ -1,6 +1,7 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
+from threading import Barrier
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -13,8 +14,13 @@ from test_security import claims, sign
 from app.core.database import create_database_engine, get_session
 from app.main import create_app
 from app.modules.assessments.models import Assessment
-from app.modules.assessments.schemas import AssessmentCreate
-from app.modules.assessments.service import create_assessment
+from app.modules.assessments.rules import REQUIRED_CRITERIA
+from app.modules.assessments.schemas import AssessmentCreate, CriteriaUpdate
+from app.modules.assessments.service import (
+    AssessmentError,
+    create_assessment,
+    save_criteria,
+)
 from app.modules.catalog.models import CatalogVersion
 from app.modules.employees.models import (
     Employee,
@@ -333,7 +339,7 @@ def test_concurrent_retries_create_exactly_one_record(database):
                         version=str(catalog_id),
                         source_name="Concurrent test",
                         source_sha256="0" * 64,
-                        criteria=[],
+                        criteria=[{"id": str(id)} for id in REQUIRED_CRITERIA["C"]],
                     ),
                 ]
             )
@@ -367,6 +373,29 @@ def test_concurrent_retries_create_exactly_one_record(database):
             results = list(pool.map(worker, range(2)))
         assert len({id for id, _ in results}) == 1
         assert sorted(created for _, created in results) == [False, True]
+        assessment_id = results[0][0]
+        barrier = Barrier(2)
+
+        def edit_worker(_):
+            with Session(engine) as session:
+                user = session.get(User, user_id)
+                stale = session.get(Assessment, assessment_id)
+                assert stale.revision == 1
+                barrier.wait(timeout=5)
+                try:
+                    saved = save_criteria(
+                        session,
+                        user,
+                        assessment_id,
+                        CriteriaUpdate(revision=1, additional=[]),
+                    )
+                    return saved.revision
+                except AssessmentError as error:
+                    return error.code
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            edits = list(pool.map(edit_worker, range(2)))
+        assert set(edits) == {2, "conflict"}
         with Session(engine) as session:
             assert (
                 session.scalar(

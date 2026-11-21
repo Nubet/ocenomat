@@ -55,7 +55,19 @@ Assessment creation, history and UUID detail routes now use API data:
 - Legacy dashboard links lead to the real assessment list. Demo assistant responses
   are not used as context for persisted assessments.
 
-Criterion/timing editing is P4-02. Dashboard, deadlines and HR monitoring still
+Criterion/timing editing now uses the API with the assessment's pinned catalog:
+
+- The position/context screen explains manual OSP review; it does not invent a
+  document or AI recommendation. Criterion names come from the pinned catalog.
+- Explicit criterion and date saves include the last acknowledged revision.
+  Only the separate confirmation command advances the workflow.
+- Controlled inputs survive API errors and conflicts. A conflict blocks further
+  saves and offers the saved version in a separate tab so text can be compared
+  and copied without overwriting the newer record. No localStorage persistence.
+- Confirmed arrangements are read-only; observation/rating/result editing comes
+  in the remaining P4 tasks. Navigating `?step=` never mutates the assessment.
+
+Dashboard, deadlines and HR monitoring still
 contain labelled demo data until P7. Legacy flow components remain as the visual
 reference for the remaining P4 screens; the UUID route no longer mounts them.
 Do not enter real employee information into the legacy local workspace.

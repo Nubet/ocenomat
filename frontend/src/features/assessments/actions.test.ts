@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkspaceUser } from "@/features/auth/session";
 
 vi.mock("@/features/auth/session", () => ({ requireUser: vi.fn<() => Promise<WorkspaceUser>>() }));
-vi.mock("@/lib/api/server", () => ({ apiRequest: vi.fn<() => Promise<Response>>() }));
+vi.mock("@/lib/api/server", () => ({
+  apiRequest: vi.fn<(path: string, init?: RequestInit) => Promise<Response>>(),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn<(path: string) => void>() }));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {
@@ -16,7 +18,7 @@ vi.mock("next/navigation", () => ({
 import { requireUser } from "@/features/auth/session";
 import { apiRequest } from "@/lib/api/server";
 import { revalidatePath } from "next/cache";
-import { createAssessment } from "./actions";
+import { createAssessment, saveArrangements } from "./actions";
 
 const employeeId = "00000000-0000-0000-0000-000000000001";
 const requestKey = "00000000-0000-0000-0000-000000000002";
@@ -96,7 +98,9 @@ describe("create persistent assessment action", () => {
   it("reuses the request key after an uncertain network result", async () => {
     const data = form();
     vi.mocked(apiRequest).mockRejectedValueOnce(new Error("timeout"));
-    expect((await createAssessment({ error: "" }, data)).error).toContain("ten sam klucz");
+    expect((await createAssessment({ error: "" }, data)).error).toContain(
+      "nie utworzymy drugiej kopii",
+    );
     await expect(createAssessment({ error: "" }, data)).rejects.toThrow(
       `redirect:/assessments/${assessmentId}`,
     );
@@ -120,6 +124,114 @@ describe("create persistent assessment action", () => {
     vi.mocked(apiRequest).mockRejectedValue(new Error("redirect:/login?error=account"));
     await expect(createAssessment({ error: "" }, form())).rejects.toThrow(
       "redirect:/login?error=account",
+    );
+  });
+});
+
+describe("save assessment arrangements", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(requireUser).mockResolvedValue({
+      id: "manager",
+      display_name: "Test",
+      roles: ["MANAGER"],
+    });
+    vi.mocked(apiRequest).mockResolvedValue(
+      Response.json({ id: assessmentId, employee_id: employeeId, revision: 2 }),
+    );
+  });
+  function arrangement(operation = "criteria") {
+    const data = new FormData();
+    data.set("operation", operation);
+    data.set("revision", "1");
+    data.append("additional", requestKey);
+    data.set(`reason:${requestKey}`, "Uzasadnienie z OSP");
+    data.set("date_talk", "2026-01-10");
+    data.set("date_assessment", "2027-01-10");
+    data.set("duties_discussed", "on");
+    data.set("status", "completed");
+    return data;
+  }
+  const previous = { error: "", conflict: false };
+
+  it.each([
+    {
+      operation: "criteria",
+      suffix: "/criteria",
+      method: "PUT",
+      body: {
+        revision: 1,
+        additional: [{ criterion_id: requestKey, justification: "Uzasadnienie z OSP" }],
+      },
+    },
+    {
+      operation: "dates",
+      suffix: "",
+      method: "PATCH",
+      body: {
+        revision: 1,
+        date_talk: "2026-01-10",
+        date_assessment: "2027-01-10",
+        duties_discussed: true,
+        expectations_discussed: false,
+        arrangements_shared: false,
+      },
+    },
+    {
+      operation: "agree",
+      suffix: "/transitions",
+      method: "POST",
+      body: { revision: 1, action: "agree_criteria" },
+    },
+  ])(
+    "sends only fields for $operation and refreshes after success",
+    async ({ operation, suffix, method, body }) => {
+      const result = await saveArrangements(assessmentId, previous, arrangement(operation));
+      expect(result.error).toBe("");
+      expect(apiRequest).toHaveBeenCalledWith(
+        `/api/v1/assessments/${assessmentId}${suffix}`,
+        expect.objectContaining({ method, body: JSON.stringify(body) }),
+      );
+      expect(revalidatePath).toHaveBeenCalledWith(`/assessments/${assessmentId}`);
+      expect(revalidatePath).toHaveBeenCalledWith(`/employees/${employeeId}`);
+    },
+  );
+
+  it("retains text and revision after a conflict without retrying or refreshing", async () => {
+    vi.mocked(apiRequest).mockResolvedValue(new Response(null, { status: 409 }));
+    const data = arrangement();
+    const result = await saveArrangements(assessmentId, previous, data);
+    expect(result.conflict).toBe(true);
+    expect(result.error).toContain("nowej karcie");
+    expect(result.assessment).toBeUndefined();
+    expect(data.get(`reason:${requestKey}`)).toBe("Uzasadnienie z OSP");
+    expect(data.get("revision")).toBe("1");
+    expect(revalidatePath).not.toHaveBeenCalled();
+    expect(apiRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["HR", "ADMIN"] as const)("rejects %s without a manager role", async (role) => {
+    vi.mocked(requireUser).mockResolvedValue({ id: "test", display_name: "Test", roles: [role] });
+    expect((await saveArrangements(assessmentId, previous, arrangement())).error).toContain(
+      "przełożony",
+    );
+    expect(apiRequest).not.toHaveBeenCalled();
+  });
+
+  it.each(["0", "-1", "1.5", "NaN", "9007199254740992"])(
+    "rejects invalid revision %s",
+    async (value) => {
+      const data = arrangement();
+      data.set("revision", value);
+      expect((await saveArrangements(assessmentId, previous, data)).error).toBeTruthy();
+      expect(apiRequest).not.toHaveBeenCalled();
+    },
+  );
+
+  it("does not catch a session redirect", async () => {
+    vi.mocked(apiRequest).mockRejectedValue(new Error("redirect:/login"));
+    await expect(saveArrangements(assessmentId, previous, arrangement())).rejects.toThrow(
+      "redirect:/login",
     );
   });
 });
