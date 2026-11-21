@@ -8,6 +8,16 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 - **Etap:** 7 zakończony; przygotowanie etapu 8.
 - **Aktywne zadanie:** brak; zakończono import scenariuszy oraz rozbudowę ekranu
   pracowników o serwerowe wyszukiwanie, paginację, filtrowanie i sortowanie.
+- **Terminy — porządkowanie UI:** commit `029dee2` rozróżnia odcienie pigułek
+  „Po terminie” i „Bliski termin” tylko w Terminy; kategoria na pulpicie bez zmian.
+  Następnie dodano zakładki statusów z licznikami, wyszukiwanie osoby/działania,
+  sortowanie po dacie i strony po 10/20/50 terminów. Stan zapisany w URL;
+  zwarte, klikalne wiersze zamiast długiej osi czasu. Filtrowanie i stronicowanie
+  odbywa się w warstwie renderowania na autoryzowanej projekcji monitoringu,
+  bez zmian API. Kontrole: celowane `oxfmt --write`, `oxlint --deny-warnings`,
+  `tsc --noEmit` i `git diff --check` — OK. Dodano testy logiki zapytań, ale
+  testów, pełnego precommit, builda ani przeglądarki nie uruchamiano na prośbę
+  użytkownika. Następny krok UI: ocena widoku przez użytkownika.
 - **Weryfikacja:** pełny backend **622 passed / 9 skipped**;
   Ruff lint/format OK (124 pliki). Frontend: `npm run precommit` — OK,
   **214 testów**; `npm run build` — OK. Testy obejmują 60 procesów, obie ścieżki,
