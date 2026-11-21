@@ -96,8 +96,10 @@ def ingest_source(
     if path.stat().st_size > 10 * 1024 * 1024:
         raise ValueError("Original exceeds 10 MiB")
     content = path.read_bytes()
-    extraction = extract_source(path, content)
     original_hash = sha256(content)
+    if spec.provenance and original_hash != spec.provenance.original_sha256:
+        raise ValueError("Original does not match the provenance checksum")
+    extraction = extract_source(path, content, profile=spec.extraction_profile)
     if review is not None:
         validate_review(review, spec.source_id, original_hash, extraction)
     metadata = {
@@ -116,6 +118,9 @@ def ingest_source(
         "parent_source_id": spec.parent_source_id,
         "legal_status": spec.legal_status,
         "warnings": extraction.warnings,
+        "provenance": spec.provenance.model_dump(mode="json")
+        if spec.provenance
+        else None,
     }
     key = f"knowledge/{spec.source_id}/{uuid4()}"
     attempted = commit_pending = False

@@ -62,6 +62,7 @@ class KnowledgeSource(Base):
     legal_status: Mapped[str] = mapped_column(String(30))
     verification_status: Mapped[str] = mapped_column(String(20), default="needs_review")
     warnings: Mapped[list] = mapped_column(JSONB)
+    provenance: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

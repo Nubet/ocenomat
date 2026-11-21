@@ -202,18 +202,25 @@ def extract_workbook(path: Path, content: bytes) -> Extraction:
     return Extraction(media_type=XLSX_TYPE, fragments=fragments)
 
 
-def extract_source(path: Path, content: bytes) -> Extraction:
+def extract_source(
+    path: Path, content: bytes, *, profile: str = "original"
+) -> Extraction:
     if not content or len(content) > 10 * 1024 * 1024:
         raise ValueError("Source must contain 1 byte to 10 MiB")
-    match path.suffix.lower():
-        case ".pdf":
-            extraction = extract_pdf(content)
-        case ".docx":
-            extraction = extract_docx(content)
-        case ".xlsx":
-            extraction = extract_workbook(path, content)
-        case _:
-            raise ValueError("Unsupported original format")
+    if profile != "original":
+        from app.modules.knowledge.official_extraction import extract_official
+
+        extraction = extract_official(path, content, profile)
+    else:
+        match path.suffix.lower():
+            case ".pdf":
+                extraction = extract_pdf(content)
+            case ".docx":
+                extraction = extract_docx(content)
+            case ".xlsx":
+                extraction = extract_workbook(path, content)
+            case _:
+                raise ValueError("Unsupported original format")
     if sum(len(f.content) for f in extraction.fragments) > MAX_TEXT_SIZE:
         raise ValueError("Extracted text exceeds 2 million characters")
     return extraction

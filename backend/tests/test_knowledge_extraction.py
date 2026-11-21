@@ -28,7 +28,7 @@ def docx_bytes(document):
 
 def test_manifest_covers_substantive_originals_only():
     manifest = Manifest.model_validate_json(DEFAULT_MANIFEST.read_text())
-    assert len(manifest.sources) == 12
+    assert len(manifest.sources) == 16
     assert sum(s.markdown_path is not None for s in manifest.sources) == 11
     assert all(
         s.source_type not in ("product_reference", "competition_rules")
@@ -130,7 +130,7 @@ def test_docx_footnotes_are_separate_located_original_text():
             "word/footnotes.xml",
             '<w:footnotes xmlns:w="http://schemas.openxmlformats.org/'
             'wordprocessingml/2006/main"><w:footnote w:id="2"><w:p><w:r>'
-            '<w:t>Except when exempt.</w:t></w:r></w:p></w:footnote></w:footnotes>',
+            "<w:t>Except when exempt.</w:t></w:r></w:p></w:footnote></w:footnotes>",
         )
     result = extract_docx(stream.getvalue())
     assert "[footnoteReference:2]" in result.fragments[0].content

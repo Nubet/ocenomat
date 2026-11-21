@@ -16,7 +16,7 @@ from app.core.database import create_database_engine
 from app.integrations.storage import StorageUnavailable
 from app.modules.knowledge.extraction import extract_source, sha256
 from app.modules.knowledge.ingestion import ingest_source
-from app.modules.knowledge.manifest import SourceSpec
+from app.modules.knowledge.manifest import Provenance, SourceSpec
 from app.modules.knowledge.models import KnowledgeChunk, KnowledgeSource
 from app.modules.knowledge.review import SourceReview, validate_review
 
@@ -123,6 +123,37 @@ def test_repeat_import_preserves_partial_approval_and_original(database, origina
     assert original.storage.objects[source.storage_key] == original.path.read_bytes()
     assert [name for name, _ in original.storage.calls].count("put") == 1
     assert len(original.storage.objects) == 1
+
+
+@pytest.mark.integration
+def test_provenance_is_hash_bound_and_persisted_without_duplicate_upload(
+    database, original
+):
+    _, _, session = database
+    evidence = Provenance(
+        canonical_document_id="eli:DU/2016/470",
+        original_sha256=original.review.original_sha256,
+        official_url="https://eli.gov.pl/eli/DU/2016/470/ogl",
+        note="Test evidence",
+    )
+    spec = original.spec.model_copy(update={"provenance": evidence})
+    for _ in range(2):
+        ingest_source(session, original.root, spec, original.storage)
+    stored = session.get(KnowledgeSource, spec.source_id)
+    assert stored.provenance == evidence.model_dump(mode="json")
+    assert len(original.storage.objects) == 1
+
+
+def test_provenance_mismatch_never_reaches_storage(original):
+    evidence = Provenance(
+        canonical_document_id="eli:DU/2016/470",
+        original_sha256="0" * 64,
+        note="Wrong download",
+    )
+    spec = original.spec.model_copy(update={"provenance": evidence})
+    with pytest.raises(ValueError, match="provenance checksum"):
+        ingest_source(None, original.root, spec, original.storage)
+    assert not original.storage.calls
 
 
 @pytest.mark.integration
