@@ -9,7 +9,8 @@ describe("role-aware guidance", () => {
     expect(html).toContain("Przełożony");
     expect(html).toContain("Administrator");
     expect(html).toContain("Panel zarządzania kontami");
-    expect(html).toContain("Przejdź do pracowników");
+    expect(html).toContain("Przejdź do monitoringu HR");
+    expect(html).toContain('href="/hr"');
     expect(html).not.toContain("Przejdź do swoich ocen");
     expect(html).not.toContain("Zresetuj demo");
     expect(html).not.toContain("Bez backendu");
@@ -18,7 +19,7 @@ describe("role-aware guidance", () => {
   it("offers multiple relevant actions to an account with multiple roles", () => {
     const html = renderToStaticMarkup(<Help userRoles={["MANAGER", "HR", "ADMIN"]} />);
     expect(html).toContain("Przejdź do swoich ocen");
-    expect(html).toContain("Przejdź do pracowników");
+    expect(html).toContain("Przejdź do monitoringu HR");
     expect(html).toContain("Sprawdź listę pracowników");
   });
 

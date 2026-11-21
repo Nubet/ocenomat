@@ -20,6 +20,7 @@ from app.modules.catalog.router import router as catalog_router
 from app.modules.documents.router import router as documents_router
 from app.modules.employees.router import router as employees_router
 from app.modules.knowledge.router import router as knowledge_router
+from app.modules.monitoring.router import router as monitoring_router
 from app.modules.users.router import router as users_router
 
 
@@ -70,6 +71,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(documents_router)
     app.include_router(ai_router)
     app.include_router(knowledge_router)
+    app.include_router(monitoring_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin).rstrip("/") for origin in settings.cors_origins],

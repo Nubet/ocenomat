@@ -449,6 +449,57 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/monitoring/personal": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Personal */
+    get: operations["personal_api_v1_monitoring_personal_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/monitoring/hr": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Hr */
+    get: operations["hr_api_v1_monitoring_hr_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/monitoring/hr/{assessment_id}/reminders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Remind */
+    post: operations["remind_api_v1_monitoring_hr__assessment_id__reminders_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -1217,6 +1268,95 @@ export interface components {
       /** Description */
       description: string;
     };
+    /** MonitoringDeadline */
+    MonitoringDeadline: {
+      /**
+       * Assessment Id
+       * Format: uuid
+       */
+      assessment_id: string;
+      /** Employee Name */
+      employee_name: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "introduction" | "report" | "assessment";
+      /**
+       * Due On
+       * Format: date
+       */
+      due_on: string;
+      /** Overdue */
+      overdue: boolean;
+      /** Due Soon */
+      due_soon: boolean;
+    };
+    /** MonitoringProcess */
+    MonitoringProcess: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Employee Id
+       * Format: uuid
+       */
+      employee_id: string;
+      /** Employee Name */
+      employee_name: string;
+      /** Position */
+      position: string;
+      /** Department */
+      department: string;
+      /** Assessor Name */
+      assessor_name: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "periodic" | "first";
+      /**
+       * Form
+       * @enum {string}
+       */
+      form: "B" | "C" | "P";
+      status: components["schemas"]["AssessmentStatus"];
+      /** Date Assessment */
+      date_assessment: string | null;
+      /** Needs Attention */
+      needs_attention: boolean;
+      /** Can Remind */
+      can_remind: boolean;
+    };
+    /** MonitoringResponse */
+    MonitoringResponse: {
+      /**
+       * As Of
+       * Format: date
+       */
+      as_of: string;
+      /**
+       * Attention Window Days
+       * @default 14
+       */
+      attention_window_days: number;
+      /** Total */
+      total: number;
+      /** In Progress */
+      in_progress: number;
+      /** Completed */
+      completed: number;
+      /** Needs Attention */
+      needs_attention: number;
+      /** Processes */
+      processes: components["schemas"]["MonitoringProcess"][];
+      /** Deadlines */
+      deadlines: components["schemas"]["MonitoringDeadline"][];
+      /** Reminders */
+      reminders: components["schemas"]["ReminderResponse"][];
+    };
     /** ObservationCreate */
     ObservationCreate: {
       /** Revision */
@@ -1410,6 +1550,46 @@ export interface components {
       confirmed_by: string | null;
       /** Confirmed At */
       confirmed_at: string | null;
+    };
+    /** ReminderResponse */
+    ReminderResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Assessment Id
+       * Format: uuid
+       */
+      assessment_id: string;
+      /**
+       * Sender Id
+       * Format: uuid
+       */
+      sender_id: string;
+      /**
+       * Recipient Id
+       * Format: uuid
+       */
+      recipient_id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Channel
+       * @default in_app
+       * @constant
+       */
+      channel: "in_app";
+      /**
+       * Status
+       * @default delivered
+       * @constant
+       */
+      status: "delivered";
     };
     /** ResultResponse */
     ResultResponse: {
@@ -2439,6 +2619,79 @@ export interface operations {
           [name: string]: unknown;
         };
         content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  personal_api_v1_monitoring_personal_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MonitoringResponse"];
+        };
+      };
+    };
+  };
+  hr_api_v1_monitoring_hr_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["MonitoringResponse"];
+        };
+      };
+    };
+  };
+  remind_api_v1_monitoring_hr__assessment_id__reminders_post: {
+    parameters: {
+      query?: never;
+      header: {
+        "idempotency-key": string;
+      };
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReminderResponse"];
+        };
       };
       /** @description Validation Error */
       422: {

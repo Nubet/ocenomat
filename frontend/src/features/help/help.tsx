@@ -26,10 +26,10 @@ const roles = [
     items: [
       "Widzisz podstawowe dane pracowników w organizacji.",
       "Sama rola HR nie pozwala prowadzić ani zatwierdzać ocen. Nie udostępnia też notatek ani ocen cząstkowych przełożonego.",
-      "Monitoring postępów i terminów jest w przygotowaniu. Obecny widok HR pokazuje dane demonstracyjne — nie traktuj ich jako aktualnego stanu ocen.",
+      "Panel HR pokazuje zapisane etapy i terminy. Możesz jawnie wysłać przypomnienie na pulpit prowadzącego ocenę i sprawdzić historię dostarczeń w aplikacji. Dostarczenie nie oznacza odczytania.",
     ],
-    action: "Przejdź do pracowników",
-    href: "/employees",
+    action: "Przejdź do monitoringu HR",
+    href: "/hr",
   },
   {
     id: "ADMIN",
@@ -77,7 +77,7 @@ const questions = [
   ],
   [
     "Skąd pochodzą kryteria i co jest jeszcze w przygotowaniu?",
-    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. W zakładce „Wynik i zakończenie” sprawdzisz wynik zatwierdzonych ocen, zapiszesz wnioski rozwojowe i zakończysz proces. Wynik negatywny wymaga uzasadnienia. OSP dodasz lub wybierzesz w kontekście stanowiska przed potwierdzeniem ustaleń. Załączniki PDF/DOCX mogą mieć do 10 MiB. Po zakończeniu w zakładce „Dokumenty i PDF” uzupełnisz dane urzędu i oceniającego oraz wygenerujesz arkusz B lub C z zatwierdzonych ocen. Dokument nie jest podpisany ani doręczony. Wniosek o kolejny stopień służbowy wymaga odrębnego przygotowania. Analiza OSP proponuje kryteria do decyzji przełożonego, a asystent AI odpowiada z cytowaniami zatwierdzonych źródeł. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
+    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. W zakładce „Wynik i zakończenie” sprawdzisz wynik zatwierdzonych ocen, zapiszesz wnioski rozwojowe i zakończysz proces. Wynik negatywny wymaga uzasadnienia. OSP dodasz lub wybierzesz w kontekście stanowiska przed potwierdzeniem ustaleń. Załączniki PDF/DOCX mogą mieć do 10 MiB. Po zakończeniu w zakładce „Dokumenty i PDF” uzupełnisz dane urzędu i oceniającego oraz wygenerujesz arkusz B lub C z zatwierdzonych ocen. Dokument nie jest podpisany ani doręczony. Wniosek o kolejny stopień służbowy wymaga odrębnego przygotowania. Analiza OSP proponuje kryteria do decyzji przełożonego, a asystent AI odpowiada z cytowaniami zatwierdzonych źródeł. Pulpit i Terminy pokazują Twoje zapisane procesy z aktualnym przypisaniem; panel HR udostępnia osobną projekcję etapów i dat bez treści ocen. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
   ],
 ];
 

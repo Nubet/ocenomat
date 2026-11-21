@@ -5,22 +5,24 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 7 — formularz B, pierwsza ocena i HR.
-- **Aktywne zadanie:** P7-03 — monitoring HR (`in_progress`).
-- **Następny krok:** P7-03 — zastąpić demonstracyjne projekcje dashboardu, terminów
-  i HR autoryzowanymi danymi API, bez ujawniania notatek HR. Faza 6 wdrożona i oceniona
+- **Etap:** 7 zakończony; przygotowanie etapu 8.
+- **Aktywne zadanie:** P7-03 zakończone; następne P8-02 (`pending`).
+- **Następny krok:** P8-02 — przygotowanie produkcyjnej konfiguracji i procedur VPS;
+  faktyczne wdrożenie wymaga dostępu do serwera/domeny. P8-01 pozostaje zablokowane
+  zakazem przeglądarki. Faza 6 wdrożona i oceniona
   w ograniczonym korpusie; wynik 28/30, dwie nadmiarowe odmowy i brak demonstracji
   pozostawiają P6-07 `blocked`, nie oznaczają zakończenia całego etapu.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
-  nie są zatwierdzoną wiedzą. Backend Compose, migracje do 0017. Obowiązuje
+  nie są zatwierdzoną wiedzą. Backend Compose, migracje do 0018. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P7-02 — osobny workflow pierwszej oceny, kwalifikacja,
-  terminy i ich historia, sprawozdanie, egzamin, pięć ocen 3/5/7 i PDF; UI/OpenAPI.
-  120 testów backendu OK, 3 live OSP skipped; 192 testy frontendu i build OK.
-  Migracja 0017 bez zmian rekordów 18 dotychczasowych tabel.
-  Commit: `feat(assessments): add first assessment workflow`.
-- **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
+- **Ostatnia zakończona praca:** P7-03 — autoryzowane projekcje pulpitu, terminów i HR;
+  jawne przypomnienia dostarczane w aplikacji z historią i idempotencją. Bez notatek
+  i ocen cząstkowych w projekcji HR. Pełny backend: 610 passed / 9 skipped;
+  po końcowej korekcie projekcji terminów 20 celowanych testów OK; frontend 205 testów
+  i build OK. Migracja 0018 bez zmian rekordów 20 dotychczasowych tabel.
+  Commit: `feat(hr): add assessment monitoring`.
+- **Stan aplikacji:** produkcyjne ekrany pracują na autoryzowanych danych API;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
   i wersjonowany katalog. Lista pracowników, profile, wyszukiwarka oraz utworzenie,
@@ -36,8 +38,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
    Wynik API pozostaje niekompletny do zatwierdzenia wszystkich kryteriów. Osobny
    zapis podsumowania i polecenie `complete` zamykają proces w `completed`;
    wynik, autor/czas i dane są odtąd niezmienne. Finalizacja nie oznacza podpisu/doręczenia.
-  Frontend ma ekran logowania, cookie session i chroniony workspace; monitoring
-   pozostaje do podłączenia w P7. Bez Supabase
+  Frontend ma ekran logowania, cookie session i chroniony workspace; pulpit,
+   Terminy i HR korzystają z osobnych projekcji API. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS przechowuje prywatne pliki oceny; API sprawdza dostęp, format i checksum.
     UI obsługuje załączniki, wybór wersji OSP i PDF zakończonej oceny B/C oraz pierwszej.
@@ -91,7 +93,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-07 | Ewaluacja jakości i demonstracja | blocked | Pomiar wykonany: 28/30 poprawnych rezultatów, dwie nadmiarowe odmowy, zero błędnych kategorycznych odpowiedzi; 23/23 retrieval, 77 poprawnych cytowań. Cel 95% całych odpowiedzi nieosiągnięty; demonstracja niewykonana przy zakazie przeglądarki. |
 | P7-01 | Arkusz B | done | Wspólny workflow B/C, odrębne wymagane kryteria, PDF załącznika 3, UI i OpenAPI; migracja 0016 bez zmian rekordów 18 tabel. 87 testów backendu, 188 frontendu; `feat(assessments): support manager form b`. |
 | P7-02 | Pierwsza ocena | done | Osobny workflow/API/UI, kwalifikacja i wyjątki, historia terminów, sprawozdanie, egzamin, pięć ocen i PDF; 0017, 120 testów backendu / 192 UI, build i integralność danych OK. `feat(assessments): add first assessment workflow`. |
-| P7-03 | Monitoring HR | in_progress | Projekcje bez notatek; przypomnienia w aplikacji do prowadzącego ocenę, jawnie wysyłane przez HR. |
+| P7-03 | Monitoring HR | done | Osobiste i HR projekcje bez notatek, pulpit/terminy/HR z API; jawne przypomnienia w aplikacji z historią i idempotencją. 0018, 610 testów backendu / 205 UI, build i integralność danych OK; `feat(hr): add assessment monitoring`. |
 | P8-01 | Test krytycznej ścieżki E2E | blocked | Poprzednie polecenie zabrania uruchamiania przeglądarki; potrzebna zmiana instrukcji. |
 | P8-02 | Konfiguracja i deployment VPS | pending | Faktyczne wdrożenie wymaga dostępu do serwera i domeny. |
 
@@ -141,6 +143,66 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P7-03, monitoring i przypomnienia HR
+
+- `GET /api/v1/monitoring/personal` obejmuje tylko własne procesy z aktualnym
+  przypisaniem, zgodnie z istniejącą autoryzacją ocen; brak roli MANAGER daje pusty
+  widok osobisty. `GET /api/v1/monitoring/hr` wymaga HR; ADMIN ani MANAGER nie
+  otrzymują go automatycznie. Odpowiedzi `private, no-store`.
+- Projekcja wybiera jawnie kolumny metadanych i terminów, bez ładowania ORM-owych
+  kolekcji obserwacji/ocen/notatek/raportów. Zwraca rzeczywiste liczniki, status,
+  osobę, komórkę, prowadzącego, daty i flagę uwagi; żadnych treści notatek,
+  sprawozdań, ocen cząstkowych ani wyników do HR. HR nie otrzymał dostępu do
+  szczegółu oceny, edycji, OSP ani plików.
+- Terminy uporządkowane chronologicznie; zaległość od dnia po dacie, horyzont
+  bliskiego terminu 14 dni włącznie, brak wymaganej daty także wymaga uwagi.
+  Pierwsza ocena: ustawowy limit rozmowy wstępnej, sprawozdanie do złożenia oraz
+  limit sporządzenia oceny z dotychczasowego silnika. Okresowa: termin oceny;
+  odbytej rozmowy rozpoczynającej nie przedstawiamy jako przyszłej rozmowy
+  oceniającej. Zakończone procesy pozostają w rejestrze, bez zaległych działań.
+- Kanał wybrano zgodnie z dostępnością środowiska (DEC-016): przypomnienie
+  **w aplikacji**, bez zależności pocztowej. HR świadomie wywołuje
+  `POST /api/v1/monitoring/hr/{assessment_id}/reminders`; API blokuje zamknięty
+  proces lub nieaktywnego/nieprzypisanego prowadzącego bez roli MANAGER.
+  Transakcja zapisuje autora, odbiorcę, ocenę, czas i klucz idempotencji w nowej
+  tabeli. Sukces oznacza trwały wpis widoczny na osobistym pulpicie odbiorcy,
+  nie e-mail ani odczyt. HR widzi historię dostarczeń. Odebranie przypisania
+  usuwa dostęp do procesu i przypomnień w osobistym widoku.
+- Ponowienie tego samego klucza zwraca ten sam wpis (200), nowy zapis 201;
+  użycie klucza dla innej oceny daje 409. UI zachowuje klucz przy niepewnym wyniku
+  i błędzie transportu, nie ogłasza wtedy dostarczenia. Nie ma dowolnego tekstu
+  HR, zmiany odbiorcy ani automatycznego wysyłania. Rewizja oceny pozostaje bez zmian.
+- Podłączono istniejące karty/tabele/dialog HR, pulpit i oś terminów; usunięto
+  statyczne osoby/liczby i odczyt lokalnego demo z tych ekranów. Wyświetlane są
+  jawne puste stany. Pomoc odsyła HR do monitoringu; OpenAPI zregenerowane.
+- Kontrole: `uv run ruff check app alembic tests` i
+  `uv run ruff format --check app alembic tests` — OK (119 plików).
+  `uv run pytest -q --tb=short` z dedykowanym PostgreSQL i fontem — **610 passed,
+  9 skipped**, 69,28 s; integracje wymagające dodatkowej konfiguracji nieuruchomione.
+  Po korekcie rozróżnienia rozmowy rozpoczynającej i przyszłego terminu:
+  `uv run pytest tests/test_monitoring.py tests/test_database.py -q --tb=short`
+  — **20 passed**, 3,62 s. W tym 12 testów monitoringu: role, brak prywatnych pól,
+  granice dat, pierwsza ocena, zakończenie, prawdziwy odbiorca, replay/konflikt,
+  odwołane przypisanie i brak pozornej wysyłki do niedostępnego prowadzącego.
+- Frontend: `npm run api:types -- http://127.0.0.1:33081/openapi.json`,
+  `npm run precommit` — format/lint/typecheck i **205 passed** w 28 plikach;
+  `npm run build` — OK. Testy obejmują dane/puste stany pulpitu, terminów i HR,
+  kontrolę roli przed pobraniem danych HR i akcję przypomnienia z błędami/replay.
+- Compose: rebuild backend/migrate, `run --rm migrate`, odtworzenie backendu;
+  migracja **0018**, SHA-256 wszystkich rekordów **20 dotychczasowych tabel**
+  identyczne przed/po. Dodano tylko tabelę przypomnień, bez resetu bazy/wolumenów.
+  `/app/.venv/bin/alembic check` w backendzie — brak różnic. Próba `uv run alembic
+  check` chciała doinstalować dev dependencies i zakończyła się brakiem uprawnień;
+  właściwe sprawdzenie wykonano istniejącym binarnym Alembic bez synchronizacji.
+  Roundtrip migracji sprawdzony w izolowanym schemacie w `test_database.py`.
+  Downgrade 0018 blokuje usunięcie istniejącej historii dostarczeń.
+- Live HTTP: backend `/health` i `/api/v1/health` oraz frontend `/login` — 200;
+  obie projekcje bez sesji — 401; nowy kontrakt przypomnień widoczny w OpenAPI.
+  Bez przeglądarki/E2E i nowego testu zalogowanej sesji live.
+- Commit: `feat(hr): add assessment monitoring`. Następny krok: P8-02 —
+  przygotowanie VPS; faktyczny deployment zależy od dostępu i domeny.
+  P6-07/P8-01 pozostają blocked zgodnie z wcześniejszymi ograniczeniami.
 
 ### 2026-11-21 — P7-02, pierwsza ocena
 

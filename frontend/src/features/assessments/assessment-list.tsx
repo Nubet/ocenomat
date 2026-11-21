@@ -32,7 +32,7 @@ export function AssessmentEmptyState({
             ? "Rozpocznij nową ocenę i wybierz pracownika. Zapisana ocena pojawi się tutaj — możesz do niej wrócić później."
             : "Aby rozpocząć ocenę, potrzebujesz przypisania pracownika. Poproś administratora o sprawdzenie przypisania; podaj swój adres logowania oraz imię i nazwisko pracownika."
           : roles.includes("HR")
-            ? "Jako HR możesz przeglądać profile pracowników. Treść ocen jest dostępna tylko dla przełożonego, który je prowadzi. Monitoring HR jest jeszcze w przygotowaniu."
+            ? "Jako HR możesz przeglądać profile pracowników oraz etapy i terminy w panelu HR. Treść ocen jest dostępna tylko dla przełożonego, który je prowadzi."
             : roles.includes("ADMIN")
               ? "Sama rola administratora nie udostępnia treści ocen. Jeśli masz je prowadzić, zleć osobie obsługującej wdrożenie dodanie roli przełożonego i przypisanie pracownika."
               : "Poproś administratora o nadanie roli odpowiedniej do Twoich obowiązków. Podaj adres, którym logujesz się do aplikacji."}

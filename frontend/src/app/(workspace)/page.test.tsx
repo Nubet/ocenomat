@@ -1,13 +1,21 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { WorkspaceUser } from "@/features/auth/session";
+import type { Monitoring } from "@/features/monitoring/types";
 
 vi.mock("@/features/auth/session", () => ({ requireUser: vi.fn<() => Promise<WorkspaceUser>>() }));
-vi.mock("@/features/workspace/workspace-provider", () => ({
-  useWorkspace: () => ({ state: { assessments: {} } }),
-}));
-vi.mock("@/features/assessments/components/assessment-status", () => ({
-  assessmentStatus: () => ({ label: "", tone: "default" }),
+vi.mock("@/features/monitoring/server", () => ({
+  getMonitoring: vi.fn<() => Promise<Monitoring>>().mockResolvedValue({
+    as_of: "2026-11-21",
+    attention_window_days: 14,
+    total: 0,
+    in_progress: 0,
+    completed: 0,
+    needs_attention: 0,
+    processes: [],
+    deadlines: [],
+    reminders: [],
+  }),
 }));
 
 import { requireUser } from "@/features/auth/session";

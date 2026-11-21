@@ -89,6 +89,17 @@ uprawnia do niszczenia danych lub pomijania niezgodności ze źródłami.
 | DEC-013 | Logowanie e-mail/hasło przez Supabase, konta tworzone przez administratora; bez publicznej rejestracji. Bootstrap pierwszego administratora jest jawną operacją operatora, nie endpointem publicznym. |
 | DEC-014 | Potwierdzenie przez aplikację opisuje zarejestrowaną czynność i autora; nie jest podpisem elektronicznym ani dowodem podpisania przez inną osobę. |
 | DEC-015 | Jedno uruchomienie Compose dla developmentu; konfiguracja VPS jako osobny wariant. Bez prawdziwych sekretów w repozytorium, obrazach, logach i progresie. |
+| DEC-016 | P7-03 (2026-11-21): przypomnienia HR są jawnie dostarczane w aplikacji do autora oceny z aktywną rolą MANAGER i aktualnym przypisaniem. Zapis w PostgreSQL jest dostarczeniem na pulpit, nie potwierdzeniem odczytu ani e-mailem. Środowisko nie ma adresów odbiorców w modelu biznesowym ani skonfigurowanego kanału pocztowego. Idempotency-Key chroni ponowienie niepewnego zapisu; historia nie zmienia treści ani rewizji oceny. |
+
+Uszczegółowienie DEC-012/016 (2026-11-21, P7-03): osobisty monitoring używa
+tego samego zakresu autora i aktualnego przypisania co szczegół oceny. Wyłącznie
+HR otrzymuje organizacyjną projekcję metadanych, bez treści notatek, sprawozdań,
+ocen cząstkowych i wyników. Sama rola ADMIN nie daje dostępu do tej projekcji.
+Bliski termin to operacyjny horyzont 14 dni, nie dodatkowy termin ustawowy.
+Data rozmowy rozpoczynającej ocenę okresową jest zapisem czynności, nie datą
+przyszłej rozmowy oceniającej: monitoring nie tworzy z niej zaległości.
+Pierwsza ocena korzysta z istniejącego silnika terminów, daty sprawozdania
+i najpóźniejszej daty oceny; zakończone procesy nie generują zaległych działań.
 
 Struktura jest wskazówką, nie obowiązkiem tworzenia pustych plików:
 
