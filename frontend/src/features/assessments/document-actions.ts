@@ -57,8 +57,8 @@ export async function saveDocument(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ revision, job_description_id: id }),
     };
-  } else if (operation === "pdf") {
-    path = "/documents/periodic-pdf";
+  } else if (operation === "pdf" || operation === "first_pdf") {
+    path = operation === "first_pdf" ? "/documents/first-pdf" : "/documents/periodic-pdf";
     init = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -67,17 +67,22 @@ export async function saveDocument(
         office_name: form.get("office_name"),
         assessor_department: form.get("assessor_department"),
         assessor_position: form.get("assessor_position"),
-        period_end: form.get("period_end"),
-        civil_service_status: form.get("civil_service_status"),
-        no_promotion_request: form.get("no_promotion_request") === "on",
-        previous_assessment:
-          form.get("civil_service_status") === "official" && form.get("previous_exists") === "yes"
-            ? {
-                outcome: form.get("previous_outcome"),
-                level: Number(form.get("previous_level")),
-                assessed_on: form.get("previous_date"),
-              }
-            : null,
+        ...(operation === "first_pdf"
+          ? {}
+          : {
+              period_end: form.get("period_end"),
+              civil_service_status: form.get("civil_service_status"),
+              no_promotion_request: form.get("no_promotion_request") === "on",
+              previous_assessment:
+                form.get("civil_service_status") === "official" &&
+                form.get("previous_exists") === "yes"
+                  ? {
+                      outcome: form.get("previous_outcome"),
+                      level: Number(form.get("previous_level")),
+                      assessed_on: form.get("previous_date"),
+                    }
+                  : null,
+            }),
       }),
     };
   } else return { error: "Wybierz operację dokumentu.", conflict: false };
@@ -119,7 +124,7 @@ export async function saveDocument(
       files,
       descriptions,
       message:
-        operation === "pdf"
+        operation === "pdf" || operation === "first_pdf"
           ? `Arkusz ${assessment.form} jest gotowy do pobrania. Nie jest podpisany ani doręczony.`
           : "Dokument zapisany. Wersję OSP można zmienić tylko przed potwierdzeniem ustaleń.",
     };

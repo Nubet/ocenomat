@@ -107,6 +107,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/first": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update First */
+    put: operations["update_first_api_v1_assessments__assessment_id__first_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/first/deadlines": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Update First Deadlines */
+    post: operations["update_first_deadlines_api_v1_assessments__assessment_id__first_deadlines_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/assessments/{assessment_id}": {
     parameters: {
       query?: never;
@@ -313,6 +347,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/documents/first-pdf": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Generate First Pdf */
+    post: operations["generate_first_pdf_api_v1_assessments__assessment_id__documents_first_pdf_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/assessments/{assessment_id}/documents/job-descriptions/{description_id}/download": {
     parameters: {
       query?: never;
@@ -462,9 +513,10 @@ export interface components {
       employee_id: string;
       /**
        * Kind
-       * @constant
+       * @enum {string}
        */
-      kind: "periodic";
+      kind: "periodic" | "first";
+      qualification?: components["schemas"]["FirstQualification"] | null;
     };
     /** AssessmentResponse */
     AssessmentResponse: {
@@ -493,14 +545,17 @@ export interface components {
       employee_snapshot: components["schemas"]["EmployeeResponse"];
       /**
        * Kind
-       * @constant
+       * @enum {string}
        */
-      kind: "periodic";
+      kind: "periodic" | "first";
       /**
        * Form
        * @enum {string}
        */
-      form: "B" | "C";
+      form: "B" | "C" | "P";
+      first?: components["schemas"]["FirstData"] | null;
+      /** First Deadline Changes */
+      first_deadline_changes?: components["schemas"]["FirstDeadlineChangeResponse"][];
       status: components["schemas"]["AssessmentStatus"];
       /** Revision */
       revision: number;
@@ -754,7 +809,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: "attachment" | "osp" | "periodic_pdf";
+      kind: "attachment" | "osp" | "periodic_pdf" | "first_pdf";
       /** Template Version */
       template_version: string | null;
       /** Assessment Revision */
@@ -798,6 +853,296 @@ export interface components {
       position_kind: components["schemas"]["PositionKind"];
       /** Department */
       department: string;
+    };
+    /** FirstData */
+    FirstData: {
+      /**
+       * Hired On
+       * Format: date
+       */
+      hired_on: string;
+      /**
+       * Contract End
+       * Format: date
+       */
+      contract_end: string;
+      /**
+       * Employment Basis
+       * @enum {string}
+       */
+      employment_basis: "first_contract" | "replacement";
+      /** Eligibility Confirmed */
+      eligibility_confirmed: boolean;
+      /** Qualification Basis */
+      qualification_basis: string;
+      /** Ksap Graduate */
+      ksap_graduate: boolean;
+      /** Nomination Requested */
+      nomination_requested: boolean;
+      /** Replacement Agreed On */
+      replacement_agreed_on?: string | null;
+      /** Intro On */
+      intro_on?: string | null;
+      /**
+       * Intro Confirmed
+       * @default false
+       */
+      intro_confirmed: boolean;
+      /**
+       * Arrangements Shared
+       * @default false
+       */
+      arrangements_shared: boolean;
+      /** Report From */
+      report_from?: string | null;
+      /** Report To */
+      report_to?: string | null;
+      /** Report Period From */
+      report_period_from?: string | null;
+      /** Report Period To */
+      report_period_to?: string | null;
+      /** Report Submitted On */
+      report_submitted_on?: string | null;
+      /**
+       * Report Missing
+       * @default false
+       */
+      report_missing: boolean;
+      /**
+       * Report Tasks
+       * @default
+       */
+      report_tasks: string;
+      /**
+       * Report Problems
+       * @default
+       */
+      report_problems: string;
+      /**
+       * Report Learning
+       * @default
+       */
+      report_learning: string;
+      /**
+       * Report Conclusions
+       * @default
+       */
+      report_conclusions: string;
+      /** Exam */
+      exam?: ("passed" | "failed" | "not_applicable") | null;
+      /**
+       * Exam Basis
+       * @default
+       */
+      exam_basis: string;
+      /** Conversation On */
+      conversation_on?: string | null;
+      /**
+       * Conversation Notes
+       * @default
+       */
+      conversation_notes: string;
+      /**
+       * Conversation Confirmed
+       * @default false
+       */
+      conversation_confirmed: boolean;
+      /** Assessed On */
+      assessed_on?: string | null;
+      /** Scores */
+      scores?: {
+        [key: string]: number | null;
+      };
+      /**
+       * Justification
+       * @default
+       */
+      justification: string;
+      /**
+       * Development Conclusions
+       * @default
+       */
+      development_conclusions: string;
+      /**
+       * Unit Head Name
+       * @default
+       */
+      unit_head_name: string;
+      /**
+       * Unit Head Position
+       * @default
+       */
+      unit_head_position: string;
+      /**
+       * Unit Head Agreed
+       * @default false
+       */
+      unit_head_agreed: boolean;
+    };
+    /** FirstDeadlineChangeResponse */
+    FirstDeadlineChangeResponse: {
+      /** Revision */
+      revision: number;
+      /**
+       * Reason
+       * @enum {string}
+       */
+      reason: "justified_absence" | "outside_workplace" | "contract_extension";
+      /** Basis */
+      basis: string;
+      /**
+       * Circumstance From
+       * Format: date
+       */
+      circumstance_from: string;
+      /**
+       * Circumstance To
+       * Format: date
+       */
+      circumstance_to: string;
+      /**
+       * Contract End
+       * Format: date
+       */
+      contract_end: string;
+      /**
+       * Report From
+       * Format: date
+       */
+      report_from: string;
+      /**
+       * Report To
+       * Format: date
+       */
+      report_to: string;
+      /**
+       * Notified On
+       * Format: date
+       */
+      notified_on: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
+      /**
+       * Previous Contract End
+       * Format: date
+       */
+      previous_contract_end: string;
+      /**
+       * Previous Report From
+       * Format: date
+       */
+      previous_report_from: string;
+      /**
+       * Previous Report To
+       * Format: date
+       */
+      previous_report_to: string;
+    };
+    /** FirstDeadlineUpdate */
+    FirstDeadlineUpdate: {
+      /** Revision */
+      revision: number;
+      /**
+       * Reason
+       * @enum {string}
+       */
+      reason: "justified_absence" | "outside_workplace" | "contract_extension";
+      /** Basis */
+      basis: string;
+      /**
+       * Circumstance From
+       * Format: date
+       */
+      circumstance_from: string;
+      /**
+       * Circumstance To
+       * Format: date
+       */
+      circumstance_to: string;
+      /**
+       * Contract End
+       * Format: date
+       */
+      contract_end: string;
+      /**
+       * Report From
+       * Format: date
+       */
+      report_from: string;
+      /**
+       * Report To
+       * Format: date
+       */
+      report_to: string;
+      /**
+       * Notified On
+       * Format: date
+       */
+      notified_on: string;
+    };
+    /** FirstPdfGeneration */
+    FirstPdfGeneration: {
+      /** Revision */
+      revision: number;
+      /** Office Name */
+      office_name: string;
+      /** Assessor Department */
+      assessor_department: string;
+      /** Assessor Position */
+      assessor_position: string;
+    };
+    /** FirstQualification */
+    FirstQualification: {
+      /**
+       * Hired On
+       * Format: date
+       */
+      hired_on: string;
+      /**
+       * Contract End
+       * Format: date
+       */
+      contract_end: string;
+      /**
+       * Employment Basis
+       * @enum {string}
+       */
+      employment_basis: "first_contract" | "replacement";
+      /** Eligibility Confirmed */
+      eligibility_confirmed: boolean;
+      /** Qualification Basis */
+      qualification_basis: string;
+      /** Ksap Graduate */
+      ksap_graduate: boolean;
+      /** Nomination Requested */
+      nomination_requested: boolean;
+      /** Replacement Agreed On */
+      replacement_agreed_on?: string | null;
+    };
+    /** FirstUpdate */
+    FirstUpdate: {
+      /** Revision */
+      revision: number;
+      data: components["schemas"]["FirstData"];
+      /**
+       * Action
+       * @default save
+       * @enum {string}
+       */
+      action: "save" | "confirm_introduction" | "confirm_conversation" | "complete";
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -1360,6 +1705,76 @@ export interface operations {
       };
     };
   };
+  update_first_api_v1_assessments__assessment_id__first_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FirstUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_first_deadlines_api_v1_assessments__assessment_id__first_deadlines_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FirstDeadlineUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   assessment_detail_api_v1_assessments__assessment_id__get: {
     parameters: {
       query?: never;
@@ -1819,6 +2234,41 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["PdfGeneration"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DocumentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  generate_first_pdf_api_v1_assessments__assessment_id__documents_first_pdf_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FirstPdfGeneration"];
       };
     };
     responses: {

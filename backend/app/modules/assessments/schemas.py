@@ -12,6 +12,11 @@ from pydantic import (
     model_validator,
 )
 
+from app.modules.assessments.first_schemas import (
+    FirstData,
+    FirstDeadlineChangeResponse,
+    FirstQualification,
+)
 from app.modules.assessments.models import AssessmentStatus
 from app.modules.assessments.rules import PERIODIC_SCORES, REQUIRED_CRITERIA
 from app.modules.employees.schemas import EmployeeResponse
@@ -21,7 +26,14 @@ class AssessmentCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     employee_id: UUID
-    kind: Literal["periodic"]
+    kind: Literal["periodic", "first"]
+    qualification: FirstQualification | None = None
+
+    @model_validator(mode="after")
+    def first_qualification(self):
+        if (self.kind == "first") != (self.qualification is not None):
+            raise ValueError("Only first assessments require qualification data")
+        return self
 
 
 class AssessmentResponse(BaseModel):
@@ -33,13 +45,17 @@ class AssessmentResponse(BaseModel):
     catalog_version_id: UUID
     job_description_id: UUID | None
     employee_snapshot: EmployeeResponse
-    kind: Literal["periodic"]
-    form: Literal["B", "C"]
+    kind: Literal["periodic", "first"]
+    form: Literal["B", "C", "P"]
+    first: FirstData | None = None
+    first_deadline_changes: list[FirstDeadlineChangeResponse] = Field(
+        default_factory=list
+    )
     status: AssessmentStatus
     revision: int
     created_at: datetime
     required_criterion_ids: list[UUID] = Field(
-        default_factory=lambda data: list(REQUIRED_CRITERIA[data["form"]])
+        default_factory=lambda data: list(REQUIRED_CRITERIA.get(data["form"], ()))
     )
     criteria: list["CriterionSelection"]
     date_talk: date | None

@@ -18,7 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
-from app.modules.assessments.rules import Result, periodic_result
+from app.modules.assessments.rules import Result, first_result, periodic_result
 
 
 class AssessmentStatus(StrEnum):
@@ -34,8 +34,11 @@ class Assessment(Base):
     __table_args__ = (
         UniqueConstraint("assessor_id", "idempotency_key"),
         CheckConstraint("revision > 0"),
-        CheckConstraint("kind = 'periodic'"),
-        CheckConstraint("form IN ('B', 'C')", name="ck_assessments_form"),
+        CheckConstraint(
+            "(kind = 'periodic' AND form IN ('B', 'C')) OR "
+            "(kind = 'first' AND form = 'P')",
+            name="ck_assessments_form",
+        ),
         CheckConstraint(
             "date_assessment >= date_talk", name="ck_assessments_date_order"
         ),
@@ -96,9 +99,31 @@ class Assessment(Base):
     summary: Mapped["AssessmentSummary | None"] = relationship(
         lazy="selectin", cascade="all, delete-orphan"
     )
+    first: Mapped["FirstAssessment | None"] = relationship(
+        lazy="selectin", cascade="all, delete-orphan"
+    )
+    first_deadline_changes: Mapped[list["FirstDeadlineChange"]] = relationship(
+        lazy="selectin", order_by="FirstDeadlineChange.revision"
+    )
 
     @property
     def result(self) -> Result:
+        if self.kind == "first":
+            if self.first is None:
+                return Result("incomplete", None)
+            details = self.first
+            on_time = (
+                details.report_from <= details.report_submitted_on <= details.report_to
+                if details.report_submitted_on
+                and details.report_from
+                and details.report_to
+                else False
+                if details.report_missing
+                else None
+            )
+            return first_result(
+                list(details.scores.values()), on_time, details.exam, details.exam_basis
+            )
         if self.summary is not None and self.summary.outcome is not None:
             return Result(
                 self.summary.outcome,
@@ -110,6 +135,89 @@ class Assessment(Base):
             [item.criterion_id for item in self.criteria],
             {item.criterion_id: item.score for item in self.ratings},
         )
+
+
+class FirstAssessment(Base):
+    __tablename__ = "first_assessments"
+    __table_args__ = (
+        CheckConstraint("employment_basis IN ('first_contract', 'replacement')"),
+        CheckConstraint("eligibility_confirmed"),
+        CheckConstraint("NOT (ksap_graduate AND nomination_requested)"),
+        CheckConstraint("contract_end > hired_on"),
+        CheckConstraint("report_to >= report_from"),
+        CheckConstraint("exam IN ('passed', 'failed', 'not_applicable')"),
+        CheckConstraint("NOT report_missing OR report_submitted_on IS NULL"),
+    )
+
+    assessment_id: Mapped[UUID] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), primary_key=True
+    )
+    hired_on: Mapped[date] = mapped_column(Date)
+    contract_end: Mapped[date] = mapped_column(Date)
+    employment_basis: Mapped[str] = mapped_column(String(20))
+    eligibility_confirmed: Mapped[bool] = mapped_column()
+    qualification_basis: Mapped[str] = mapped_column(String(4000))
+    ksap_graduate: Mapped[bool] = mapped_column()
+    nomination_requested: Mapped[bool] = mapped_column()
+    replacement_agreed_on: Mapped[date | None] = mapped_column(Date)
+    intro_on: Mapped[date | None] = mapped_column(Date)
+    intro_confirmed: Mapped[bool] = mapped_column(default=False)
+    arrangements_shared: Mapped[bool] = mapped_column(default=False)
+    report_from: Mapped[date | None] = mapped_column(Date)
+    report_to: Mapped[date | None] = mapped_column(Date)
+    report_period_from: Mapped[date | None] = mapped_column(Date)
+    report_period_to: Mapped[date | None] = mapped_column(Date)
+    report_submitted_on: Mapped[date | None] = mapped_column(Date)
+    report_missing: Mapped[bool] = mapped_column(default=False)
+    report_tasks: Mapped[str] = mapped_column(String(10000), default="")
+    report_problems: Mapped[str] = mapped_column(String(10000), default="")
+    report_learning: Mapped[str] = mapped_column(String(10000), default="")
+    report_conclusions: Mapped[str] = mapped_column(String(10000), default="")
+    exam: Mapped[str | None] = mapped_column(String(20))
+    exam_basis: Mapped[str] = mapped_column(String(10000), default="")
+    conversation_on: Mapped[date | None] = mapped_column(Date)
+    conversation_notes: Mapped[str] = mapped_column(String(10000), default="")
+    conversation_confirmed: Mapped[bool] = mapped_column(default=False)
+    assessed_on: Mapped[date | None] = mapped_column(Date)
+    scores: Mapped[dict] = mapped_column(JSONB)
+    justification: Mapped[str] = mapped_column(String(10000), default="")
+    development_conclusions: Mapped[str] = mapped_column(String(10000), default="")
+    unit_head_name: Mapped[str] = mapped_column(String(10000), default="")
+    unit_head_position: Mapped[str] = mapped_column(String(10000), default="")
+    unit_head_agreed: Mapped[bool] = mapped_column(default=False)
+
+
+class FirstDeadlineChange(Base):
+    __tablename__ = "first_deadline_changes"
+    __table_args__ = (
+        UniqueConstraint("assessment_id", "revision"),
+        CheckConstraint(
+            "reason IN ('justified_absence', 'outside_workplace', 'contract_extension')"
+        ),
+        CheckConstraint("circumstance_to >= circumstance_from"),
+        CheckConstraint("length(trim(basis)) > 0"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    assessment_id: Mapped[UUID] = mapped_column(
+        ForeignKey("assessments.id"), index=True
+    )
+    revision: Mapped[int] = mapped_column()
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    reason: Mapped[str] = mapped_column(String(30))
+    basis: Mapped[str] = mapped_column(String(4000))
+    circumstance_from: Mapped[date] = mapped_column(Date)
+    circumstance_to: Mapped[date] = mapped_column(Date)
+    previous_contract_end: Mapped[date] = mapped_column(Date)
+    previous_report_from: Mapped[date] = mapped_column(Date)
+    previous_report_to: Mapped[date] = mapped_column(Date)
+    contract_end: Mapped[date] = mapped_column(Date)
+    report_from: Mapped[date] = mapped_column(Date)
+    report_to: Mapped[date] = mapped_column(Date)
+    notified_on: Mapped[date] = mapped_column(Date)
 
 
 class AssessmentCriterion(Base):

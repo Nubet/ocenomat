@@ -20,13 +20,16 @@ class Document(Base):
     __table_args__ = (
         CheckConstraint("size BETWEEN 1 AND 10485760"),
         CheckConstraint(
-            "kind IN ('attachment', 'osp', 'periodic_pdf')", name="ck_document_kind"
+            "kind IN ('attachment', 'osp', 'periodic_pdf', 'first_pdf')",
+            name="ck_document_kind",
         ),
         CheckConstraint(
-            "(kind = 'periodic_pdf' AND template_version IS NOT NULL AND "
+            "(kind IN ('periodic_pdf', 'first_pdf') "
+            "AND template_version IS NOT NULL AND "
             "assessment_revision IS NOT NULL AND assessment_revision > 0 "
             "AND generation_data IS NOT NULL) OR "
-            "(kind != 'periodic_pdf' AND template_version IS NULL AND "
+            "(kind NOT IN ('periodic_pdf', 'first_pdf') "
+            "AND template_version IS NULL AND "
             "assessment_revision IS NULL AND generation_data IS NULL)",
             name="ck_document_generation",
         ),

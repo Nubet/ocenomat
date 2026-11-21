@@ -22,6 +22,7 @@ export function CreateAssessmentForm({
   requestKey: string;
 }) {
   const [index, setIndex] = useState(0);
+  const [kind, setKind] = useState("periodic");
   const [employeeId, setEmployeeId] = useState(initialEmployeeId);
   const [key, setKey] = useState(requestKey);
   const [state, action, pending] = useActionState(createAssessment, { error: "" });
@@ -37,11 +38,13 @@ export function CreateAssessmentForm({
       </Note>
     );
   const form =
-    employee.position_kind === "OTHER"
-      ? "C"
-      : employee.position_kind === "DIRECT_MANAGER"
-        ? "B"
-        : "A";
+    kind === "first"
+      ? "P"
+      : employee.position_kind === "OTHER"
+        ? "C"
+        : employee.position_kind === "DIRECT_MANAGER"
+          ? "B"
+          : "A";
 
   return (
     <>
@@ -52,6 +55,7 @@ export function CreateAssessmentForm({
       />
       <form action={action}>
         <input type="hidden" name="employee_id" value={employeeId} />
+        <input type="hidden" name="kind" value={kind} />
         <input type="hidden" name="idempotency_key" value={key} />
         <fieldset disabled={pending}>
           <legend className="sr-only">Konfiguracja nowej oceny</legend>
@@ -81,9 +85,22 @@ export function CreateAssessmentForm({
               <h2 className="mt-4 text-lg font-semibold">Ocena okresowa · Arkusz B lub C</h2>
               <p className="mt-3 text-body leading-6 text-muted-foreground">
                 Arkusz B dla stanowisk bezpośrednio kierujących pracownikami, C dla pozostałych
-                stanowisk. Formularz dobierzemy na podstawie profilu. Pierwsza ocena i arkusz A nie
-                są jeszcze dostępne.
+                stanowisk. Formularz dobierzemy na podstawie profilu.
               </p>
+              <label className="mt-5 block">
+                <span className="field-label">Rodzaj oceny</span>
+                <select
+                  className="field"
+                  value={kind}
+                  onChange={(event) => {
+                    setKind(event.target.value);
+                    setKey(crypto.randomUUID());
+                  }}
+                >
+                  <option value="periodic">Ocena okresowa B/C</option>
+                  <option value="first">Pierwsza ocena</option>
+                </select>
+              </label>
             </Card>
           ) : null}
           {index === 1 ? (
@@ -158,7 +175,7 @@ export function CreateAssessmentForm({
                   <p className="eyebrow mb-2">Formularz z profilu stanowiska</p>
                   <h2 className="text-lg font-semibold">Arkusz {form}</h2>
                   <p className="mt-1 text-body text-muted-foreground">
-                    {employee.name} · Ocena okresowa
+                    {employee.name} · {kind === "first" ? "Pierwsza ocena" : "Ocena okresowa"}
                   </p>
                 </div>
               </div>
@@ -197,6 +214,48 @@ export function CreateAssessmentForm({
             )}
           </div>
         </fieldset>
+        {kind === "first" ? (
+          <fieldset hidden={index !== 3} disabled={pending} className="mt-6 space-y-4">
+            <legend className="mb-4 font-semibold">Kwalifikacja do pierwszej oceny</legend>
+            <label className="block">
+              <span className="field-label">Data zatrudnienia</span>
+              <input className="field" type="date" name="hired_on" required />
+            </label>
+            <label className="block">
+              <span className="field-label">Koniec umowy</span>
+              <input className="field" type="date" name="contract_end" required />
+            </label>
+            <label className="block">
+              <span className="field-label">Podstawa zatrudnienia</span>
+              <select className="field" name="employment_basis">
+                <option value="first_contract">Umowa z art. 35 ust. 3</option>
+                <option value="replacement">Zastępstwo — uzgodniona pierwsza ocena</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="field-label">Data porozumienia stron (tylko zastępstwo)</span>
+              <input className="field" type="date" name="replacement_agreed_on" />
+            </label>
+            <label className="block">
+              <span className="field-label">
+                Podstawa kwalifikacji i sprawdzona historia zatrudnienia
+              </span>
+              <textarea className="field" name="qualification_basis" required maxLength={4000} />
+            </label>
+            <label className="flex gap-3">
+              <input type="checkbox" name="eligibility_confirmed" required />
+              Potwierdzam kwalifikację na podstawie art. 35 ust. 3 i 5 oraz art. 37.
+            </label>
+            <label className="flex gap-3">
+              <input type="checkbox" name="ksap_graduate" />
+              Absolwent KSAP
+            </label>
+            <label className="flex gap-3">
+              <input type="checkbox" name="nomination_requested" />
+              Złożono wniosek o mianowanie (wyłącza ocenę absolwenta KSAP)
+            </label>
+          </fieldset>
+        ) : null}
       </form>
     </>
   );

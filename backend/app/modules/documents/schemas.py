@@ -12,7 +12,7 @@ class DocumentResponse(BaseModel):
 
     id: UUID
     assessment_id: UUID | None
-    kind: Literal["attachment", "osp", "periodic_pdf"]
+    kind: Literal["attachment", "osp", "periodic_pdf", "first_pdf"]
     template_version: str | None
     assessment_revision: int | None
     filename: str
@@ -73,3 +73,9 @@ class PdfGeneration(RevisionCommand):
                 "Previous official assessment does not apply to an employee"
             )
         return self
+
+
+class FirstPdfGeneration(RevisionCommand):
+    office_name: RequiredText
+    assessor_department: RequiredText
+    assessor_position: RequiredText

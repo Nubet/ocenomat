@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import Select, false, select, text
 from sqlalchemy.orm import Session
 
+from app.modules.assessments.first_schemas import FirstData
 from app.modules.assessments.models import (
     Assessment,
     AssessmentConversation,
@@ -15,6 +16,7 @@ from app.modules.assessments.models import (
     AssessmentEvent,
     AssessmentObservation,
     AssessmentStatus,
+    FirstAssessment,
 )
 from app.modules.assessments.rules import periodic_criteria
 from app.modules.assessments.schemas import (
@@ -132,9 +134,18 @@ def create_assessment(
                 "department": employee.unit.name,
             },
             kind=data.kind,
-            form="B" if employee.position_kind == PositionKind.DIRECT_MANAGER else "C",
+            form="P"
+            if data.kind == "first"
+            else "B"
+            if employee.position_kind == PositionKind.DIRECT_MANAGER
+            else "C",
             idempotency_key=key,
         )
+        if data.kind == "first":
+            details = FirstData(**data.qualification.model_dump())
+            if details.hired_on > datetime.now(ZoneInfo("Europe/Warsaw")).date():
+                raise AssessmentError("invalid", "Employment has not started")
+            assessment.first = FirstAssessment(**details.model_dump())
         session.add(assessment)
         session.flush()
         session.commit()
@@ -181,8 +192,11 @@ def edit_assessment(
     allowed_status: AssessmentStatus = AssessmentStatus.DRAFT,
     occurred_on: date | None = None,
     replay_status: AssessmentStatus | None = None,
+    allowed_kind: Literal["periodic"] | None = "periodic",
 ) -> Iterator[Assessment]:
     with assessment_transaction(session, user, assessment_id) as assessment:
+        if allowed_kind is not None and assessment.kind != allowed_kind:
+            raise AssessmentError("unsupported", "Use the first-assessment workflow")
         if assessment.status == replay_status and revision in (
             assessment.revision - 1,
             assessment.revision,

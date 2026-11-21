@@ -13,12 +13,13 @@ from app.modules.assessments.router import assessment_http_error
 from app.modules.assessments.schemas import AssessmentResponse
 from app.modules.assessments.service import AssessmentError
 from app.modules.documents import service
-from app.modules.documents.generation import generate_periodic_pdf
+from app.modules.documents.generation import generate_assessment_pdf
 from app.modules.documents.models import Document, JobDescription
 from app.modules.documents.pdf import PdfUnavailable
 from app.modules.documents.schemas import (
     DocumentResponse,
     DocumentUploadResponse,
+    FirstPdfGeneration,
     JobDescriptionResponse,
     JobDescriptionSelection,
     PdfGeneration,
@@ -168,8 +169,31 @@ def generate_pdf(
     session: Annotated[Session, Depends(get_session)],
     response: Response,
 ) -> Document:
+    return pdf_response(assessment_id, data, request, user, session, response)
+
+
+@router.post("/first-pdf", response_model=DocumentResponse)
+def generate_first_pdf(
+    assessment_id: UUID,
+    data: FirstPdfGeneration,
+    request: Request,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Document:
+    return pdf_response(assessment_id, data, request, user, session, response)
+
+
+def pdf_response(
+    assessment_id: UUID,
+    data: PdfGeneration | FirstPdfGeneration,
+    request: Request,
+    user: User,
+    session: Session,
+    response: Response,
+) -> Document:
     try:
-        result = generate_periodic_pdf(
+        result = generate_assessment_pdf(
             session,
             user,
             assessment_id,

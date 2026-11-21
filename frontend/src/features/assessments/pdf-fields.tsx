@@ -29,6 +29,28 @@ export function PdfFields({
     previous_date: "",
     no_promotion_request: false,
   });
+  if (assessment.kind === "first")
+    return (
+      <fieldset disabled={disabled} className="space-y-5">
+        <legend className="mb-4 font-semibold">Arkusz pierwszej oceny i sprawozdanie</legend>
+        {textFields.map(([name, label]) => (
+          <label key={name} className="block">
+            <span className="field-label">{label}</span>
+            <input
+              className="field"
+              name={name}
+              required
+              maxLength={200}
+              value={draft[name]}
+              onChange={(event) => setDraft({ ...draft, [name]: event.target.value })}
+            />
+          </label>
+        ))}
+        <Button type="submit" name="operation" value="first_pdf">
+          Generuj PDF pierwszej oceny
+        </Button>
+      </fieldset>
+    );
   return (
     <fieldset disabled={disabled} className="space-y-5">
       <legend className="mb-4 text-base font-semibold">Dane do arkusza {assessment.form}</legend>

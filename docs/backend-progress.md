@@ -6,18 +6,20 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 7 — formularz B, pierwsza ocena i HR.
-- **Aktywne zadanie:** brak; P7-01 zakończone i zweryfikowane.
-- **Następny krok:** P7-02 — zweryfikować źródła kwalifikacji, wyjątków i terminów
-  pierwszej oceny przed implementacją osobnego workflow. Faza 6 wdrożona i oceniona
+- **Aktywne zadanie:** P7-03 — monitoring HR (`in_progress`).
+- **Następny krok:** P7-03 — zastąpić demonstracyjne projekcje dashboardu, terminów
+  i HR autoryzowanymi danymi API, bez ujawniania notatek HR. Faza 6 wdrożona i oceniona
   w ograniczonym korpusie; wynik 28/30, dwie nadmiarowe odmowy i brak demonstracji
   pozostawiają P6-07 `blocked`, nie oznaczają zakończenia całego etapu.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
-  nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0016. Obowiązuje
+  nie są zatwierdzoną wiedzą. Backend Compose, migracje do 0017. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P7-01 — arkusz B we wspólnym workflow okresowym,
-  właściwe kryteria obowiązkowe i PDF, migracja 0016 oraz integracja UI/OpenAPI.
-  87 testów backendu i 188 frontendu OK; hashe rekordów 18 tabel bez zmian po migracji.
+- **Ostatnia zakończona praca:** P7-02 — osobny workflow pierwszej oceny, kwalifikacja,
+  terminy i ich historia, sprawozdanie, egzamin, pięć ocen 3/5/7 i PDF; UI/OpenAPI.
+  120 testów backendu OK, 3 live OSP skipped; 192 testy frontendu i build OK.
+  Migracja 0017 bez zmian rekordów 18 dotychczasowych tabel.
+  Commit: `feat(assessments): add first assessment workflow`.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -38,7 +40,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
    pozostaje do podłączenia w P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS przechowuje prywatne pliki oceny; API sprawdza dostęp, format i checksum.
-   UI obsługuje załączniki, wybór wersji OSP i generowanie PDF zakończonej oceny B/C.
+    UI obsługuje załączniki, wybór wersji OSP i PDF zakończonej oceny B/C oraz pierwszej.
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
@@ -88,8 +90,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-06 | Analiza OSP i rekomendacje kryteriów | done | Trzy oryginały, rzeczywisty provider i deterministyczna walidacja: 3/3/1 popartych rekomendacji dla C/C/B. Jedna odrzucona propozycja nie usuwa pozostałych. 21 testów OSP OK. Workflow tworzenia B w P7-01. |
 | P6-07 | Ewaluacja jakości i demonstracja | blocked | Pomiar wykonany: 28/30 poprawnych rezultatów, dwie nadmiarowe odmowy, zero błędnych kategorycznych odpowiedzi; 23/23 retrieval, 77 poprawnych cytowań. Cel 95% całych odpowiedzi nieosiągnięty; demonstracja niewykonana przy zakazie przeglądarki. |
 | P7-01 | Arkusz B | done | Wspólny workflow B/C, odrębne wymagane kryteria, PDF załącznika 3, UI i OpenAPI; migracja 0016 bez zmian rekordów 18 tabel. 87 testów backendu, 188 frontendu; `feat(assessments): support manager form b`. |
-| P7-02 | Pierwsza ocena | pending | — |
-| P7-03 | Monitoring HR | pending | — |
+| P7-02 | Pierwsza ocena | done | Osobny workflow/API/UI, kwalifikacja i wyjątki, historia terminów, sprawozdanie, egzamin, pięć ocen i PDF; 0017, 120 testów backendu / 192 UI, build i integralność danych OK. `feat(assessments): add first assessment workflow`. |
+| P7-03 | Monitoring HR | in_progress | Projekcje bez notatek; przypomnienia w aplikacji do prowadzącego ocenę, jawnie wysyłane przez HR. |
 | P8-01 | Test krytycznej ścieżki E2E | blocked | Poprzednie polecenie zabrania uruchamiania przeglądarki; potrzebna zmiana instrukcji. |
 | P8-02 | Konfiguracja i deployment VPS | pending | Faktyczne wdrożenie wymaga dostępu do serwera i domeny. |
 
@@ -139,6 +141,54 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P7-02, pierwsza ocena
+
+- Osobny rodzaj `first`, wewnętrzny identyfikator formularza `P`; wspólne
+  przypisania/uprawnienia, rewizje, zdarzenia, prywatny storage i kompensacja błędów.
+  Okresowe endpointy edycji oraz rekomendacje dodatkowych kryteriów OSP odrzucają
+  pierwszą ocenę; wspólne załączniki i wybór OSP pozostają dostępne.
+- Weryfikacja źródeł: ELI DU/2015/1144 ma status `IN_FORCE`; rozporządzenie
+  i oryginalny arkusz określają pięć elementów oraz warunki wyniku. Uwzględniono
+  art. 35/37 ustawy i wyjątki KSAP/zastępstwa. DU/2026/26 ma wejście w życie
+  2027-01-01 i nie jest automatycznie stosowane jako obecna reguła.
+  Potwierdzenie kwalifikacji i faktycznego przepracowanego okresu opiera się na
+  danych przełożonego; aplikacja nie ma rejestru kadrowego/ewidencji czasu pracy.
+  Nie nadano masowo approval źródłom asystenta.
+- Etapy: kwalifikacja przy tworzeniu → rozmowa wstępna do 21 dni i terminy →
+  sprawozdanie (cztery sekcje, co najmniej siedmiomiesięczny okres), egzamin
+  i rozmowa oceniająca → pięć decyzji 3/5/7, uzgodnienie z kierującym komórką,
+  wynik backendu i wymagane uzasadnienie negatywnej oceny. Zwolnienie ze służby
+  przygotowawczej nie jest podstawą zwolnienia z egzaminu.
+- Osobny zapis zmian terminów zawiera poprzednie/nowe daty, okoliczność,
+  uzasadnienie, pisemne zawiadomienie, autora i rewizję; API/UI odtwarzają historię.
+  Finalizacja jest idempotentna i zamyka edycję. Dokument nie oznacza podpisania
+  ani doręczenia. PDF zawiera arkusz i sprawozdanie, własny typ endpointu i szablon;
+  SHA oryginalnego DOCX potwierdzony przez `sha256sum`:
+  `12a6f89a8bb8b667e2e20b6efd504259c6cc061b36460b8d9b87fed50a5b1721`.
+- Frontend: wybór rodzaju i kwalifikacji w kreatorze, rzeczywisty szczegół oceny,
+  zapis etapów/zmiana terminów, odczyt wcześniejszych danych, wynik wyłącznie z API,
+  dokumenty/PDF i rozróżnienie typu na liście; zregenerowane OpenAPI.
+- Kontrole backendu: `uv run ruff check app alembic tests` i
+  `uv run ruff format --check app alembic tests` — OK.
+  `uv run pytest tests/test_first_assessments.py tests/test_generated_documents.py
+  tests/test_assessments.py tests/test_database.py tests/test_osp_analysis.py
+  tests/test_documents.py -q --tb=short` z dedykowaną bazą/fontem — **120 passed,
+  3 skipped**, 23,70 s. Pominięte trzy przypadki wymagają rzeczywistych usług OSP.
+  Sprawdzono m.in. granice miesięcy i 21 dni, siedem miesięcy sprawozdania,
+  przedłużenie umowy powyżej trzech miesięcy, wyjątki egzaminu, izolację dostępu,
+  rewizje, historię, wynik, uzasadnienie, idempotencję i PDF. Test migracji obejmuje
+  upgrade/downgrade/upgrade w izolowanym schemacie oraz `alembic check`.
+- Frontend: `npm run precommit` — format/lint/typecheck i **192 testy OK**;
+  `npm run build` — OK. Nie uruchamiano przeglądarki/E2E ani nowej ewaluacji LLM.
+- Compose: rebuild `backend`/`migrate`, `run --rm migrate`, odtworzenie wyłącznie
+  backendu; `alembic current` = `0017 (head)`, `alembic check` bez różnic.
+  SHA-256 kompletnych rekordów 18 dotychczasowych tabel identyczne przed/po;
+  doszły dwie tabele. Bez resetów baz, wolumenów i danych. HTTP `/health`,
+  `/api/v1/health`, frontend `/login` — 200. Brak nowego live testu zalogowanej sesji.
+- Commit: `feat(assessments): add first assessment workflow`.
+  Następny krok: P7-03 — monitoring HR; P6-07 i P8-01
+  zachowują wcześniejsze blokery jakości/demonstracji/przeglądarki.
 
 ### 2026-11-21 — P7-01, arkusz B
 

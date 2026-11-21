@@ -49,7 +49,7 @@ const roles = [
 const questions = [
   [
     "Jak rozpocząć ocenę?",
-    "Jeśli jesteś przełożonym, otwórz Oceny → Nowa ocena. Wybierz przypisaną osobę i utwórz ocenę okresową B lub C. Arkusz B dotyczy stanowisk bezpośrednio kierujących pracownikami, C — pozostałych stanowisk. Następnie wybierz kryteria, zapisz terminy i odnotuj czynności z rozmowy. Arkusz A i pierwsza ocena nie są jeszcze dostępne.",
+    "Jeśli jesteś przełożonym, otwórz Oceny → Nowa ocena. Wybierz przypisaną osobę i rodzaj oceny. Arkusz B dotyczy stanowisk bezpośrednio kierujących pracownikami, C — pozostałych stanowisk. W pierwszej ocenie potwierdź kwalifikację, zapisz rozmowę wstępną i terminy, następnie sprawozdanie, egzamin i pięć ocen 3/5/7. Arkusz A nie jest jeszcze dostępny.",
   ],
   [
     "Nie widzę pracownika lub jego oceny. Co zrobić?",

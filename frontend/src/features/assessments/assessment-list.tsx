@@ -69,7 +69,8 @@ export function AssessmentRows({
           {assessment.employee_snapshot.name}
         </strong>
         <span className="mt-1 block text-label text-muted-foreground">
-          {assessment.employee_snapshot.position} · Arkusz {assessment.form}
+          {assessment.employee_snapshot.position} ·{" "}
+          {assessment.kind === "first" ? "Pierwsza ocena" : `Arkusz ${assessment.form}`}
         </span>
         <span className="mt-1 block text-caption text-subtle-foreground">
           {new Date(assessment.created_at).toLocaleString("pl-PL", {

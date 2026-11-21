@@ -59,7 +59,9 @@ export function DocumentsPanel({
   const draft = assessment.status === "draft";
   const completed = assessment.status === "completed";
   const selected = descriptions.find((item) => item.id === assessment.job_description_id);
-  const generated = files.find((item) => item.kind === "periodic_pdf");
+  const generated = files.find(
+    (item) => item.kind === (assessment.kind === "first" ? "first_pdf" : "periodic_pdf"),
+  );
   const disabled = pending || state.conflict;
 
   return (
@@ -198,7 +200,7 @@ export function DocumentsPanel({
                   {item.filename}
                   <span className="ml-2 text-caption text-muted-foreground">
                     {Math.ceil(item.size / 1024)} KiB
-                    {item.kind === "periodic_pdf" ? ` · rewizja ${item.assessment_revision}` : ""}
+                    {item.assessment_revision ? ` · rewizja ${item.assessment_revision}` : ""}
                   </span>
                 </span>
                 <a

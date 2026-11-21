@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.modules.assessments.completion import complete_assessment, save_summary
 from app.modules.assessments.evaluation import confirm_rating, save_answers
+from app.modules.assessments.first import change_first_deadlines, save_first
+from app.modules.assessments.first_schemas import FirstDeadlineUpdate, FirstUpdate
 from app.modules.assessments.models import Assessment
 from app.modules.assessments.rules import Result
 from app.modules.assessments.schemas import (
@@ -96,6 +98,38 @@ def update_criteria(
 ) -> Assessment:
     try:
         result = save_criteria(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.put("/{assessment_id}/first", response_model=AssessmentResponse)
+def update_first(
+    assessment_id: UUID,
+    data: FirstUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = save_first(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.post("/{assessment_id}/first/deadlines", response_model=AssessmentResponse)
+def update_first_deadlines(
+    assessment_id: UUID,
+    data: FirstDeadlineUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = change_first_deadlines(session, user, assessment_id, data)
     except AssessmentError as error:
         raise assessment_http_error(error) from None
     response.headers["Cache-Control"] = "private, no-store"

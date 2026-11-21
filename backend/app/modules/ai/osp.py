@@ -154,6 +154,10 @@ def analyze_osp(
     provider: LLMProvider | None,
 ) -> OspAnalysis:
     assessment = authorized_assessment(session, user, assessment_id)
+    if assessment.kind != "periodic":
+        raise AssessmentError(
+            "unsupported", "First assessment does not use additional criteria"
+        )
     catalog = session.get(CatalogVersion, assessment.catalog_version_id)
     if catalog is None:
         raise AssessmentError("catalog_unavailable", "Pinned catalog unavailable")

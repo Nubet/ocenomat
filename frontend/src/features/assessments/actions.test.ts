@@ -19,6 +19,7 @@ import { requireUser } from "@/features/auth/session";
 import { apiRequest } from "@/lib/api/server";
 import { revalidatePath } from "next/cache";
 import { createAssessment, saveArrangements } from "./actions";
+import { saveFirstAssessment } from "./first-actions";
 
 const employeeId = "00000000-0000-0000-0000-000000000001";
 const requestKey = "00000000-0000-0000-0000-000000000002";
@@ -72,6 +73,43 @@ describe("create persistent assessment action", () => {
     });
     expect((await createAssessment({ error: "" }, form())).error).toContain("przełożony");
     expect(apiRequest).not.toHaveBeenCalled();
+  });
+  it("sends explicit first qualification without converting a preparatory-service waiver into an exam exemption", async () => {
+    const data = form();
+    data.set("kind", "first");
+    data.set("hired_on", "2025-01-01");
+    data.set("contract_end", "2025-12-31");
+    data.set("employment_basis", "first_contract");
+    data.set("qualification_basis", "Sprawdzona historia zatrudnienia");
+    data.set("eligibility_confirmed", "on");
+    data.set("exam", "not_applicable");
+    await expect(createAssessment({ error: "" }, data)).rejects.toThrow("redirect:");
+    const body = JSON.parse(String(vi.mocked(apiRequest).mock.calls[0]![1]!.body));
+    expect(body.kind).toBe("first");
+    expect(body.qualification.eligibility_confirmed).toBe(true);
+    expect(body.qualification.ksap_graduate).toBe(false);
+    expect(body.qualification).not.toHaveProperty("exam");
+  });
+  it("keeps a stale first-assessment revision on the form without invalidating saved data", async () => {
+    vi.mocked(apiRequest).mockResolvedValue(new Response(null, { status: 409 }));
+    const command = {
+      revision: 2,
+      reason: "justified_absence" as const,
+      basis: "Pismo",
+      circumstance_from: "2025-07-01",
+      circumstance_to: "2025-07-10",
+      notified_on: "2025-07-11",
+      contract_end: "2025-12-31",
+      report_from: "2025-09-11",
+      report_to: "2025-09-15",
+    };
+    const result = await saveFirstAssessment(assessmentId, command, true);
+    expect(result.conflict).toBe(true);
+    expect(apiRequest).toHaveBeenCalledWith(
+      `/api/v1/assessments/${assessmentId}/first/deadlines`,
+      expect.objectContaining({ method: "POST", body: JSON.stringify(command) }),
+    );
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it.each(["employee_id", "idempotency_key"])(

@@ -23,18 +23,33 @@ export async function createAssessment(_previous: { error: string }, form: FormD
     return { error: "Wybierz pracownika i spróbuj ponownie." };
   }
   let assessment: AssessmentRecord;
+  const kind = form.get("kind") ?? "periodic";
+  if (kind !== "periodic" && kind !== "first") return { error: "Wybierz rodzaj oceny." };
+  const first =
+    kind === "first"
+      ? {
+          hired_on: form.get("hired_on"),
+          contract_end: form.get("contract_end"),
+          employment_basis: form.get("employment_basis"),
+          eligibility_confirmed: form.get("eligibility_confirmed") === "on",
+          qualification_basis: form.get("qualification_basis"),
+          ksap_graduate: form.get("ksap_graduate") === "on",
+          nomination_requested: form.get("nomination_requested") === "on",
+          replacement_agreed_on: form.get("replacement_agreed_on") || null,
+        }
+      : undefined;
   try {
     const response = await apiRequest("/api/v1/assessments", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Idempotency-Key": key },
-      body: JSON.stringify({ employee_id: employeeId, kind: "periodic" }),
+      body: JSON.stringify({ employee_id: employeeId, kind, qualification: first }),
     });
     if (!response.ok) {
       const messages: Record<number, string> = {
         403: "Nie możesz rozpocząć tej oceny. Poproś administratora o sprawdzenie roli przełożonego i przypisania pracownika.",
         404: "Przypisanie pracownika mogło się zmienić. Wróć do listy pracowników. Jeśli brakuje tej osoby, poproś administratora o sprawdzenie przypisania.",
         409: "Nie możemy rozpocząć tej oceny z tego formularza. Sprawdź listę ocen — jeśli jej tam nie ma, wybierz Nowa ocena.",
-        422: "Możesz rozpocząć ocenę okresową B lub C. Arkusz A dla kierownika urzędu nie jest jeszcze obsługiwany.",
+        422: "Sprawdź kwalifikację, daty i wyjątki pierwszej oceny. W ocenie okresowej dostępne są arkusze B i C.",
         503: "Nie udało się rozpocząć oceny. Spróbuj ponownie za chwilę. Jeśli problem się powtarza, poproś administratora o sprawdzenie katalogu kompetencji.",
       };
       return {

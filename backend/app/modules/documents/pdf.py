@@ -49,6 +49,27 @@ class PdfUnavailable(Exception):
     pass
 
 
+def document_font(font_path: Path) -> TTFont:
+    try:
+        font = TTFont("KompasDocument", str(font_path))
+        pdfmetrics.registerFont(font)
+        return font
+    except (OSError, TTFError):
+        raise PdfUnavailable("PDF font unavailable") from None
+
+
+def validate_pdf_text(value: str, font: TTFont) -> None:
+    if any(
+        ord(char) not in font.face.charToGlyph
+        or (unicodedata.category(char).startswith("C") and char not in "\n\r\t")
+        for char in value
+        if not char.isspace()
+    ):
+        raise InvalidDocument(
+            "Document contains characters unsupported by the PDF font"
+        )
+
+
 @dataclass(frozen=True)
 class PeriodicPdfData:
     assessment_id: str
@@ -68,11 +89,7 @@ class PeriodicPdfData:
 
 def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
     template_version, _ = PERIODIC_TEMPLATES[data.form]
-    try:
-        font = TTFont("KompasDocument", str(font_path))
-        pdfmetrics.registerFont(font)
-    except (OSError, TTFError):
-        raise PdfUnavailable("PDF font unavailable") from None
+    font = document_font(font_path)
     style = ParagraphStyle(
         "body", fontName=font.fontName, fontSize=9, leading=13, spaceAfter=6
     )
@@ -87,15 +104,7 @@ def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
     )
 
     def paragraph(value: str, *, title: bool = False) -> Paragraph:
-        if any(
-            ord(char) not in font.face.charToGlyph
-            or (unicodedata.category(char).startswith("C") and char not in "\n\r\t")
-            for char in value
-            if not char.isspace()
-        ):
-            raise InvalidDocument(
-                "Document contains characters unsupported by the PDF font"
-            )
+        validate_pdf_text(value, font)
         return Paragraph(
             escape(value).replace("\n", "<br/>"), heading if title else style
         )

@@ -58,6 +58,7 @@ def upload_document(
             assessment.id,
             revision,
             "job_description_uploaded" if kind == "osp" else "document_uploaded",
+            allowed_kind=None,
             allowed_status=AssessmentStatus.DRAFT
             if kind == "osp"
             else assessment.status,
@@ -221,7 +222,12 @@ def select_job_description(
     description_id: UUID,
 ) -> Assessment:
     with edit_assessment(
-        session, user, assessment_id, revision, "job_description_selected"
+        session,
+        user,
+        assessment_id,
+        revision,
+        "job_description_selected",
+        allowed_kind=None,
     ) as assessment:
         selected_job_description(session, assessment, description_id)
         assessment.job_description_id = description_id
