@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Avatar } from "@/components/ui/avatar";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, PageHeading } from "@/components/ui/card";
-import { getEmployee, getEmployees } from "@/features/employees/server";
+import { getEmployee, getEmployeePage } from "@/features/employees/server";
 import { requireUser } from "@/features/auth/session";
 import { getAssessments } from "@/features/assessments/server";
 import { AssessmentRows, AssessmentEmptyState } from "@/features/assessments/assessment-list";
 import { NewAssessmentButton } from "@/features/assessments/components/new-assessment-button";
+import { employeeListHref, parseEmployeeQuery } from "@/features/employees/query";
 
 export const metadata: Metadata = { title: "Profil pracownika" };
 
@@ -18,8 +19,10 @@ const positionLabels = {
 
 export default async function EmployeePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ employeeId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { employeeId } = await params;
   const [employee, user, assessments] = await Promise.all([
@@ -29,7 +32,8 @@ export default async function EmployeePage({
   ]);
   const canCreate =
     user.roles.includes("MANAGER") &&
-    (await getEmployees(true)).some((person) => person.id === employee.id);
+    (await getEmployeePage({ assigned_only: true, employee_id: employee.id, page_size: 1 })).total >
+      0;
   return (
     <>
       <PageHeading
@@ -72,7 +76,12 @@ export default async function EmployeePage({
           }
         />
       </Card>
-      <ButtonLink href="/employees" className="mt-5">
+      <ButtonLink
+        href={
+          employeeListHref(parseEmployeeQuery((await searchParams) ?? {})) + "#employee-results"
+        }
+        className="mt-5"
+      >
         Wróć do pracowników
       </ButtonLink>
     </>

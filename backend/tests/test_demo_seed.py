@@ -119,8 +119,8 @@ def test_real_workflows_files_results_and_non_destructive_retry(demo_source):
             )
             == assessment.revision - 1
         )
-    assert len(uploaded) == len(storage.objects) == 78
-    assert session.scalar(select(func.count()).select_from(JobDescription)) == 54
+    assert len(uploaded) == len(storage.objects) == 84
+    assert session.scalar(select(func.count()).select_from(JobDescription)) == 60
     data = monitoring(session, manager, today, hr=False)
     assert len(data.reminders) == 3
     assert any(d.overdue for d in data.deadlines)
@@ -144,7 +144,7 @@ def test_real_workflows_files_results_and_non_destructive_retry(demo_source):
         a.id: (a.revision, a.status) for a in session.scalars(select(Assessment))
     } == fingerprint
     assert employee.position == "Stanowisko zmienione przez użytkownika"
-    assert len(uploaded) == len(storage.objects) == 78
+    assert len(uploaded) == len(storage.objects) == 84
     assert session.scalar(select(func.count()).select_from(AssessmentReminder)) == 3
 
 

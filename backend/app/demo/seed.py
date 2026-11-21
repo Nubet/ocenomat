@@ -5,6 +5,8 @@ from collections import Counter
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from io import BytesIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from uuid import NAMESPACE_URL, UUID, uuid5
 from zoneinfo import ZoneInfo
 
@@ -50,7 +52,8 @@ from app.modules.assessments.service import (
     start_period,
 )
 from app.modules.catalog.models import CatalogVersion
-from app.modules.documents.models import Document
+from app.modules.documents.import_osp import import_osp
+from app.modules.documents.models import Document, JobDescription
 from app.modules.documents.service import discard_uncommitted_object, upload_document
 from app.modules.employees.models import (
     Employee,
@@ -58,7 +61,7 @@ from app.modules.employees.models import (
     OrganizationalUnit,
     PositionKind,
 )
-from app.modules.employees.seed import UNIT_ID
+from app.modules.employees.seed import UNIT_ID, UNIT_NAME
 from app.modules.monitoring.service import send_reminder
 from app.modules.users.models import Role, User
 
@@ -82,6 +85,39 @@ def word_file(title: str, sections: dict[str, str]) -> bytes:
     stream = BytesIO()
     document.save(stream)
     return stream.getvalue()
+
+
+def job_sections(person: Person, team: Team, slot: int) -> dict[str, str]:
+    return {
+        "Stanowisko i komórka": (
+            f"{person.position}\n{team.name}\nOsoba w scenariuszu: {person.name}"
+        ),
+        "Cel stanowiska": team.mission,
+        "Główne zadanie i oczekiwany rezultat": person.task
+        + " Rezultat: uzgodniony materiał z widoczną podstawą, "
+        "właścicielem i terminem dalszego działania.",
+        "Odpowiedzialność": (
+            "Bezpośrednie kierowanie zespołem: planowanie, delegowanie, "
+            "informacja zwrotna i nadzór nad realizacją zadań."
+        )
+        if slot == 0
+        else (
+            "Samodzielne prowadzenie powierzonych spraw; "
+            "eskalacja wątpliwości i ryzyka opóźnienia do przełożonego. "
+            "Stanowisko nie kieruje pracownikami."
+        ),
+        "Wiedza i umiejętności": team.knowledge,
+        "Współpraca": (
+            "Właściciele spraw w komórce, komórki merytoryczne "
+            "i organizacyjne urzędu. Przekazywanie materiałów uprawnionym "
+            "odbiorcom, utrzymywanie śladu uzgodnień."
+        ),
+        "Warunki i planowanie": (
+            "Praca biurowa, zadania planowane w cyklu miesięcznym "
+            "i kwartalnym, okresowe spiętrzenie terminów. "
+            "Bez danych niejawnych w materiałach scenariusza."
+        ),
+    }
 
 
 def attach(
@@ -579,37 +615,7 @@ def populate_demo(
                 storage,
                 uploaded,
                 f"OSP-{team.slug}-{slot + 1:02}.docx",
-                {
-                    "Stanowisko i komórka": (
-                        f"{person.position}\n{team.name}\n"
-                        f"Osoba w scenariuszu: {person.name}"
-                    ),
-                    "Cel stanowiska": team.mission,
-                    "Główne zadanie i oczekiwany rezultat": person.task
-                    + " Rezultat: uzgodniony materiał z widoczną podstawą, "
-                    "właścicielem i terminem dalszego działania.",
-                    "Odpowiedzialność": (
-                        "Bezpośrednie kierowanie zespołem: planowanie, delegowanie, "
-                        "informacja zwrotna i nadzór nad realizacją zadań."
-                    )
-                    if slot == 0
-                    else (
-                        "Samodzielne prowadzenie powierzonych spraw; "
-                        "eskalacja wątpliwości i ryzyka opóźnienia do przełożonego. "
-                        "Stanowisko nie kieruje pracownikami."
-                    ),
-                    "Wiedza i umiejętności": team.knowledge,
-                    "Współpraca": (
-                        "Właściciele spraw w komórce, komórki merytoryczne "
-                        "i organizacyjne urzędu. Przekazywanie materiałów uprawnionym "
-                        "odbiorcom, utrzymywanie śladu uzgodnień."
-                    ),
-                    "Warunki i planowanie": (
-                        "Praca biurowa, zadania planowane w cyklu miesięcznym "
-                        "i kwartalnym, okresowe spiętrzenie terminów. "
-                        "Bez danych niejawnych w materiałach scenariusza."
-                    ),
-                },
+                job_sections(person, team, slot),
                 kind="osp",
             )
             if slot in (0, 1, 5, 7):
@@ -666,10 +672,30 @@ def populate_demo(
                     history=True,
                 )
                 counts["created_assessments"] += 1
+    for team in TEAMS:
+        employee_id = demo_id(f"employee:{team.slug}:9")
+        if (
+            session.scalar(
+                select(JobDescription.id).where(
+                    JobDescription.employee_id == employee_id,
+                )
+            )
+            is None
+        ):
+            with TemporaryDirectory() as directory:
+                path = Path(directory) / f"OSP-{team.slug}-10.docx"
+                path.write_bytes(
+                    word_file(
+                        "Opis stanowiska pracy", job_sections(team.people[9], team, 9)
+                    )
+                )
+                description = import_osp(session, manager, employee_id, path, storage)
+                document = description.document
+                uploaded.append((document.id, document.object_key))
     # Rename only the old seed's unit; preserve every employee, assessment and document.
     legacy = session.get(OrganizationalUnit, UNIT_ID)
     if legacy is not None and legacy.name == "Jednostka testowa — dane fikcyjne":
-        legacy.name = "Biuro Dyrektora Generalnego / Zespół Koordynacji Procesów"
+        legacy.name = UNIT_NAME
     hr = next(
         (
             u

@@ -6,15 +6,19 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 7 zakończony; przygotowanie etapu 8.
-- **Aktywne zadanie:** zestaw demonstracyjny dla jury (`in_progress`), na życzenie
-  użytkownika przed P8-02: 60 dodatkowych osób, realistyczne zadania i scenariusze.
-- **Weryfikacja importera demonstracyjnego:** pełny backend 614 passed / 9 skipped;
-  Ruff lint/format OK (124 pliki). Testy obejmują 60 procesów, obie ścieżki,
+- **Aktywne zadanie:** brak; zakończono import scenariuszy oraz rozbudowę ekranu
+  pracowników o serwerowe wyszukiwanie, paginację, filtrowanie i sortowanie.
+- **Weryfikacja:** pełny backend **622 passed / 9 skipped**;
+  Ruff lint/format OK (124 pliki). Frontend: `npm run precommit` — OK,
+  **214 testów**; `npm run build` — OK. Testy obejmują 60 procesów, obie ścieżki,
   formularze B/C/P, dwa wyniki negatywne, decyzję inną od sugestii, prywatne DOCX,
   idempotentne ponowienie bez nadpisania pracy użytkownika i rollback po błędzie storage.
-  Scenariusze: `f561e44`; importer gotowy, weryfikacja lokalnego załadowania trwa.
-- **Następny krok:** przetestować i załadować scenariusze do rzeczywistego API/DB/storage.
-  Następnie P8-02 — przygotowanie produkcyjnej konfiguracji i procedur VPS;
+  Scenariusze: `f561e44`; importer: `f485b54`. Lokalny import zakończony:
+  **64 osoby, 61 ocen**, w tym 60 nowych osób i 60 nowych procesów;
+  84 prywatne DOCX, w tym OSP dla każdej z 60 nowych osób. Ponowienie bez mutacji
+  potwierdzono hashami wszystkich 21 tabel ORM; wszystkie 84 pliki odczytano
+  z kontrolą checksum. [Przewodnik demonstracji](demo-guide.md).
+- **Następny krok:** P8-02 — przygotowanie produkcyjnej konfiguracji i procedur VPS;
   faktyczne wdrożenie wymaga dostępu do serwera/domeny. P8-01 pozostaje zablokowane
   zakazem przeglądarki. Faza 6 wdrożona i oceniona
   w ograniczonym korpusie; wynik 28/30, dwie nadmiarowe odmowy i brak demonstracji
@@ -23,7 +27,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
   nie są zatwierdzoną wiedzą. Backend Compose, migracje do 0018. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P7-03 — autoryzowane projekcje pulpitu, terminów i HR;
+- **Zakończenie etapu 7:** P7-03 — autoryzowane projekcje pulpitu, terminów i HR;
   jawne przypomnienia dostarczane w aplikacji z historią i idempotencją. Bez notatek
   i ocen cząstkowych w projekcji HR. Pełny backend: 610 passed / 9 skipped;
   po końcowej korekcie projekcji terminów 20 celowanych testów OK; frontend 205 testów
@@ -146,10 +150,60 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   głównym repozytorium. To notatka operatora, nie zmienna używana przez aplikację.
   Nie kopiować hasła do dokumentacji śledzonej przez Git ani nie używać do realnych danych.
 - Hasło sprawdzono logowaniem kont ADMIN/MANAGER/HR w testach HTTP; nie zmieniano go.
-- Przełożonemu przypisano trzech fikcyjnych pracowników: Jana, Marię i Alicję.
-  Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
+- Po imporcie 2026-11-22 przełożony widzi 63 osoby: Jana, Marię, Alicję i 60 nowych
+  pracowników z sześciu obszarów. Piotr pozostaje nieprzypisany; HR i ADMIN widzą 64 osoby.
+  Profile mają nazwy komórek zgodne ze scenariuszami, bez etykiety „Jednostka testowa”.
 
 ## Wykonane zadania
+
+### 2026-11-22 — dane prezentacyjne i katalog pracowników
+
+- Załadowano 60 autorskich profili z `app.demo.data` przez rzeczywiste usługi
+  workflow i storage. Łącznie lokalnie: 64 pracowników i 61 ocen; wśród nowych
+  procesów 48 okresowych i 12 pierwszych, arkusze B/C/P, wszystkie statusy,
+  21 zakończonych (19 pozytywnych, 2 negatywne), sześć poprzednich okresów i sześć
+  osób bez rozpoczętej oceny. Konta logowania i wcześniejsze rekordy zachowane.
+- DOCX: 60 indywidualnych OSP i 24 notatki do rozmów; również osoby bez oceny
+  mają OSP do wybrania podczas tworzenia procesu. Uzupełnienie sześciu OSP
+  nie zmieniło istniejących ocen. Ponowny import: 60 zachowanych osób,
+  zero PUT do storage, identyczne hashe rekordów wszystkich 21 tabel ORM.
+  Kontrola odczytu i checksum wszystkich 84 nowych plików — OK.
+- Stara jednostka ma nazwę „Biuro Dyrektora Generalnego / Zespół Koordynacji
+  Procesów”. Pierwotny seed tworzy już tę nazwę i naprawia wyłącznie dokładną
+  dawną etykietę, zachowując inne nazwy operatora. Nie przepisano historycznych
+  migawek ocen. Osoby i zdarzenia są scenariuszami, nie autentycznymi aktami MC.
+- `GET /api/v1/employees` zwraca `items`, `total`, `page`, `page_size`,
+  `total_pages`. Liczenie, filtry i sortowanie w SQL, następnie `LIMIT/OFFSET`;
+  zakres uprawnień obejmuje również liczniki. Limit 100 rekordów na żądanie;
+  strona poza zakresem sprowadzana do ostatniej, pusty wynik do strony 1.
+- Wyszukiwanie po imieniu, nazwisku i nazwie stanowiska, bez znaczenia wielkości
+  liter, polskich znaków i kolejności słów. Wildcardy traktowane dosłownie.
+  Filtr typu stanowiska; sześć jawnych wariantów sortowania po nazwie osoby,
+  stanowisku lub komórce, zawsze ze stabilnym rozstrzygnięciem przez UUID.
+- Ekran `/employees`: formularz GET, 10/20/50 osób na stronie, licznik, filtry,
+  sortowanie, reset, rozróżnienie pustego katalogu od braku wyników, poprzednia/
+  następna strona. URL przechowuje stan; profil odsyła do tej samej strony
+  i filtrów. Zmiana strony prowadzi do początku wyników.
+- Layout nie pobiera już całej listy. Wyszukiwarka globalna pobiera do ośmiu
+  autoryzowanych wyników po 250 ms, ignoruje nieaktualne odpowiedzi i odsyła do
+  pełnych wyników. Kontrole możliwości tworzenia ocen pobierają jeden rekord;
+  selektor nowej oceny nadal pobiera wszystkie przypisane opcje, jawnie stronicując
+  API — nie obcina zespołu do pierwszej strony. Kontrakt OpenAPI zregenerowany.
+- Kontrole: `uv run ruff check app alembic tests` i `uv run ruff format --check
+  app alembic tests` — OK; `uv run pytest -q --tb=short` z oddzielnym PostgreSQL
+  i fontem — **622 passed / 9 skipped**, 77,67 s. Nowe przypadki sprawdzają
+  granice parametrów, liczniki bez wycieku, stronicowanie, składanie filtrów,
+  wyszukiwanie nazw i stanowisk oraz zapis bez polskich znaków.
+  Po rozszerzeniu testu naprawy starej jednostki i zachowania nazwy operatora:
+  `uv run pytest tests/test_employees.py -q --tb=short` — **32 passed**, 2,23 s;
+  Ruff lint/format ponownie OK.
+- `npm run precommit` — format/lint/typecheck i **214 testów w 31 plikach**, OK;
+  `npm run build` — OK. Testy obejmują URL, stan listy, powrót z profilu,
+  autoryzowane zapytania, pełny selektor i ograniczoną wyszukiwarkę globalną.
+- Żywa projekcja danych: MANAGER 63 osoby, HR/ADMIN 64; pierwsza strona po 20,
+  łącznie cztery strony. Brak technicznych etykiet w aktualnych jednostkach.
+  HTTP `/health` i `/login` — 200; paginowane API bez sesji — 401.
+  Bez przeglądarki/E2E, nowego pomiaru AI ani nowych wygenerowanych PDF.
 
 ### 2026-11-21 — P7-03, monitoring i przypomnienia HR
 

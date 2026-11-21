@@ -424,15 +424,23 @@ Migracja `0004` dodaje komórki organizacyjne, pracowników i przypisania przeł
 Instalacja obejmuje jedną organizację. Typ stanowiska rozróżnia `OFFICE_HEAD`,
 `DIRECT_MANAGER` i `OTHER`; nie jest rolą konta użytkownika.
 
-- `GET /api/v1/employees` — lista podstawowych danych, opcjonalnie `?q=fragment`
-  wyszukujący po nazwie (maks. 100 znaków; `%` i `_` traktowane dosłownie).
+- `GET /api/v1/employees` — strona podstawowych danych: `items`, `total`, `page`,
+  `page_size`, `total_pages`. `page` od 1, `page_size` 1–100 (domyślnie 20);
+  strona poza zakresem wraca jako ostatnia dostępna, pusty wynik jako strona 1.
+- `?q=fragment` szuka po imieniu, nazwisku i stanowisku (maks. 100 znaków;
+  polskie znaki, wielkość liter i kolejność słów opcjonalne; `%` i `_` dosłownie).
+- `position_kind`: `OFFICE_HEAD`, `DIRECT_MANAGER` lub `OTHER`. `sort`:
+  `name_asc` (domyślnie), `name_desc`, `position_asc`, `position_desc`,
+  `department_asc`, `department_desc`. Sortowanie ma stabilny tie-breaker UUID.
 - `GET /api/v1/employees/{UUID}` — te same dane jednego pracownika.
 - `?assigned_only=true` zawęża listę do przypisań MANAGER także przy dodatkowej
   roli HR/ADMIN; służy do wyboru pracownika do nowej oceny.
+- `employee_id=UUID` pozwala sprawdzić przypisanie konkretnej osoby bez pobierania
+  całego zespołu. Wyszukiwanie i liczniki mają ten sam zakres autoryzacji co lista.
 - `MANAGER` widzi wyłącznie przypisanych; `HR` i `ADMIN` podstawowe dane całej
   organizacji. Bez roli lista jest pusta. Cudze i nieistniejące ID zwracają 404.
-- Listę filtruje zapytanie SQL, nie frontend. Schemat nie zawiera notatek ani ocen;
-  dostęp do tych danych będzie wymagał osobnej autoryzacji w P4.
+- Listę filtruje, sortuje i stronicuje SQL. Schemat nie zawiera notatek ani ocen;
+  dostęp do tych danych podlega osobnej autoryzacji procesów oceniania.
 
 Seed jest jawną operacją operatora, nigdy częścią startu aplikacji ani migracji:
 
@@ -440,13 +448,17 @@ Seed jest jawną operacją operatora, nigdy częścią startu aplikacji ani migr
 uv run python -m app.modules.employees.seed --manager-subject SUPABASE_MANAGER_UUID
 ```
 
-Wymaga aktywnego lokalnego użytkownika `MANAGER`. Tworzy cztery **fikcyjne** osoby
-w jednostce testowej: Jan Kowalski, Maria Wiśniewska, Alicja Zielińska i Piotr Nowak.
+Wymaga aktywnego lokalnego użytkownika `MANAGER`. Tworzy cztery osoby scenariuszowe
+w „Biurze Dyrektora Generalnego / Zespole Koordynacji Procesów”: Jan Kowalski,
+Maria Wiśniewska, Alicja Zielińska i Piotr Nowak.
 Pierwsze trzy przypisuje wskazanemu przełożonemu, Piotra pozostawia bez przypisania.
 Ponowienie nie tworzy duplikatów ani nie nadpisuje istniejących danych pracowników.
 Nie importuje stanu demo z przeglądarki. W Compose poprzedź polecenie
 `docker compose --env-file .env.compose-check -f infra/compose.yaml -f infra/compose.dev.yaml exec -T backend`
 i użyj `python` bez `uv run` (polecenie uruchamiane z katalogu głównego repo).
+
+Pełny zestaw 60 dodatkowych osób, procesów i dokumentów ładuje `app.demo.seed`;
+instrukcja i konkretne przypadki w [przewodniku prezentacji](../docs/demo-guide.md).
 
 ## Katalog kompetencji
 

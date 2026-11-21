@@ -12,20 +12,27 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { requireAccessToken } from "@/features/auth/session";
-import { getEmployee, getEmployees } from "./server";
+import { getEmployee, getEmployeePage, getEmployees } from "./server";
 
 describe("authorized employees", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("API_BASE_URL", "http://backend:8000");
     vi.mocked(requireAccessToken).mockResolvedValue("test-token");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json([])));
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          Response.json({ items: [], total: 0, page: 1, page_size: 100, total_pages: 1 }),
+        ),
+    );
   });
 
   it("keeps an empty authorized list empty instead of inserting demo records", async () => {
     expect(await getEmployees()).toEqual([]);
     expect(fetch).toHaveBeenCalledWith(
-      new URL("http://backend:8000/api/v1/employees"),
+      new URL("http://backend:8000/api/v1/employees?page_size=100&page=1"),
       expect.objectContaining({
         headers: expect.any(Headers),
         cache: "no-store",
@@ -34,6 +41,43 @@ describe("authorized employees", () => {
     );
     expect(new Headers(vi.mocked(fetch).mock.calls[0]?.[1]?.headers).get("Authorization")).toBe(
       "Bearer test-token",
+    );
+  });
+
+  it("passes directory filters to the API and returns only the requested page", async () => {
+    const data = { items: [], total: 42, page: 2, page_size: 10, total_pages: 5 };
+    vi.mocked(fetch).mockResolvedValue(Response.json(data));
+    expect(
+      await getEmployeePage({
+        q: "Łącka radca",
+        page: 2,
+        page_size: 10,
+        sort: "name_desc",
+        position_kind: "OTHER",
+      }),
+    ).toEqual(data);
+    const url = vi.mocked(fetch).mock.calls[0]?.[0] as URL;
+    expect(url.searchParams.get("q")).toBe("Łącka radca");
+    expect(url.searchParams.get("page")).toBe("2");
+    expect(url.searchParams.get("sort")).toBe("name_desc");
+    expect(url.searchParams.get("position_kind")).toBe("OTHER");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not truncate assessment choices to the first page", async () => {
+    const first = { id: "first" };
+    const last = { id: "last" };
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        Response.json({ items: [first], total: 101, page: 1, page_size: 100, total_pages: 2 }),
+      )
+      .mockResolvedValueOnce(
+        Response.json({ items: [last], total: 101, page: 2, page_size: 100, total_pages: 2 }),
+      );
+    expect(await getEmployees(true)).toEqual([first, last]);
+    expect(fetch).toHaveBeenLastCalledWith(
+      new URL("http://backend:8000/api/v1/employees?assigned_only=true&page_size=100&page=2"),
+      expect.anything(),
     );
   });
 

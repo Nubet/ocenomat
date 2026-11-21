@@ -890,6 +890,19 @@ export interface components {
       /** Assessment Revision */
       assessment_revision: number;
     };
+    /** EmployeePage */
+    EmployeePage: {
+      /** Items */
+      items: components["schemas"]["EmployeeResponse"][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+      /** Total Pages */
+      total_pages: number;
+    };
     /** EmployeeResponse */
     EmployeeResponse: {
       /**
@@ -905,6 +918,17 @@ export interface components {
       /** Department */
       department: string;
     };
+    /**
+     * EmployeeSort
+     * @enum {string}
+     */
+    EmployeeSort:
+      | "name_asc"
+      | "name_desc"
+      | "position_asc"
+      | "position_desc"
+      | "department_asc"
+      | "department_desc";
     /** FirstData */
     FirstData: {
       /**
@@ -1726,6 +1750,11 @@ export interface operations {
       query?: {
         q?: string;
         assigned_only?: boolean;
+        page?: number;
+        page_size?: number;
+        sort?: components["schemas"]["EmployeeSort"];
+        position_kind?: components["schemas"]["PositionKind"] | null;
+        employee_id?: string | null;
       };
       header?: never;
       path?: never;
@@ -1739,7 +1768,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/json": components["schemas"]["EmployeeResponse"][];
+          "application/json": components["schemas"]["EmployeePage"];
         };
       };
       /** @description Validation Error */
