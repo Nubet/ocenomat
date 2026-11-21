@@ -231,6 +231,7 @@ Oryginały dostarcza operator; nie są częścią obrazu ani repozytorium.
 
 ```sh
 uv run python -m app.modules.knowledge.audit ../docs/hacknation-materials \
+  --downloads-manifest ../docs/hacknation-materials/oficjalne-zrodla/MANIFEST_POBRANYCH.json \
   --output /tmp/knowledge-audit.json
 ```
 
@@ -246,6 +247,53 @@ XML uzupełnia checkboxy, symbole i przypisy. Automatyczna numeracja, rewizje,
 osadzone obiekty i układ formularzy wymagają przeglądu. XLSX wykorzystuje parser
 katalogu, jego stabilne ID i zakresy komórek. Nie importujemy Markdown zamiast
 oryginału. Aktualność prawna jest osobną weryfikacją.
+
+Stan oficjalnych pobrań, duplikaty, datowane ustalenia prawne i ograniczenia cytowań:
+[`official-sources-audit.md`](../docs/official-sources-audit.md). Metadane
+`provenance` wiążą oficjalny URL z SHA oryginału, grupują alternatywne formaty
+i określają przeznaczenie. Preferowany format nie przełącza automatycznie parsera.
+HTML obsługują jawne profile opisane poniżej. Formularze XLSX nadal wymagają
+odpowiedniej ekstrakcji; nie zastępuj ich Markdownem ani parserem katalogu.
+Poradnik/FAQ nie jest wiążącym przepisem.
+Migracja 0014 dodaje nullable metadane bez backfillu. Retry nie nadpisuje metadanych
+już zaimportowanego źródła: ich uzupełnienie w istniejącej instalacji wymaga
+oddzielnej procedury z kontrolą hashy i zachowaniem wcześniejszych wartości.
+
+### Kontrolowana ekstrakcja oficjalnych źródeł
+
+Manifest obejmuje 16 oryginałów. `extraction_profile` domyślnie pozostaje
+`original`; dotychczasowe 12 ID, lokalizacje i `original-v1` są zachowane.
+Nowe reprezentacje mają osobne wersjonowane ID, ten sam canonical ID aktu
+oraz hash oryginału; nie są niezależnymi potwierdzeniami tej samej informacji.
+Audyt i importer używają tego samego profilu i odrzucają niezgodność SHA przed
+ekstrakcją. Nie ma automatycznego przełączenia na `preferred_text_path`.
+
+- `eli-html-v1`: lokalny HTML ELI, prawdziwe `html:#para_1`–`html:#para_14`.
+  Paragraf zachowuje wszystkie ustępy, punkty, warunki i osadzone przypisy.
+  Załącznik odsyłający tylko do PDF ma `unsupported_external_annex...`;
+  nie pozwala zatwierdzić całego źródła jako kompletnego. Tabele pozostają
+  tekstową reprezentacją wierszy/komórek i wymagają kontroli układu w PDF.
+- `kprm-faq-v1`: tylko `article#main-content`, 31 kompletnych Q&A z przypisami.
+  Każdy fragment zawiera oryginalne zastrzeżenie o niewiążącym charakterze.
+  Locator `html:/html/.../details[n]` jest rzeczywistym XPath zapisanej wersji,
+  nie wymyślonym publicznym anchorem. Bez menu, skryptów i pobierania zasobów.
+- `statute-2026-590-v1`: wyłącznie PDF o sprawdzonym SHA edycji 2026/590.
+  `notice/page-1`–`notice/page-2` to obwieszczenie; `annex/page-3`–`annex/page-39`
+  to ustawa. Fragment ma rzeczywisty numer artykułu, stronę i numer części;
+  osobno zachowane jest 41 przypisów, równoległe brzmienia i zakres pominiętych
+  artykułów 132–190. Nie zmienia dat, nie skleja wariantów ani nie wybiera
+  automatycznie przyszłego brzmienia jako aktualnego.
+
+`warnings` fragmentów ustawy zawiera `required_context:<locator>` dla dalszej
+części artykułu, wariantów, obwieszczenia i przypisów. To trwałe zależności
+przeglądu/kontekstu, nie gotowy filtr dat. P6-03/P6-04 musi je rozwiązać w obrębie
+tego samego źródła i sprawdzić zatwierdzenie, stosowalność oraz limit kontekstu;
+przy braku podstaw odmówić odpowiedzi. Obwieszczenie i przypisy nie zastępują
+samodzielnie przepisu. Ustawa i FAQ mają nadal `legal_status=unknown`, a nowe
+fragmenty `needs_review`, aż do jawnych decyzji hash-bound i kontroli dat.
+
+Wyniki na oryginałach i zakres sprawdzenia:
+[`official-sources-audit.md`, §9](../docs/official-sources-audit.md#9-kontrolowana-ekstrakcja-eli-faq-i-ustawy).
 
 Po migracji `0013` import do PostgreSQL i prywatnego RustFS:
 

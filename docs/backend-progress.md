@@ -7,8 +7,11 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
 - **Aktywne zadanie:** P6-02 — inwentaryzacja i weryfikacja oryginałów (`in_progress`).
-- **Następny krok:** minimalna migracja i idempotentny import zweryfikowanych
-  fragmentów PostgreSQL/RustFS. Manifest i audyt ekstrakcji gotowe. Obowiązuje
+- **Następny krok:** jawny hash-bound review nowych fragmentów i ograniczony,
+  idempotentny import zweryfikowanego zakresu. Ekstrakcja ELI HTML/FAQ i ustawy
+  z rozdzieleniem obwieszczenia wykonana; kontrola czasowej stosowalności pozostaje
+  osobną decyzją przed zatwierdzeniem aktualnego korpusu. Audyt źródeł zakończony,
+  backend Compose przywrócony, addytywne migracje wdrożone do 0014. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
 - **Ostatnia zakończona praca:** P6-01 — wymienialny provider LLM, konfiguracja,
   kontrola możliwości i testy bez zewnętrznych generowań; płatny Sonnet 5.5.
@@ -45,8 +48,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   regresji, builda ani smoke; szczegóły niżej.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
-  pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
-  zatrzymany po testach; wznowienie: `docker start kompas-postgres-test`.
+  pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` jest
+  uruchomiony (port 55439), używany wyłącznie do testów, nie jako baza aplikacji.
 - **Frontend commity:** `5b1375c` (`chore(frontend): add react doctor diagnostics`),
   `c37a8e0` (`perf(frontend): stabilize workspace context value`).
 
@@ -74,7 +77,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P5-01 | Prywatny storage | done | Migracja 0010, prywatny bucket, autoryzowane API, walidacja, rewizje i kompensacja/niepewny COMMIT; 351 testów backendu, 157 UI, build i live RustFS/HTTP OK. |
 | P5-02 | OSP i PDF C | done | Migracje 0011–0012, wersje OSP pracownika, wybór w draft, PDF zakończonej oceny i UI pobrania; końcowe 37 testów backendu, 170 UI, wcześniejszy build/live HTTP OK. |
 | P6-01 | Wymienialny provider LLM | done | Kontrakt, adapter, Settings/Compose i dependency injection; 63 celowane testy OK w 0,58 s. `feat(ai): add configurable llm provider` |
-| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | in_progress | Następna część: manifest i raport ekstrakcji; brak zatwierdzonego korpusu. |
+| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | in_progress | Audyt 55 plików, 25 pobrań zgodnych z SHA. Manifest 16 źródeł; ELI 19/18 fragmentów, FAQ 31, ustawa 218; warunki/przypisy i warianty zachowane. 70 testów OK. Bez importu do aplikacji; kolejne są review i ograniczony import. Raport: `official-sources-audit.md`, §9. |
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | pending | — |
 | P6-04 | Asystent formalny RAG i cytowania | pending | — |
 | P6-05 | Integracja istniejącego draweru Next.js | pending | — |
@@ -97,8 +100,11 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 - Klucz dodany lokalnie przez użytkownika: OpenRouter `/auth/key` → 200,
   ale `chat/completions` → 401 `User not found.` (tekst i JSON Schema).
   Brak udanego generowania; bloker konta/dostawcy, bez obchodzenia polityk.
-- Aktualność dostarczonych rozporządzeń i brakująca w materiałach ustawa o służbie
-  cywilnej wymagają weryfikacji przed deklarowaniem zgodności formalnej.
+- ELI potwierdza obowiązywanie rozporządzeń 2016/470 i 2015/1144 (2026-11-21).
+  Ustawa jest już dostępna w oficjalnych pobraniach (tekst jednolity 2026/590),
+  załącznik został wydzielony; kontrola czasowego stosowania jednostek jest nadal
+  wymagana przed zatwierdzeniem ich jako aktualnej podstawy odpowiedzi.
+  Pełna zgodność formalna i wszystkie interpretacje poradników nie są zatwierdzone.
 - Materiały w `docs/hacknation-materials/`, `.idea/` i `.opencode/` są obecnie
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
@@ -126,6 +132,74 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P6-02, kontrolowana ekstrakcja ELI/FAQ i ustawy
+
+- Dodano jawne profile `eli-html-v1`, `kprm-faq-v1`, `statute-2026-590-v1`
+  w istniejącym ekstraktorze, audycie i importerze. `lxml` był zależnością
+  przechodnią python-docx; zadeklarowano go bezpośrednio i uaktualniono lockfile.
+  Brak nowego magazynu, migracji czy systemu RAG.
+- Manifest rozszerzono 12 → 16 źródeł, zachowując wcześniejsze ID/locatory/reviews.
+  ELI HTML: odpowiednio 19 i 18 fragmentów, komplet §§1–14, nieodrywane warunki
+  i przypisy. Załączniki zawierające tylko link do PDF mają jawny brak treści.
+- FAQ: 31 kompletnych Q&A, rzeczywiste XPath, przypisy i oryginalne zastrzeżenie
+  opinii w każdym fragmencie; bez menu/skryptów i dostępu do sieci z parsera.
+- Ustawa: 218 fragmentów; obwieszczenie s.1–2 oddzielone od załącznika s.3–39,
+  zachowane wszystkie 41 przypisów, równoległe brzmienia i pominięty zakres
+  art.132–190. Dalej są zależności `required_context` dla kontynuacji/wariantów
+  i warunków publikacji. Przyszłe i zależne od zdarzenia brzmienia nie są
+  automatycznie wybierane; ustawa pozostaje `legal_status=unknown`.
+- Kontrole: `uv lock`; Ruff lint/format OK; pytest dla `test_official_extraction`,
+  `test_knowledge_{extraction,ingestion,provenance,sources}` i `test_database`
+  z oryginałami oraz oddzielnym PostgreSQL **70 passed, 17,50 s, bez skipów**.
+  Ostrzeżenie deprecjacji Starlette/httpx, bez wpływu na wynik. Testy sprawdzają
+  też brak utraty tekstu PDF, właściwe rozdzielenie art.35, pełny art.81 s.24–25,
+  warunki przyszłej zmiany z przypisu28, XPath i ponowienie importu HTML.
+- Rzeczywisty `uv run python -m app.modules.knowledge.audit` z manifestem pobrań
+  wykonany dla wszystkich 16 źródeł. Raport lokalny:
+  `/tmp/opencode/official-source-extraction-audit.json`; wynik opisany w
+  [official-sources-audit.md, §9](official-sources-audit.md#9-kontrolowana-ekstrakcja-eli-faq-i-ustawy).
+- Nowe fragmenty mają `needs_review`. Nie uruchamiano importu do bazy/RustFS
+  aplikacji, generowania LLM ani przeglądarki. P6-02 nadal `in_progress`;
+  następna czynność: review przypięty do hashy i kontrolowany import/retry,
+  po nim dopiero P6-03 z obsługą zależności i rozróżnieniem dat/typów źródła.
+
+### 2026-11-21 — P6-02, audyt oficjalnych źródeł przed dalszą rozbudową
+
+- Na polecenie użytkownika wstrzymano nowe funkcje; sprawdzono kod, plan,
+  migracje oraz rzeczywiste PostgreSQL/RustFS. Stan wyjściowy: DB 0012, brak tabel
+  wiedzy i indeksu, jeden prywatny OSP w storage, istniejący katalog 14 kryteriów.
+- Rekurencyjna inwentaryzacja 55 plików, w tym 25 oficjalnych pobrań i historical.
+  Wszystkie rozmiary/SHA zgodne. Siedem grup kopii bajtowych, identyczne treści
+  19 stron PDF okresowego ELI/KPRM i wykaz równy stronom 5–7 pełnego PDF.
+- Online ELI/Sejm: dwa rozporządzenia obowiązują; trzy dawne są uchylone.
+  Ustawa 2026/590 już istnieje; obwieszczenie i przyszłe/przejściowe brzmienia
+  nie mogą być potraktowane jak jeden bezwarunkowo aktualny fragment ustawy.
+- Pochodzenie SHA/URL, canonical ID, role i alternatywne formaty w istniejącym
+  manifeście, zachowane ID/oryginały; nullable JSONB 0014 bez backfillu. Importer
+  odrzuca hash niezgodny z pochodzeniem. Markdown pozostaje pomocniczy.
+- UI ma ręczne odwołania demo, nie cytowania RAG; poprawiono mylący opis. Brak
+  retrievera/chatu/walidatora cytowań jest jawny, nie zastąpiony nowym demo.
+- Testy pięciu dotkniętych modułów backendu z dedykowaną bazą i oryginałami:
+  **61 passed, 9,41 s**. Po poprawce serializacji dat w CLI provenance:
+  **9 passed, 5,37 s** i rzeczywisty audyt CLI OK; Ruff lint/format OK.
+  Frontend oxlint OK, celowane testy asystenta **2 passed**, format TSX OK.
+- Końcowe testy provenance i zapisanych decyzji po kontroli hashy kopii:
+  **11 passed, 6,95 s**, Ruff OK. Self-check raportu: wszystkie 55 ścieżek/SHA zgodne.
+- Raport trwały: [official-sources-audit.md](official-sources-audit.md), zawiera
+  każdą ścieżkę/SHA/rolę, źródła ustaleń prawnych, luki i kolejność dalszych prac.
+  Dane i obiekty aplikacji pozostawiono bez zmian podczas audytu.
+- Dodatkowa diagnoza timeoutu API: log worker Uvicorn wskazuje
+  `ModuleNotFoundError: No module named 'httpx'`. Kod P6-01 był montowany do
+  starego obrazu bez nowej zależności runtime. **Po audycie kontynuowano P6-02:**
+  celowy Compose `up --build -d backend`, bez resetu wolumenów. Migracje
+  **0012 → 0013 → 0014**, `/api/v1/health` **200**, `alembic check` OK,
+  powtórny upgrade head bez nowych operacji, backend **healthy**.
+- Odczyt po wdrożeniu: **0 źródeł / 0 fragmentów**, katalog z tym samym ID/SHA,
+  nadal jeden dokument i OSP. RustFS jeden obiekt, zero `knowledge/`; klucze
+  zgodne z DB, checksum istniejącego pliku zgodny. Bez importu lub PUT/DELETE.
+- Dokładna kontynuacja: ekstrakcja ELI HTML/FAQ i ustawy, hash-bound review,
+  dopiero ograniczony import i retry. P6-03 nadal pending, nie nowy system RAG.
 
 ### 2026-11-21 — P6-02, manifest i niezależna ekstrakcja
 
