@@ -6,8 +6,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-07 — rzeczywista ewaluacja generowania (`blocked`: OpenRouter).
-- **Następny krok:** po odblokowaniu providera uruchomić istniejące narzędzie
+- **Aktywne zadanie:** P6-07 — rzeczywista ewaluacja generowania (`in_progress`).
+- **Następny krok:** uruchomić istniejące narzędzie
   z `--generate`, ocenić odpowiedzi i rekomendacje trzech OSP. Dopiero po zamknięciu
   fazy 6 rozpocząć P7-01. Zestaw 30 pytań i pomiar retrieval są gotowe.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
@@ -42,7 +42,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
    Adapter OpenRouter jest podłączony przez lifecycle; API asystenta i bezpieczne
    pobieranie źródeł są zaimplementowane. Drawer korzysta z API, bez fallbacku demo.
-   Żywe generowanie zablokowane kontem OpenRouter. VPS niezintegrowany.
+    Żywe generowanie działa po aktualizacji lokalnego klucza OpenRouter. VPS niezintegrowany.
 - **Kontrole P5-02:** końcowy `npm run precommit` — OK, 170 testów Vitest;
   wcześniejszy `npm run build` — OK. Końcowe testy dokumentów i migracji:
   37 passed w 9,17 s; Ruff lint/format OK. Wcześniej pełny backend: 371 passed
@@ -83,8 +83,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | done | `79fa4ce`; FTS/simple, GIN 0015, filtry, deduplikacja i atomowy kontekst. 104 testy OK; live top-5 9/9, trzy odmowy, brak zmian danych. Backend healthy. |
 | P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
 | P6-05 | Integracja istniejącego draweru Next.js | done | Sesyjna Server Action, OpenAPI, jawne tryby/zakres, wynik silnika i chronione pobranie oryginału; precommit i 180 testów OK. Przeglądarka niewykonana. |
-| P6-06 | Analiza OSP i rekomendacje kryteriów | blocked | Kod/API/UI i testy gotowe; 58 testów OSP+asystenta OK, w tym ekstrakcja trzech oryginałów. Do kryterium jakości rekomendacji trzech OSP potrzebne działające generowanie. |
-| P6-07 | Ewaluacja jakości i demonstracja | blocked | Zestaw 30 pytań, narzędzie read-only i protokół przeglądu gotowe; retrieval 23/23 top-5. Jakość generowania i demonstracja wymagają odblokowania OpenRouter. |
+| P6-06 | Analiza OSP i rekomendacje kryteriów | pending | Kod/API/UI i testy gotowe; 58 testów OSP+asystenta OK. Blokada providera usunięta; pozostaje rzeczywista ocena rekomendacji trzech OSP. |
+| P6-07 | Ewaluacja jakości i demonstracja | in_progress | Zestaw 30 pytań, narzędzie read-only i protokół gotowe; retrieval 23/23 top-5. Po zmianie klucza jedna rzeczywista odpowiedź z 3 cytatami OK; pełna ewaluacja jeszcze niewykonana. |
 | P7-01 | Arkusz B | pending | — |
 | P7-02 | Pierwsza ocena | pending | — |
 | P7-03 | Monitoring HR | pending | — |
@@ -226,6 +226,13 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   odblokowania providera i pomiarów jakości. UI nie udaje powodzenia przy awarii.
 
 ## P6-07 — zestaw referencyjny i narzędzie ewaluacji
+
+Aktualizacja po zmianie klucza przez użytkownika: lokalna ignorowana konfiguracja
+zaktualizowana, backend odtworzony przez Compose. Jedna rzeczywista próba pytania
+o liczbę kryteriów dodatkowych: HTTP 200 dla metadanych modelu/generowania/review,
+`answered`, 3 twierdzenia i 3 cytaty. Blokada uwierzytelnienia usunięta. Nie wykonano
+jeszcze pełnego zestawu ani analizy jakości trzech OSP; wcześniejsze wpisy o blokadzie
+poniżej opisują stan sprzed tej aktualizacji. Klucza nie zapisano w repozytorium.
 
 - 30 pytań z oczekiwanymi odpowiedziami: 23 z locatorami oryginalnych paragrafów,
   7 o brakach podstaw, niejednoznaczności, fikcyjnych źródłach i injection.

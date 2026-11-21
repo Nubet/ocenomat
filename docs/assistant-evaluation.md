@@ -45,5 +45,7 @@ z dostarczonymi PDF. Zestaw nie zastępuje przeglądu prawnego.
    Demonstracja: rzeczywista ocena → pytanie ze źródłem → oryginał → brak podstaw
    → analiza OSP → ręczny wybór kryteriów → wynik istniejącego silnika.
 
-P6-06/P6-07 pozostają zablokowane kryterium rzeczywistej jakości. Faza 6 nie jest
-ukończona; rozpoczęcie fazy 7 czeka zgodnie z ustaloną kolejnością.
+Aktualizacja: po zmianie lokalnego klucza i odtworzeniu backendu jedna rzeczywista
+odpowiedź o liczbie kryteriów dodatkowych przeszła generowanie i review (HTTP 200,
+`answered`, 3 twierdzenia i 3 cytaty). Blokada providera usunięta; pełny zestaw
+i rekomendacje trzech OSP nadal czekają na ocenę. Faza 6 nie jest ukończona.
