@@ -42,7 +42,7 @@ export function EmployeeList({
                     <span className="hidden text-sm font-semibold md:block">{employee.name}</span>
                   </span>
                   <span className="min-w-0 text-sm font-semibold md:hidden">{employee.name}</span>
-                  <span className="col-start-2 text-body text-muted-foreground md:col-auto">
+                  <span className="col-start-2 max-w-full justify-self-start rounded-md bg-primary-muted px-3 py-1 text-[0.8125rem] font-medium text-primary-strong md:col-auto">
                     {employee.position}
                   </span>
                   <span className="col-start-2 text-body text-muted-foreground md:col-auto">
