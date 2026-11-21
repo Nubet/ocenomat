@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import AnyHttpUrl, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
@@ -5,10 +7,31 @@ from sqlalchemy.exc import ArgumentError
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="KOMPAS_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="KOMPAS_",
+        extra="ignore",
+        env_ignore_empty=True,
+        hide_input_in_errors=True,
+    )
 
     cors_origins: list[AnyHttpUrl] = []
     database_url: SecretStr | None = None
+    supabase_url: AnyHttpUrl | None = None
+    jwt_algorithm: Literal["ES256", "RS256"] = "ES256"
+
+    @field_validator("supabase_url")
+    @classmethod
+    def validate_supabase_url(cls, value: AnyHttpUrl | None) -> AnyHttpUrl | None:
+        if value is not None and (
+            value.scheme != "https"
+            or value.username
+            or value.password
+            or value.path not in ("", "/")
+            or value.query
+            or value.fragment
+        ):
+            raise ValueError("Supabase URL must be an HTTPS origin")
+        return value
 
     @field_validator("database_url")
     @classmethod

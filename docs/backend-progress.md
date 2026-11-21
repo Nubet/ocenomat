@@ -5,10 +5,11 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 1 — fundament techniczny zakończony.
-- **Aktywne zadanie:** brak; P1-03 zakończone.
-- **Następny krok:** P2-01 — użytkownicy, role, JWT i bootstrap administratora.
-- **Ostatnia zakończona praca:** działające środowisko Compose.
+- **Etap:** 2 — tożsamość; fundament techniczny zakończony.
+- **Aktywne zadanie:** brak; kod P2-01 sprawdzony, integracja live zablokowana.
+- **Następny krok:** niezależne P3-01/P3-02; do testu live P2-01 potrzebne
+  skonfigurowane Supabase Cloud i rzeczywisty token użytkownika.
+- **Ostatnia zakończona praca:** lokalny kod użytkowników, ról i JWT.
 - **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`
   i `/api/v1/health`, połączenie PostgreSQL i historię migracji bez tabel domenowych.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
@@ -29,7 +30,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P1-01 | Projekt FastAPI i health | done | 8 testów; `chore(backend): initialize api` |
 | P1-02 | PostgreSQL, Alembic, readiness | done | 14 testów z PostgreSQL; `feat(backend): add database readiness` |
 | P1-03 | Compose: frontend, API, PostgreSQL, RustFS | done | Build, HTTP, S3, restart i 19 testów UI; `chore(infra): add local compose environment` |
-| P2-01 | Tożsamość, role, weryfikacja JWT | pending | — |
+| P2-01 | Tożsamość, role, weryfikacja JWT | blocked | Kod i 45 testów OK; brak konfiguracji Supabase blokuje próbę live. `feat(auth): verify identities and load roles` |
 | P2-02 | Logowanie i sesja | pending | — |
 | P2-03 | Pracownicy i przypisania | pending | — |
 | P3-01 | Katalog kompetencji | pending | — |
@@ -62,6 +63,23 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P2-01 (kod gotowy, integracja live blocked)
+
+- Migracja `0002`: użytkownicy i wielokrotne role z constraintami; `/api/v1/me`
+  czyta aktywne konto i role z PostgreSQL, ignorując biznesowe role z JWT.
+- JWKS PyJWT: przypięty ES256/RS256, issuer/audience/exp/iat/sub, UUID, cache,
+  rotacja i timeout; 401/503 bez szczegółów i bez bypassu. Bootstrap pierwszego
+  admina jako CLI, z blokadą transakcyjną i odmową ponownego utworzenia.
+- Kontrole w `backend/`: `uv sync`, `uv run ruff check .`,
+  `uv run ruff format --check .`, `uv run pytest` z oddzielną bazą PostgreSQL —
+  OK, 45 testów. Obejmują podpisy EC/RSA, fałszerstwo, algorytmy, claims, JWKS
+  cache/rotację/awarię, nieaktywne i nieznane konto, role z bazy oraz bootstrap.
+- Nie znaleziono zmiennych konfiguracji Supabase w środowisku. Nie tworzono kont
+  zewnętrznych ani nie wykonywano próby z prawdziwym tokenem. P2-01 pozostaje
+  `blocked` do rzeczywistej weryfikacji integracji.
+- Commit: `feat(auth): verify identities and load roles`.
+- Następne niezależne zadania: P3-01 katalog oraz P3-02 reguły domenowe.
 
 ### 2026-11-21 — P1-03
 

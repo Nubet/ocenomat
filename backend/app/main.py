@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import Settings
 from app.core.database import create_database_engine, get_session
+from app.core.security import TokenVerifier
+from app.modules.users.router import router as users_router
 
 
 class HealthResponse(BaseModel):
@@ -24,6 +26,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         engine = create_database_engine(settings) if settings.database_url else None
         app.state.database_engine = engine
+        app.state.token_verifier = (
+            TokenVerifier(settings) if settings.supabase_url else None
+        )
         try:
             yield
         finally:
@@ -31,6 +36,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 engine.dispose()
 
     app = FastAPI(title="Kompas Kompetencji API", version="0.1.0", lifespan=lifespan)
+    app.include_router(users_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin).rstrip("/") for origin in settings.cors_origins],
