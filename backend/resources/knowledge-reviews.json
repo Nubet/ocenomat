@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "source_id": "periodic-regulation-2016",
+      "original_sha256": "ea034d17073d1731304158787fe44ae356b33780562248892bf19f2b0452350e",
+      "extractor_version": "original-v1",
+      "reviewed_by": "OpenCode — original source comparison, not legal review",
+      "reviewed_at": "2026-11-21T18:51:59Z",
+      "fragments": [
+        {
+          "locator": "page-1",
+          "content_sha256": "04a0b7594b1858e1986e6baa01a1f4d1bddb191acbbbe2e8b73e516ef8c58f9a",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 1: §§ 1–3 distinguish A/B/C, § 4(1) has six A criteria. Technical whitespace/word joins remain; no substantive correction. Does not verify current law."
+        },
+        {
+          "locator": "page-2",
+          "content_sha256": "6f0cbd91b45ac9880b07bfb260b182b8e533db8706f55a02f37796e76f212576",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 2: five B/C criteria in § 4(2–3), at most three additional criteria in § 5(2), conditional goals, signatures, 30/7-day deadlines, § 9(1) continues on p. 3. Statutory cross-references are not independently verified."
+        },
+        {
+          "locator": "page-3",
+          "content_sha256": "c2a192637ee1b77dc7786d869b6a5b93f2bfd8a009ea6595b41f8d6129943369",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 3: continuation of § 9; § 10 conversation; § 11 scale 1/3/5/7/9, intervals, positive outcome only above 4 with no 1, mandatory negative justification and optional positive justification. Conditions/negations retained."
+        },
+        {
+          "locator": "page-4",
+          "content_sha256": "d2af5db5301cb12254697dfaaee4659915f6ebe4f453b0ac17140e91d5e01a9c",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 4: §§ 12–14 delivery, transitional rule and commencement; footnote 1 retained. Historical text, not a determination of present legal validity."
+        }
+      ]
+    },
+    {
+      "source_id": "first-regulation-2015",
+      "original_sha256": "0e8a0cf5c9c390edfc5a8868f57fcec2c539f37738c1775f9bed06e98389f217",
+      "extractor_version": "original-v1",
+      "reviewed_by": "OpenCode — original source comparison, not legal review",
+      "reviewed_at": "2026-11-21T18:51:59Z",
+      "fragments": [
+        {
+          "locator": "page-1",
+          "content_sha256": "291da24c341093634d48df05d47d932f62cbdc380a35487639e9d0079d44b07d",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 1: §§ 1–3, five assessment elements, conditional examination, report and 21-day initial conversation with substitution exception. Source word joins/line hyphenation remain, without model corrections."
+        },
+        {
+          "locator": "page-2",
+          "content_sha256": "8e1f40bd667a47b20b5a6dce99199e189ff9be09d98661333af9029a77dec2b8",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 2: §§ 4–7, report window after 8 months, extensions and statutory dependencies, report period at least 7 months, required report content and arithmetic mean. Missing statute cannot be inferred from this page."
+        },
+        {
+          "locator": "page-3",
+          "content_sha256": "b4068035640e5a9746ae38a9bcafd83ecae8f34490183ce1769a26e34d4439f1",
+          "status": "approved",
+          "reason": "Compared with original PDF p. 3: §§ 8–14, scale 3/5/7, all positive conditions, mean at least 5, at most one 3, three examination exceptions, mandatory negative/optional positive justification and transitional provisions. No verification of present legal validity."
+        }
+      ]
+    }
+  ]
+}
