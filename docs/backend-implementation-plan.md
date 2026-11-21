@@ -84,7 +84,7 @@ uprawnia do niszczenia danych lub pomijania niezgodności ze źródłami.
 | DEC-008 | Wynik formalny liczy wyłącznie backend. Sugestia behawioralna jest obliczeniem pomocniczym, jej wersja jest zachowana, a ostateczną ocenę zatwierdza przełożony. |
 | DEC-009 | Kryteria i wskaźniki pochodzą z materiałów, mają stabilne ID i wersję. Ocena wiąże się z wersją katalogu oraz migawką formularza i stanowiska. |
 | DEC-010 | RustFS jest prywatnym magazynem S3, metadane i uprawnienia znajdują się w PostgreSQL. Dostęp do obiektu przechodzi przez uprawniony backend. |
-| DEC-011 | OpenRouter dostępny tylko przez adapter implementujący `LLMProvider`. Zatwierdzone źródła i jawne cytowania; brak podstaw skutkuje odmową odpowiedzi merytorycznej. Nie wysyłać niepotrzebnych danych ani sekretów. |
+| DEC-011 | OpenRouter podczas hackathonu wyłącznie przez wymienialny `LLMProvider`. Kontrolowany RAG w PostgreSQL korzysta ze zweryfikowanych fragmentów oryginalnych PDF/DOCX/XLSX; Markdown jest pomocniczy i wymaga porównania z oryginałem. Cytowania wskazują autentyczne dokumenty i lokalizacje. Wierność ekstrakcji i aktualność prawna są osobnymi statusami. Brak podstaw skutkuje ograniczeniem/odmową odpowiedzi; AI nie podejmuje decyzji formalnych. Prywatne dokumenty podlegają autoryzacji i nie trafiają do wspólnego indeksu. |
 | DEC-012 | Lokalnie jedna organizacja i komórki organizacyjne. Role `MANAGER`, `HR`, `ADMIN` nie zastępują przypisania dostępu. A jest jawnie nieobsługiwany w pierwszym zakresie. |
 | DEC-013 | Logowanie e-mail/hasło przez Supabase, konta tworzone przez administratora; bez publicznej rejestracji. Bootstrap pierwszego administratora jest jawną operacją operatora, nie endpointem publicznym. |
 | DEC-014 | Potwierdzenie przez aplikację opisuje zarejestrowaną czynność i autora; nie jest podpisem elektronicznym ani dowodem podpisania przez inną osobę. |
@@ -417,13 +417,18 @@ zakresie. Streaming i dodatkowych providerów nie tworzymy na zapas. Adapter
 obsługuje timeout, limity i błędy; API nie zwraca surowych sekretów lub promptów.
 Model wybieramy z darmowych narzędzi zgodnych z regulaminem, bez płatnego fallbacku.
 
-Baza wiedzy ma wersjonowane źródła i fragmenty z nazwą, lokalizacją, datą/wersją
-i statusem zatwierdzenia. Na początek PostgreSQL full-text search; źródła prawne,
-model kompetencji, poradniki i zatwierdzone Q&A. Jeśli wyszukiwanie nie daje
-wystarczających podstaw, odpowiedź mówi o braku informacji. Cytat musi wskazywać
-faktycznie pobrany fragment. Analiza OSP zwraca wyłącznie ID z katalogu,
-uzasadnienie i fragment dokumentu; waliduj wynik przed pokazaniem. Model nie
-zatwierdza kryteriów, ocen ani wyników. W prezentacji wysyłaj fikcyjne dane.
+Original First, Evidence First: manifest wiąże oryginały z pomocniczym Markdown.
+CLI importuje niezmienne źródła do prywatnego RustFS i lokalizowane fragmenty do
+PostgreSQL. Tylko zatwierdzone fragmenty stanowią podstawę odpowiedzi formalnych;
+aktualność prawna jest weryfikowana niezależnie od wierności ekstrakcji.
+Początkowo PostgreSQL full-text search, bez osobnej bazy wektorowej ani kolejek.
+Backend waliduje pochodzenie cytowań, dostęp, zakres oceny i wsparcie twierdzeń;
+same poprawne ID cytowań nie potwierdzają prawdziwości odpowiedzi. Brak podstaw
+lub sprzeczność źródeł mają jawne statusy, inne niż awaria infrastruktury.
+Źródła otwieramy przez autoryzowane API. Analiza OSP używa istniejących wersji
+pracownika i katalogu; maksymalnie trzy dodatkowe kryteria z dowodami, bez
+automatycznej zmiany oceny. Wynik formalny nadal oblicza silnik reguł.
+Nie zapisujemy historii czatu bez zasad retencji ani poufnych promptów w logach.
 
 ## 9. Środowisko i jakość
 
@@ -560,22 +565,96 @@ części i wymaganych pól. Podłącz pobranie, przetestuj dane/wariant negatywn
 uprawnienia. Wizualne porównanie PDF oznacz jako niewykonane, jeśli nie można go
 przeprowadzić. Commit: `feat(documents): generate periodic assessment pdf`.
 
-### Etap 6 — asystent i analiza OSP
+### Etap 6 — profesjonalny asystent AI, zweryfikowana baza wiedzy, RAG i analiza OSP
 
-**P6-01 — provider i źródła.** Adapter OpenRouter, konfiguracja, limity, baza
-zatwierdzonych fragmentów i wyszukiwanie. Testuj atrapą providera, brak źródeł,
-timeout, błędny wynik i brak wycieku danych. Żywe wywołanie tylko po konfiguracji
-klucza i darmowego modelu. Commit: `feat(ai): add provider and knowledge sources`.
+Specyfikacją wykonawczą jest dostarczony przez użytkownika
+[phase6-plan.md](hacknation-materials/phase6-plan.md), sekcje 6.0–6.9 i P6-01–P6-07.
+Poniższy rejestr zastępuje wcześniejszy skrót trzech zadań. Plik specyfikacji oraz
+oryginały pozostają materiałami użytkownika; nie dodawać całego katalogu do Git.
+Kolejność jest obowiązkowa, jedno zadanie naraz, z testami i małymi Conventional
+Commitami po udanych, spójnych częściach. Nie zaczynać od chatu bez źródeł.
 
-**P6-02 — asystent formalny i rozmowy.** Endpoint z jawnym kontekstem,
-autoryzacją, prawdziwymi cytatami, stanami ładowania/błędu w istniejącym drawerze.
-Test izolacji kontekstu, pytań, źródeł i braku wystarczających informacji.
-Commit: `feat(ai): connect source grounded assistant`.
+**P6-01 — wymienialny provider LLM.** `LLMProvider`, pojedynczy adapter OpenRouter,
+Pydantic Settings, tekst i odpowiedzi strukturalne walidowane lokalnie, timeout,
+limity tokenów i kontrolowane błędy. Sprawdzić faktyczne możliwości konkretnego
+darmowego modelu; bez płatnego fallbacku, bez streamingu/tool calling na zapas.
+Testy bez sieci: poprawny przepływ i zastąpienie providera, błędny model/brak
+klucza, timeout/sieć/limit, błędna struktura, brak wycieku sekretów.
+Gotowe: backend używa kontraktu i pełny przepływ przechodzi z atrapą.
+Commit: `feat(ai): add configurable llm provider`.
 
-**P6-03 — analiza OSP.** Ekstrakcja PDF/DOCX, kontrola rozmiaru, structured output
-walidowany względem katalogu, cytowane fragmenty, zatwierdzenie przez człowieka.
-Bez automatycznej edycji oceny. Test niepoprawnych plików, wyjścia poza katalog i
-awarii modelu. Commit: `feat(ai): recommend criteria from job descriptions`.
+**P6-02 — inwentaryzacja, ekstrakcja i weryfikacja oryginałów.** Manifest stabilnych
+ID i jawnych powiązań PDF/DOCX/XLSX → Markdown, SHA-256, typ i wersja źródła.
+Ekstrakcja zachowuje kolejność, strony PDF, strukturalne lokalizacje DOCX,
+tabele/scalenia/checkboxy/przypisy; XLSX korzysta z importera P3, bez drugiego
+katalogu. Diagram jest niezweryfikowaną interpretacją; ZIP nie powiela OSP.
+Trzystronicowy wykaz kryteriów jest załącznikiem do pełnego rozporządzenia,
+nie niezależną podstawą. Oryginały pozostają niezmienne i dostępne po wdrożeniu.
+Raport ekstrakcji, różnic Markdown i miejsc do ręcznej kontroli. Normalizacja
+nie usuwa cyfr, negacji, progów ani numeracji. Bez poprawiania przepisów LLM.
+Minimalne migracje źródeł/fragmentów, idempotentny CLI import PostgreSQL/RustFS.
+Statusy treści `unverified/needs_review/approved/rejected` niezależne od
+`verified_current/historical/unknown`. Zatwierdzenie tylko sprawdzonych fragmentów,
+ze szczególną kontrolą terminów, wyjątków, progów, formularzy i przypisów.
+Gotowe: cytat można prześledzić z bazy do oryginału, testy ponownego importu OK.
+Commit: `feat(knowledge): ingest verified source documents`.
+
+**P6-03 — wyszukiwanie PostgreSQL.** `KnowledgeRetriever` i FTS z faktycznie
+dostępnym słownikiem, filtr typu oceny/źródła/statusu, paragrafy i nazwy kryteriów.
+Ograniczony kontekst, sąsiednie warunki/wyjątki, deduplikacja załączników,
+diagnostyka rankingu. Nie zwracać przypadkowych wyników przy braku dopasowania.
+Prywatne treści filtrować uprawnieniami przed pobraniem. Wynik zawiera ID źródła
+i fragmentu, treść, autentyczną lokalizację, statusy, score i dostęp do oryginału.
+pgvector wyłącznie po osobnej decyzji uzasadnionej pomiarami. Gotowe: typowe
+pytania obu ścieżek znajdują właściwe fragmenty, brak wiedzy jest jawny.
+Commit: `feat(knowledge): implement source retrieval`.
+
+**P6-04 — asystent formalny i walidacja cytowań.** Autoryzacja kontekstu,
+retrieval zatwierdzonych źródeł, kontrola wystarczalności, deterministyczny silnik
+dla wyniku/reguł, LLM dla opisu. Model zwraca twierdzenia z ID dostarczonych
+fragmentów, nie wymyślone URL-e, strony czy paragrafy. Pydantic i backend
+sprawdzają istnienie, przekazanie, zatwierdzenie, dostęp, zakres i lokalizację;
+osobno kontrola merytoryczna twierdzeń, warunków, wyjątków i konfliktów.
+API: `answered/insufficient_evidence/conflicting_sources`; awaria providera
+jest osobnym błędem. Dokumenty są danymi, nie instrukcjami. Brak mutacji oceny.
+Gotowe: prawdziwe cytowania, odrzucenie fikcyjnych podstaw i kontrolowana odmowa.
+Commit: `feat(ai): implement grounded formal assistant`.
+
+**P6-05 — istniejący drawer Next.js.** Prawdziwe API przez sesyjną komunikację,
+jawny tryb formal/conversation, kontekst oceny tylko przy rzeczywistej ocenie.
+Backend pobiera dane i sprawdza dostęp, bez domyślnego Jana i bez zaufania do
+przesłanych ról. Ładowanie, błędy/timeout, brak podstaw i klikalne oryginały przez
+autoryzowany backend; bez publicznego bucketu, ścieżek hosta i dowolnych URL-i.
+Nie zapisujemy czatu w localStorage ani bazy historii bez zasad retencji/dostępu.
+Zachować wygląd, bez statycznego fallbacku. Gotowe: pytanie → odpowiedź → źródło.
+Commit: `feat(ai): connect grounded assistant frontend`.
+
+**P6-06 — analiza OSP.** Istniejący `JobDescription`, autoryzacja przed odczytem
+i wysyłką do LLM, ekstrakcja z lokalizacjami celu/zadań/odpowiedzialności itd.
+Obowiązkowe kryteria ustala silnik. Maksymalnie trzy dodatkowe, bez duplikatów
+i wyjścia poza przypięty katalog, z uzasadnieniem i rzeczywistym fragmentem OSP.
+Pydantic i deterministyczna walidacja ID; brak ocen zachowań osoby, brak
+automatycznej zmiany kryteriów. Testy trzech dostarczonych OSP: cyberbezpieczeństwo,
+regulacje AI, naczelnik współpracy międzynarodowej. Gotowe: poprawne rekomendacje
+z dowodami i decyzją użytkownika. Commit: `feat(ai): recommend criteria from job descriptions`.
+
+**P6-07 — ewaluacja i demonstracja.** 30–50 referencyjnych pytań obu ścieżek,
+odpowiedzi zweryfikowane z oryginałami, oznaczenie brakującej ustawy i źródeł.
+Osobne pomiary retrieval i generowania; terminy/wyjątki, progi/kryteria, odmowa,
+konflikty, fikcyjne cytowania, prompt injection, izolacja OSP, błędy dostawcy
+i brak wycieków w logach. Protokół ręcznego przeglądu trudnych odpowiedzi.
+Cele wewnętrzne, nie wyniki: ≥95% poprawności, ≥95% trafienia źródła w top-5,
+100% autentycznych zatwierdzonych cytowań, zero wycieków/błędów obliczeń
+i kategorycznych odpowiedzi przy rozpoznanym braku podstaw w zestawie testowym.
+Demo na prawdziwym API: pytanie → źródło → odmowa → OSP → rekomendacja → decyzja
+przełożonego → wynik silnika. Bez hardcoded odpowiedzi. Gotowe dopiero po pomiarach.
+Commit: `test(ai): validate grounded assistant quality`.
+
+Cały etap jest gotowy dopiero po spełnieniu kryteriów P6-01–P6-07. Mniejszy,
+zweryfikowany korpus jest lepszy niż pozornie kompletna wiedza. Nie deklarujemy
+aktualności prawnej dostarczonych historycznych materiałów bez osobnej weryfikacji.
+Braku ustawy nie zastępujemy wiedzą modelu. Nie dodajemy frameworka agentowego,
+kolejek, mikroserwisów ani niezależnego systemu przechowywania prywatnych OSP.
 
 ### Etap 7 — formularz B, pierwsza ocena i HR
 

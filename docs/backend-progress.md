@@ -5,10 +5,11 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 5 — prywatne pliki i dokumentacja.
-- **Aktywne zadanie:** brak — P5-02 zakończone.
-- **Następny krok:** P6-01 — adapter OpenRouter, konfiguracja, limity i baza
-  wiedzy z identyfikatorami źródeł zgodnie z planem.
+- **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
+- **Aktywne zadanie:** P6-01 — wymienialny provider LLM (`in_progress`).
+- **Następny krok:** kontrakt LLM, adapter OpenRouter i celowane testy bez sieci;
+  następnie P6-02 — inwentaryzacja i weryfikacja oryginałów. Obowiązuje szczegółowy
+  [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
 - **Ostatnia zakończona praca:** P5-02 — wersjonowane OSP pracownika,
   generowanie PDF arkusza C i autoryzowane pobieranie w UI.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
@@ -71,9 +72,13 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P4-05 | Wynik i zakończenie | done | Migracja 0009, wynik API, trwałe podsumowanie, idempotentne zakończenie i blokada edycji; 270 testów backendu, 157 UI, build i live HTTP/SSR OK. |
 | P5-01 | Prywatny storage | done | Migracja 0010, prywatny bucket, autoryzowane API, walidacja, rewizje i kompensacja/niepewny COMMIT; 351 testów backendu, 157 UI, build i live RustFS/HTTP OK. |
 | P5-02 | OSP i PDF C | done | Migracje 0011–0012, wersje OSP pracownika, wybór w draft, PDF zakończonej oceny i UI pobrania; końcowe 37 testów backendu, 170 UI, wcześniejszy build/live HTTP OK. |
-| P6-01 | Provider i baza wiedzy | pending | — |
-| P6-02 | Asystent | pending | — |
-| P6-03 | Analiza OSP | pending | — |
+| P6-01 | Wymienialny provider LLM | in_progress | Przegląd rzeczywistego backendu: istnieje tylko integracja storage; brak AI/knowledge. |
+| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | pending | — |
+| P6-03 | Wyszukiwanie wiedzy PostgreSQL | pending | — |
+| P6-04 | Asystent formalny RAG i cytowania | pending | — |
+| P6-05 | Integracja istniejącego draweru Next.js | pending | — |
+| P6-06 | Analiza OSP i rekomendacje kryteriów | pending | — |
+| P6-07 | Ewaluacja jakości i demonstracja | pending | — |
 | P7-01 | Arkusz B | pending | — |
 | P7-02 | Pierwsza ocena | pending | — |
 | P7-03 | Monitoring HR | pending | — |
@@ -115,6 +120,16 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — plan etapu 6
+
+- Specyfikacja użytkownika znajduje się w `docs/hacknation-materials/phase6-plan.md`.
+  Przeczytano plan, progres i rzeczywiste integracje/config/lifecycle backendu.
+  Etap 6, DEC-011 i sekcja 8 są uzgodnione z kolejnością P6-01–P6-07.
+- Pracujemy małymi, zweryfikowanymi częściami i commitujemy po ich powodzeniu.
+  Celowane testy pozostają domyślne; bez ponawiania pełnej regresji/smoke.
+- Kontrola dokumentacji: `git diff --check` — OK. Commit:
+  `docs: define evidence-first phase six workflow`.
 
 ### 2026-11-21 — P5-02, wersje OSP i PDF arkusza C
 
