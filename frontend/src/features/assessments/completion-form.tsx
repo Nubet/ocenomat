@@ -247,7 +247,7 @@ export function CompletionForm({
                   Dane są tylko do odczytu.
                 </p>
                 <ButtonLink href={`${assessmentHref(assessment.id)}?step=documents`}>
-                  Przygotuj lub pobierz arkusz C
+                  Przygotuj lub pobierz arkusz {assessment.form}
                 </ButtonLink>
               </div>
             ) : null}

@@ -145,15 +145,21 @@ def create(access, name="a", employee=0, request_key=None, **extra):
     )
 
 
-def test_creation_resume_and_history_have_separate_uuids(assessment_access):
+@pytest.mark.parametrize(
+    "kind,form", [(PositionKind.OTHER, "C"), (PositionKind.DIRECT_MANAGER, "B")]
+)
+def test_creation_resume_and_history_have_separate_uuids(assessment_access, kind, form):
     access = assessment_access
+    access.session.get(Employee, access.employees[0]).position_kind = kind
+    access.session.commit()
     first = create(access)
     second = create(access)
     assert first.status_code == second.status_code == 201
     one, two = first.json(), second.json()
     assert one["id"] != two["id"]
     assert one["employee_id"] == two["employee_id"] == str(access.employees[0])
-    assert one["status"] == "draft" and one["revision"] == 1 and one["form"] == "C"
+    assert one["status"] == "draft" and one["revision"] == 1 and one["form"] == form
+    assert one["required_criterion_ids"] == list(map(str, REQUIRED_CRITERIA[form]))
     assert one["assessor_id"] == str(access.users["a"].id)
     assert one["catalog_version_id"] == str(access.catalog_id)
     assert "idempotency_key" not in one
@@ -269,17 +275,14 @@ def test_employee_and_catalog_snapshots_survive_later_changes(assessment_access)
     assert old["catalog_version_id"] == str(access.catalog_id)
 
 
-@pytest.mark.parametrize(
-    "kind,form", [(PositionKind.OFFICE_HEAD, "A"), (PositionKind.DIRECT_MANAGER, "B")]
-)
-def test_unsupported_forms_are_explicit_and_do_not_create_rows(
-    assessment_access, kind, form
-):
+def test_form_a_is_explicitly_unsupported_and_does_not_create_rows(assessment_access):
     access = assessment_access
-    access.session.get(Employee, access.employees[0]).position_kind = kind
+    access.session.get(
+        Employee, access.employees[0]
+    ).position_kind = PositionKind.OFFICE_HEAD
     access.session.commit()
     response = create(access)
-    assert response.status_code == 422 and f"Form {form}" in response.json()["detail"]
+    assert response.status_code == 422 and "Form A" in response.json()["detail"]
     assert access.client.get("/api/v1/assessments", headers=auth(access)).json() == []
 
 

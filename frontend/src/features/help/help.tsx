@@ -49,7 +49,7 @@ const roles = [
 const questions = [
   [
     "Jak rozpocząć ocenę?",
-    "Jeśli jesteś przełożonym, otwórz Oceny → Nowa ocena. Wybierz przypisaną osobę i utwórz ocenę okresową C. Następnie wybierz kryteria, zapisz terminy i odnotuj czynności z rozmowy. Arkusze A/B i pierwsza ocena nie są jeszcze dostępne.",
+    "Jeśli jesteś przełożonym, otwórz Oceny → Nowa ocena. Wybierz przypisaną osobę i utwórz ocenę okresową B lub C. Arkusz B dotyczy stanowisk bezpośrednio kierujących pracownikami, C — pozostałych stanowisk. Następnie wybierz kryteria, zapisz terminy i odnotuj czynności z rozmowy. Arkusz A i pierwsza ocena nie są jeszcze dostępne.",
   ],
   [
     "Nie widzę pracownika lub jego oceny. Co zrobić?",
@@ -77,7 +77,7 @@ const questions = [
   ],
   [
     "Skąd pochodzą kryteria i co jest jeszcze w przygotowaniu?",
-    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. W zakładce „Wynik i zakończenie” sprawdzisz wynik zatwierdzonych ocen, zapiszesz wnioski rozwojowe i zakończysz proces. Wynik negatywny wymaga uzasadnienia. OSP dodasz lub wybierzesz w kontekście stanowiska przed potwierdzeniem ustaleń. Załączniki PDF/DOCX mogą mieć do 10 MiB. Po zakończeniu w zakładce „Dokumenty i PDF” uzupełnisz dane urzędu i oceniającego oraz wygenerujesz arkusz C z zatwierdzonych ocen. Dokument nie jest podpisany ani doręczony. Wniosek o kolejny stopień służbowy wymaga odrębnego przygotowania. Analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
+    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. W zakładce „Wynik i zakończenie” sprawdzisz wynik zatwierdzonych ocen, zapiszesz wnioski rozwojowe i zakończysz proces. Wynik negatywny wymaga uzasadnienia. OSP dodasz lub wybierzesz w kontekście stanowiska przed potwierdzeniem ustaleń. Załączniki PDF/DOCX mogą mieć do 10 MiB. Po zakończeniu w zakładce „Dokumenty i PDF” uzupełnisz dane urzędu i oceniającego oraz wygenerujesz arkusz B lub C z zatwierdzonych ocen. Dokument nie jest podpisany ani doręczony. Wniosek o kolejny stopień służbowy wymaga odrębnego przygotowania. Analiza OSP proponuje kryteria do decyzji przełożonego, a asystent AI odpowiada z cytowaniami zatwierdzonych źródeł. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
   ],
 ];
 

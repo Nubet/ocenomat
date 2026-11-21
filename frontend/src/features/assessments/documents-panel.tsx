@@ -215,13 +215,13 @@ export function DocumentsPanel({
       <div hidden={!showPdf}>
         {!completed ? (
           <Note>
-            PDF arkusza C będzie dostępny po zakończeniu oceny i zatwierdzeniu wszystkich ocen
-            cząstkowych.
+            PDF arkusza {assessment.form} będzie dostępny po zakończeniu oceny i zatwierdzeniu
+            wszystkich ocen cząstkowych.
           </Note>
         ) : generated ? (
           <Note>
-            Arkusz C jest gotowy — pobierz go z listy plików. Dokument nie jest podpisany ani
-            doręczony. Zachowano wersję szablonu i zakończoną rewizję oceny.
+            Arkusz {assessment.form} jest gotowy — pobierz go z listy plików. Dokument nie jest
+            podpisany ani doręczony. Zachowano wersję szablonu i zakończoną rewizję oceny.
           </Note>
         ) : (
           <Card className="p-6 sm:p-7">

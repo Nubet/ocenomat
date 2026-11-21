@@ -1,10 +1,11 @@
-"""Arkusz C, parts I–II; part III is excluded when no promotion is requested."""
+"""Periodic forms B/C, parts I–II; no promotion request in part III."""
 
 import unicodedata
 from dataclasses import dataclass
 from datetime import date
 from io import BytesIO
 from pathlib import Path
+from typing import Literal
 from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
@@ -25,8 +26,16 @@ from app.modules.assessments.rules import Result
 from app.modules.documents.schemas import PdfGeneration
 from app.modules.documents.validation import InvalidDocument
 
-TEMPLATE_VERSION = "arkusz-c-2016-4845015f-v1"
-SOURCE_SHA256 = "4845015f886a56c8715006a5b803e77c6d628eab9aa4989763214c170ba662f0"
+PERIODIC_TEMPLATES = {
+    "B": (
+        "arkusz-b-2016-47c2b62b-v1",
+        "47c2b62b81c49c62f03218dc7a1b5bacc0e21ab7d0c9c1437f56f4e52e1245c3",
+    ),
+    "C": (
+        "arkusz-c-2016-4845015f-v1",
+        "4845015f886a56c8715006a5b803e77c6d628eab9aa4989763214c170ba662f0",
+    ),
+}
 LEVELS = (
     "znacznie poniżej oczekiwań",
     "poniżej oczekiwań",
@@ -54,9 +63,11 @@ class PeriodicPdfData:
     justification: str
     development_conclusions: str
     details: PdfGeneration
+    form: Literal["B", "C"]
 
 
 def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
+    template_version, _ = PERIODIC_TEMPLATES[data.form]
     try:
         font = TTFont("KompasDocument", str(font_path))
         pdfmetrics.registerFont(font)
@@ -135,7 +146,10 @@ def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
     required = [name for name, mandatory, _ in data.criteria if mandatory]
     additional = [name for name, mandatory, _ in data.criteria if not mandatory]
     story = [
-        paragraph("Załącznik nr 4 · ARKUSZ C", title=True),
+        paragraph(
+            f"Załącznik nr {3 if data.form == 'B' else 4} · ARKUSZ {data.form}",
+            title=True,
+        ),
         paragraph(
             "OCENA OKRESOWA URZĘDNIKA SŁUŻBY CYWILNEJ LUB PRACOWNIKA SŁUŻBY CYWILNEJ",
             title=True,
@@ -368,7 +382,8 @@ def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
             ),
             paragraph(
                 "Dokument wygenerowany z zatwierdzonych danych. "
-                "Nie jest podpisany ani doręczony. Źródło: dostarczony wzór C "
+                "Nie jest podpisany ani doręczony. "
+                f"Źródło: dostarczony wzór {data.form} "
                 "z 2016 r.; aktualność prawna wymaga odrębnej weryfikacji."
             ),
         ]
@@ -381,7 +396,7 @@ def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
         rightMargin=20 * mm,
         topMargin=15 * mm,
         bottomMargin=20 * mm,
-        title="Arkusz C — ocena okresowa",
+        title=f"Arkusz {data.form} — ocena okresowa",
     )
 
     def footer(canvas, _document):
@@ -391,7 +406,7 @@ def render_periodic_pdf(data: PeriodicPdfData, font_path: Path) -> bytes:
             20 * mm,
             10 * mm,
             f"Ocena {data.assessment_id} · rewizja {data.revision} · "
-            f"{TEMPLATE_VERSION} · strona {canvas.getPageNumber()}",
+            f"{template_version} · strona {canvas.getPageNumber()}",
         )
         canvas.restoreState()
 

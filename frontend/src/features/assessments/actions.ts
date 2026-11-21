@@ -34,7 +34,7 @@ export async function createAssessment(_previous: { error: string }, form: FormD
         403: "Nie możesz rozpocząć tej oceny. Poproś administratora o sprawdzenie roli przełożonego i przypisania pracownika.",
         404: "Przypisanie pracownika mogło się zmienić. Wróć do listy pracowników. Jeśli brakuje tej osoby, poproś administratora o sprawdzenie przypisania.",
         409: "Nie możemy rozpocząć tej oceny z tego formularza. Sprawdź listę ocen — jeśli jej tam nie ma, wybierz Nowa ocena.",
-        422: "Możesz teraz rozpocząć ocenę okresową C. Wróć do wyboru pracownika i wybierz osobę, która nie kieruje zespołem ani urzędem.",
+        422: "Możesz rozpocząć ocenę okresową B lub C. Arkusz A dla kierownika urzędu nie jest jeszcze obsługiwany.",
         503: "Nie udało się rozpocząć oceny. Spróbuj ponownie za chwilę. Jeśli problem się powtarza, poproś administratora o sprawdzenie katalogu kompetencji.",
       };
       return {

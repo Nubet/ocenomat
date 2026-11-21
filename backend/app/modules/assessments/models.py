@@ -35,7 +35,7 @@ class Assessment(Base):
         UniqueConstraint("assessor_id", "idempotency_key"),
         CheckConstraint("revision > 0"),
         CheckConstraint("kind = 'periodic'"),
-        CheckConstraint("form = 'C'"),
+        CheckConstraint("form IN ('B', 'C')", name="ck_assessments_form"),
         CheckConstraint(
             "date_assessment >= date_talk", name="ck_assessments_date_order"
         ),

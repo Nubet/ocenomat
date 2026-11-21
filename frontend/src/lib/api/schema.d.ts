@@ -498,9 +498,9 @@ export interface components {
       kind: "periodic";
       /**
        * Form
-       * @constant
+       * @enum {string}
        */
-      form: "C";
+      form: "B" | "C";
       status: components["schemas"]["AssessmentStatus"];
       /** Revision */
       revision: number;

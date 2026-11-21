@@ -34,12 +34,12 @@ class AssessmentResponse(BaseModel):
     job_description_id: UUID | None
     employee_snapshot: EmployeeResponse
     kind: Literal["periodic"]
-    form: Literal["C"]
+    form: Literal["B", "C"]
     status: AssessmentStatus
     revision: int
     created_at: datetime
     required_criterion_ids: list[UUID] = Field(
-        default_factory=lambda: list(REQUIRED_CRITERIA["C"])
+        default_factory=lambda data: list(REQUIRED_CRITERIA[data["form"]])
     )
     criteria: list["CriterionSelection"]
     date_talk: date | None

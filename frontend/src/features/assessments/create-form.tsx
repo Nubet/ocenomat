@@ -78,11 +78,11 @@ export function CreateAssessmentForm({
           {index === 0 ? (
             <Card className="p-6 sm:p-8">
               <Badge tone="success">Dostępna ścieżka</Badge>
-              <h2 className="mt-4 text-lg font-semibold">Ocena okresowa · Arkusz C</h2>
+              <h2 className="mt-4 text-lg font-semibold">Ocena okresowa · Arkusz B lub C</h2>
               <p className="mt-3 text-body leading-6 text-muted-foreground">
-                Proces dla pozostałych stanowisk, bez bezpośredniego kierowania pracownikami.
-                Formularz dobierzemy na podstawie profilu. Pierwsza ocena i arkusze A/B nie są
-                jeszcze dostępne.
+                Arkusz B dla stanowisk bezpośrednio kierujących pracownikami, C dla pozostałych
+                stanowisk. Formularz dobierzemy na podstawie profilu. Pierwsza ocena i arkusz A nie
+                są jeszcze dostępne.
               </p>
             </Card>
           ) : null}
@@ -166,10 +166,10 @@ export function CreateAssessmentForm({
                 Zapiszemy dane pracownika i kryteria obowiązujące w chwili rozpoczęcia oceny.
                 Poprzednie oceny pozostaną w historii.
               </p>
-              {form !== "C" ? (
+              {form === "A" ? (
                 <Note className="mt-5">
                   Arkusz {form} nie jest jeszcze obsługiwany. Wybierz pracownika na stanowisku
-                  objętym arkuszem C.
+                  objętym arkuszem B lub C.
                 </Note>
               ) : null}
             </Card>
@@ -191,7 +191,7 @@ export function CreateAssessmentForm({
                 <Icon name="chevron-right" size={16} />
               </Button>
             ) : (
-              <Button type="submit" variant="primary" disabled={pending || form !== "C"}>
+              <Button type="submit" variant="primary" disabled={pending || form === "A"}>
                 {pending ? "Zapisywanie…" : "Utwórz ocenę"}
               </Button>
             )}

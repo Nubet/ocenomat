@@ -8,7 +8,11 @@ from test_assessments import assessment_access, auth, catalog, create  # noqa: F
 from app.modules.assessments.models import Assessment, AssessmentEvent, AssessmentStatus
 from app.modules.assessments.rules import REQUIRED_CRITERIA
 from app.modules.catalog.models import CatalogVersion
-from app.modules.employees.models import ManagerEmployeeAssignment
+from app.modules.employees.models import (
+    Employee,
+    ManagerEmployeeAssignment,
+    PositionKind,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -16,10 +20,14 @@ pytestmark = pytest.mark.integration
 @pytest.fixture
 def arrangements(request):
     access = request.getfixturevalue("assessment_access")
+    form = getattr(request, "param", "C")
+    access.session.get(Employee, access.employees[0]).position_kind = (
+        PositionKind.DIRECT_MANAGER if form == "B" else PositionKind.OTHER
+    )
     access.additional = [uuid4() for _ in range(4)]
     source = access.session.get(CatalogVersion, access.catalog_id)
     source.criteria = [
-        {"id": str(id)} for id in (*REQUIRED_CRITERIA["C"], *access.additional)
+        {"id": str(id)} for id in (*REQUIRED_CRITERIA[form], *access.additional)
     ]
     access.session.commit()
     access.assessment = create(access).json()

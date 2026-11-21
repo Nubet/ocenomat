@@ -120,7 +120,7 @@ export async function saveDocument(
       descriptions,
       message:
         operation === "pdf"
-          ? "Arkusz C jest gotowy do pobrania. Nie jest podpisany ani doręczony."
+          ? `Arkusz ${assessment.form} jest gotowy do pobrania. Nie jest podpisany ani doręczony.`
           : "Dokument zapisany. Wersję OSP można zmienić tylko przed potwierdzeniem ustaleń.",
     };
   } catch (error) {

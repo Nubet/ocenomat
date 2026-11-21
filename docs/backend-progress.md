@@ -6,17 +6,18 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 7 — formularz B, pierwsza ocena i HR.
-- **Aktywne zadanie:** P7-01 — obsługa arkusza B (`in_progress`).
-- **Następny krok:** rozszerzyć istniejący okresowy workflow i PDF o B, zachowując
-  osobne kryteria obowiązkowe i blokadę A. Faza 6 wdrożona i oceniona w ograniczonym
-  korpusie; wynik 28/30, dwie nadmiarowe odmowy pozostają ograniczeniem jakości.
+- **Aktywne zadanie:** brak; P7-01 zakończone i zweryfikowane.
+- **Następny krok:** P7-02 — zweryfikować źródła kwalifikacji, wyjątków i terminów
+  pierwszej oceny przed implementacją osobnego workflow. Faza 6 wdrożona i oceniona
+  w ograniczonym korpusie; wynik 28/30, dwie nadmiarowe odmowy i brak demonstracji
+  pozostawiają P6-07 `blocked`, nie oznaczają zakończenia całego etapu.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
-  nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
+  nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0016. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P6-06/P6-07 — 30 rzeczywistych odpowiedzi/odmów,
-  77 autentycznych cytowań i rekomendacje z trzech OSP; poprawka niezależnego
-  odrzucania propozycji OSP. Szczegóły: [assistant-evaluation.md](assistant-evaluation.md).
+- **Ostatnia zakończona praca:** P7-01 — arkusz B we wspólnym workflow okresowym,
+  właściwe kryteria obowiązkowe i PDF, migracja 0016 oraz integracja UI/OpenAPI.
+  87 testów backendu i 188 frontendu OK; hashe rekordów 18 tabel bez zmian po migracji.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -37,7 +38,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
    pozostaje do podłączenia w P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS przechowuje prywatne pliki oceny; API sprawdza dostęp, format i checksum.
-   UI obsługuje załączniki, wybór wersji OSP i generowanie PDF zakończonej oceny C.
+   UI obsługuje załączniki, wybór wersji OSP i generowanie PDF zakończonej oceny B/C.
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
@@ -85,8 +86,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
 | P6-05 | Integracja istniejącego draweru Next.js | done | Sesyjna Server Action, OpenAPI, jawne tryby/zakres, wynik silnika i chronione pobranie oryginału; precommit i 180 testów OK. Przeglądarka niewykonana. |
 | P6-06 | Analiza OSP i rekomendacje kryteriów | done | Trzy oryginały, rzeczywisty provider i deterministyczna walidacja: 3/3/1 popartych rekomendacji dla C/C/B. Jedna odrzucona propozycja nie usuwa pozostałych. 21 testów OSP OK. Workflow tworzenia B w P7-01. |
-| P6-07 | Ewaluacja jakości i demonstracja | done | Oceniono 30 przypadków: 28/30 poprawnych rezultatów, dwie nadmiarowe odmowy, zero błędnych kategorycznych odpowiedzi. 23/23 retrieval, 77 poprawnych cytowań. Cel 95% całych odpowiedzi nieosiągnięty; znane ograniczenie, nie deklaracja sukcesu progu. Scenariusz demo gotowy, przeglądarka w P8 pozostaje blocked. |
-| P7-01 | Arkusz B | in_progress | Rozszerzenie wspólnego workflow, schematu i generatora PDF. |
+| P6-07 | Ewaluacja jakości i demonstracja | blocked | Pomiar wykonany: 28/30 poprawnych rezultatów, dwie nadmiarowe odmowy, zero błędnych kategorycznych odpowiedzi; 23/23 retrieval, 77 poprawnych cytowań. Cel 95% całych odpowiedzi nieosiągnięty; demonstracja niewykonana przy zakazie przeglądarki. |
+| P7-01 | Arkusz B | done | Wspólny workflow B/C, odrębne wymagane kryteria, PDF załącznika 3, UI i OpenAPI; migracja 0016 bez zmian rekordów 18 tabel. 87 testów backendu, 188 frontendu; `feat(assessments): support manager form b`. |
 | P7-02 | Pierwsza ocena | pending | — |
 | P7-03 | Monitoring HR | pending | — |
 | P8-01 | Test krytycznej ścieżki E2E | blocked | Poprzednie polecenie zabrania uruchamiania przeglądarki; potrzebna zmiana instrukcji. |
@@ -138,6 +139,42 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P7-01, arkusz B
+
+- `DIRECT_MANAGER` otrzymuje B, `OTHER` C; `OFFICE_HEAD` nadal jawnie odrzucony
+  jako A. Schemat odpowiedzi zwraca kryteria obowiązkowe zależne od zapisanego
+  formularza. Reuse reguł `periodic_criteria` i całego istniejącego workflow.
+- PDF wybiera wymagany zestaw, załącznik, nazwę pliku, wersję i SHA oryginału
+  osobno dla B/C. Zachowano idempotencję, prywatne pobranie i walidację danych.
+  Frontend umożliwia utworzenie B i wyświetla właściwą literę w ustaleniach,
+  zakończeniu, generowaniu i komunikatach dokumentów. OpenAPI zregenerowane.
+- Migracja `0016` zmienia wyłącznie CHECK `form IN ('B', 'C')`. Downgrade
+  z istniejącymi B ma zakończyć się błędem i rollbackiem DDL, bez przepisywania B
+  na C ani usuwania ocen. Starych migracji, katalogów i plików nie zmieniono.
+- Kontrole w `backend/`: `uv run pytest tests/test_assessments.py
+  tests/test_arrangements.py tests/test_generated_documents.py tests/test_database.py
+  -q --tb=short` z dedykowaną bazą i `KOMPAS_PDF_FONT_PATH` — **87 passed / 17,40 s**.
+  Parametryzacja istniejących testów obejmuje B/C od utworzenia, dodatkowego
+  kryterium i ręcznych ocen do ukończenia i PDF; sprawdzono również hashe obu
+  oryginałów oraz roundtrip migracji w izolowanym schemacie i `alembic check`.
+  Ruff lint/format dziewięciu zmienionych plików Pythona — OK.
+- `npm run api:types -- http://127.0.0.1:33081/openapi.json` i końcowe
+  `npm run precommit` w `frontend/` — OK, **188 testów / 26 plików**.
+  Początkowo poprawiono kolekcję parametryzowanej fixture i nazwę zmiennej UI;
+  kolejna próba backendu nie miała połączenia z zatrzymanym PostgreSQL.
+  Po uruchomieniu istniejących kontenerów testy przeszły, bez resetu wolumenów.
+- Compose: `build backend migrate frontend`, następnie `up -d --wait backend
+  frontend` z `.env.compose-check` i oboma plikami `infra/compose*.yaml` — OK.
+  Migracja aplikacji do 0016, backend healthy. Porównanie SHA-256 wszystkich
+  rekordów 18 tabel przed/po wdrożeniu — identyczne; pominięto tylko
+  `alembic_version`, który celowo zmienił rewizję.
+- Nie powtarzano pełnej regresji, ewaluacji AI ani smoke; przeglądarka/E2E
+  pozostają niewykonane zgodnie z instrukcją. Wzory historyczne nie są nowym
+  zatwierdzeniem aktualności prawnej. P6-07 skorygowano na `blocked`, ponieważ
+  wykonana ewaluacja nie spełniła progu jakości i kryterium demonstracji.
+- Commit: `feat(assessments): support manager form b`.
+- Następny krok: P7-02, weryfikacja źródeł i kwalifikacji pierwszej oceny.
 
 ### 2026-11-21 — P6-03, wyszukiwanie zatwierdzonego korpusu
 

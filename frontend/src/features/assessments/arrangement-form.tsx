@@ -128,7 +128,7 @@ export function ArrangementForm({
   return (
     <>
       <PageHeading
-        eyebrow="Ocena okresowa · Arkusz C"
+        eyebrow={`Ocena okresowa · Arkusz ${current.form}`}
         title={employee.name}
         description="Zapisuj ustalenia, konkretne obserwacje i notatki z rozmowy. Możesz wrócić do zapisanej oceny później."
       />

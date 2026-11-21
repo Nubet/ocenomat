@@ -18,11 +18,12 @@ from test_evaluation import evaluation as evaluation
 from test_observations import command, period  # noqa: F401
 
 from app.modules.assessments.models import Assessment, AssessmentEvent, AssessmentStatus
+from app.modules.assessments.rules import REQUIRED_CRITERIA
 from app.modules.assessments.service import AssessmentError
 from app.modules.catalog.models import CatalogVersion
 from app.modules.documents.import_osp import import_osp
 from app.modules.documents.models import Document, JobDescription
-from app.modules.documents.pdf import SOURCE_SHA256, TEMPLATE_VERSION
+from app.modules.documents.pdf import PERIODIC_TEMPLATES
 from app.modules.documents.validation import DOCX_TYPE
 from app.modules.employees.models import ManagerEmployeeAssignment
 from app.modules.users.models import User
@@ -68,14 +69,27 @@ def generate(access, *, name="a", changes=None):
     )
 
 
-def test_generated_pdf_contains_source_sections_and_only_confirmed_data(completed):
+@pytest.mark.parametrize("arrangements", ["B", "C"], indirect=True)
+def test_generated_pdf_contains_source_sections_and_only_confirmed_data(
+    arrangements, completed
+):
     access = completed
     before = access.client.get(access.path, headers=auth(access)).json()
+    form = before["form"]
+    template_version, source_sha256 = PERIODIC_TEMPLATES[form]
+    assert before["required_criterion_ids"] == list(map(str, REQUIRED_CRITERIA[form]))
+    assert {
+        row["criterion_id"] for row in before["criteria"] if row["required"]
+    } == set(map(str, REQUIRED_CRITERIA[form]))
+    assert {
+        row["criterion_id"] for row in before["criteria"] if not row["required"]
+    } == {str(access.additional[0])}
     events = access.session.scalar(select(func.count()).select_from(AssessmentEvent))
     response = generate(access)
     assert response.status_code == 200, response.text
     doc = response.json()
-    assert doc["kind"] == "periodic_pdf" and doc["template_version"] == TEMPLATE_VERSION
+    assert doc["kind"] == "periodic_pdf" and doc["template_version"] == template_version
+    assert doc["filename"] == f"Arkusz-{form}-{before['id']}.pdf"
     assert doc["assessment_revision"] == before["revision"]
     assert "generation_data" not in doc and "object_key" not in doc
     content = access.client.get(
@@ -85,6 +99,8 @@ def test_generated_pdf_contains_source_sections_and_only_confirmed_data(complete
     reader = PdfReader(BytesIO(content), strict=True)
     text = "\n".join(page.extract_text() for page in reader.pages)
     for value in (
+        f"Załącznik nr {3 if form == 'B' else 4} · ARKUSZ {form}",
+        template_version,
         "CZĘŚĆ I",
         "CZĘŚĆ II",
         "Urząd w Łodzi",
@@ -105,7 +121,7 @@ def test_generated_pdf_contains_source_sections_and_only_confirmed_data(complete
     ]
     assert any("/ToUnicode" in font for font in fonts)
     stored = access.session.get(Document, doc["id"])
-    assert stored.generation_data["source_sha256"] == SOURCE_SHA256
+    assert stored.generation_data["source_sha256"] == source_sha256
     assert generate(access).json() == doc
     assert generate(access, changes={"office_name": "Inny urząd"}).status_code == 409
     assert len(access.storage.objects) == 1
@@ -270,15 +286,18 @@ def test_official_previous_assessment_is_explicit(completed):
     assert doc.generation_data["previous_assessment"] == previous
 
 
-def test_template_source_has_not_changed():
+@pytest.mark.parametrize("form", ["B", "C"])
+def test_template_source_has_not_changed(form):
     source = (
         Path(__file__).parents[2]
         / "docs/hacknation-materials/Ocena okresowa w służbie cywilnej"
-        / "Arkusz oceny C (2).docx"
+        / f"Arkusz oceny {form} (2).docx"
     )
     if not source.exists():
-        pytest.skip("Requires the supplied form C source")
-    assert hashlib.sha256(source.read_bytes()).hexdigest() == SOURCE_SHA256
+        pytest.skip(f"Requires the supplied form {form} source")
+    assert (
+        hashlib.sha256(source.read_bytes()).hexdigest() == PERIODIC_TEMPLATES[form][1]
+    )
 
 
 def test_explicit_source_import_is_versioned_and_does_not_create_an_assessment(

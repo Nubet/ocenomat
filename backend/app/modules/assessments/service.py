@@ -105,11 +105,10 @@ def create_assessment(
                 )
             session.commit()
             return existing, False
-        if employee.position_kind != PositionKind.OTHER:
-            form = "A" if employee.position_kind == PositionKind.OFFICE_HEAD else "B"
+        if employee.position_kind == PositionKind.OFFICE_HEAD:
             raise AssessmentError(
                 "unsupported",
-                f"Form {form} is not supported yet; only periodic form C is available",
+                "Form A is not supported; only periodic forms B and C are available",
             )
         catalog = session.scalar(
             select(CatalogVersion)
@@ -133,7 +132,7 @@ def create_assessment(
                 "department": employee.unit.name,
             },
             kind=data.kind,
-            form="C",
+            form="B" if employee.position_kind == PositionKind.DIRECT_MANAGER else "C",
             idempotency_key=key,
         )
         session.add(assessment)

@@ -15,8 +15,7 @@ from app.modules.assessments.service import AssessmentError, assessment_transact
 from app.modules.catalog.models import CatalogVersion
 from app.modules.documents.models import Document
 from app.modules.documents.pdf import (
-    SOURCE_SHA256,
-    TEMPLATE_VERSION,
+    PERIODIC_TEMPLATES,
     PeriodicPdfData,
     render_periodic_pdf,
 )
@@ -40,6 +39,9 @@ def generate_periodic_pdf(
     commit_pending = False
     try:
         with assessment_transaction(session, user, assessment_id) as assessment:
+            if assessment.form not in PERIODIC_TEMPLATES:
+                raise AssessmentError("unsupported", "Periodic form is not supported")
+            template_version, source_sha256 = PERIODIC_TEMPLATES[assessment.form]
             if (
                 assessment.status != AssessmentStatus.COMPLETED
                 or assessment.revision != data.revision
@@ -51,11 +53,11 @@ def generate_periodic_pdf(
                 select(Document).where(
                     Document.assessment_id == assessment_id,
                     Document.assessment_revision == data.revision,
-                    Document.template_version == TEMPLATE_VERSION,
+                    Document.template_version == template_version,
                 )
             )
             generation_data = data.model_dump(mode="json", exclude={"revision"})
-            generation_data["source_sha256"] = SOURCE_SHA256
+            generation_data["source_sha256"] = source_sha256
             generation_data["job_description_id"] = (
                 str(assessment.job_description_id)
                 if assessment.job_description_id
@@ -70,8 +72,7 @@ def generate_periodic_pdf(
                 return existing
             summary = assessment.summary
             if (
-                assessment.form != "C"
-                or summary is None
+                summary is None
                 or summary.completed_at is None
                 or assessment.result.outcome == "incomplete"
                 or assessment.conversation is None
@@ -110,7 +111,7 @@ def generate_periodic_pdf(
                 assessment.criteria,
                 key=lambda item: (
                     not item.required,
-                    REQUIRED_CRITERIA["C"].index(item.criterion_id)
+                    REQUIRED_CRITERIA[assessment.form].index(item.criterion_id)
                     if item.required
                     else names.get(item.criterion_id, ""),
                 ),
@@ -153,6 +154,7 @@ def generate_periodic_pdf(
                     justification=summary.negative_justification,
                     development_conclusions=summary.development_conclusions,
                     details=data,
+                    form=assessment.form,
                 ),
                 font_path,
             )
@@ -164,13 +166,13 @@ def generate_periodic_pdf(
                 id=document_id,
                 assessment_id=assessment.id,
                 kind="periodic_pdf",
-                filename=f"Arkusz-C-{assessment.id}.pdf",
+                filename=f"Arkusz-{assessment.form}-{assessment.id}.pdf",
                 media_type=PDF_TYPE,
                 size=len(content),
                 sha256=hashlib.sha256(content).hexdigest(),
                 object_key=key,
                 author_id=user.id,
-                template_version=TEMPLATE_VERSION,
+                template_version=template_version,
                 assessment_revision=assessment.revision,
                 generation_data=generation_data,
             )

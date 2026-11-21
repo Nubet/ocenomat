@@ -31,7 +31,7 @@ export function PdfFields({
   });
   return (
     <fieldset disabled={disabled} className="space-y-5">
-      <legend className="mb-4 text-base font-semibold">Dane do arkusza C</legend>
+      <legend className="mb-4 text-base font-semibold">Dane do arkusza {assessment.form}</legend>
       <p className="text-body text-muted-foreground">
         Nazwiska, stanowisko pracownika, kryteria, oceny i wynik pochodzą z zapisanej oceny.
         Uzupełnij brakujące dane. Pierwszy wygenerowany dokument zostanie zachowany wraz z tymi
@@ -165,7 +165,7 @@ export function PdfFields({
         </span>
       </label>
       <Button type="submit" name="operation" value="pdf">
-        {disabled ? "Przygotowywanie…" : "Wygeneruj PDF arkusza C"}
+        {disabled ? "Przygotowywanie…" : `Wygeneruj PDF arkusza ${assessment.form}`}
       </Button>
     </fieldset>
   );
