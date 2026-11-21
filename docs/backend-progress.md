@@ -5,13 +5,11 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 1 — fundament techniczny, nie rozpoczęty.
-- **Aktywne zadanie:** brak.
-- **Następny krok:** P1-01 — utworzyć projekt FastAPI z uv, konfiguracją,
-  `/health`, Ruff i pytest zgodnie z planem; przed zmianą sprawdzić stan Git.
-- **Ostatnia zakończona praca:** analiza istniejącego frontendu i materiałów,
-  przygotowanie planu oraz rejestru postępu.
-- **Stan aplikacji:** frontend to demo z lokalnym stanem; `backend/` jest pusty.
+- **Etap:** 1 — fundament techniczny, w toku.
+- **Aktywne zadanie:** brak; P1-01 zakończone.
+- **Następny krok:** P1-02 — PostgreSQL, Alembic i readiness.
+- **Ostatnia zakończona praca:** projekt FastAPI, konfiguracja i testy CORS/liveness.
+- **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`.
   Supabase, PostgreSQL, RustFS, OpenRouter i VPS nie zostały zintegrowane.
 - **Kontrole frontendu:** `npm run precommit` — format, Oxlint, TypeScript oraz
   19 testów Vitest przeszły przed commitami zmian frontendu.
@@ -26,7 +24,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 
 | ID | Zadanie | Status | Wynik / kontrola / commit |
 | --- | --- | --- | --- |
-| P1-01 | Projekt FastAPI i health | pending | — |
+| P1-01 | Projekt FastAPI i health | done | 8 testów; `chore(backend): initialize api` |
 | P1-02 | PostgreSQL, Alembic, readiness | pending | — |
 | P1-03 | Compose: frontend, API, PostgreSQL, RustFS | pending | — |
 | P2-01 | Tożsamość, role, weryfikacja JWT | pending | — |
@@ -60,6 +58,19 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   cywilnej wymagają weryfikacji przed deklarowaniem zgodności formalnej.
 - Materiały w `docs/hacknation-materials/`, `.idea/` i `.opencode/` są obecnie
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
+
+## Wykonane zadania
+
+### 2026-11-21 — P1-01
+
+- FastAPI factory, Python 3.13, uv.lock, Pydantic Settings, restrykcyjny CORS,
+  `/health`, instrukcja uruchomienia i ignorowanie artefaktów backendu.
+- Kontrole w `backend/`: `uv sync --locked`, `uv run ruff check .`,
+  `uv run ruff format --check .`, `uv run pytest` — OK, 8 testów.
+- Pierwsze pobieranie zależności przekroczyło timeout; ponowienie zakończone.
+  Starlette ostrzega o przyszłym wycofaniu httpx w TestClient; testy działają.
+- Commit: `chore(backend): initialize api`.
+- Następny krok: P1-02. Nie uruchamiano przeglądarki ani usług zewnętrznych.
 
 ## Szablon wpisu po zadaniu
 
