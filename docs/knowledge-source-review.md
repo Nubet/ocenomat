@@ -2,8 +2,8 @@
 
 > Robocza notatka sprzed audytu oficjalnych pobrań. Stan wdrożenia i aktualności
 > prawnej zastępuje [official-sources-audit.md](official-sources-audit.md).
-> Siedem decyzji w pliku reviews nie zostało zastosowanych w bazie. Poniższe
-> liczby opisują lokalną ekstrakcję, nie istniejący indeks ani zatwierdzony korpus.
+> Poniższe liczby opisują pierwszy przegląd lokalnej ekstrakcji. Aktualizację
+> decyzji HTML opisano na końcu; rzeczywisty stan importu podaje backend-progress.md.
 
 Stan: 2026-11-21. Kontekst implementacji: zadanie i regulamin konkursu opisują
 wymagania dla programisty. **Nie są wiedzą udostępnianą asystentowi.** Diagram
@@ -75,3 +75,23 @@ Porównano tekst wybranych stron oryginalnych PDF z niezależną ekstrakcją pyp
   rozporządzenia mają status historycznej edycji; nie sprawdzono aktualności prawa.
   Przed użyciem produkcyjnym wymagane jest uzupełnienie oficjalnych źródeł i
   niezależny przegląd prawny. Approval ekstrakcji nie zmienia tego statusu.
+
+## Uzupełnienie — ograniczony przegląd ELI HTML, 2026-11-21
+
+Dodano **10 indywidualnych decyzji wierności** do istniejących siedmiu decyzji PDF:
+
+| Źródło | Zatwierdzone paragrafy | Kontrolowany zakres |
+| --- | --- | --- |
+| `periodic-regulation-2016-html-v1` | §§ 2, 3, 4, 5, 11 | Rola przełożonego, A/B/C, wszystkie kryteria obowiązkowe, fakultatywne maksymalnie trzy dodatkowe, pełne warunki i skale wyniku |
+| `first-regulation-2015-html-v1` | §§ 2, 3, 6, 9, 10 | Pięć elementów, wyjątek 21-dniowego terminu przy zastępstwie, minimum siedem przepracowanych miesięcy sprawozdania, skala 3/5/7, wszystkie warunki i zwolnienia egzaminacyjne |
+
+Tekst odczytano z całych paragrafów ELI i porównano z wcześniej sprawdzonymi
+stronami PDF: okresowa s.1–3, pierwsza s.1–3. Test niezależnie sprawdza zgodność
+tekstu z rzeczywistymi elementami DOM; decyzje wiążą oryginał, wersję ekstraktora,
+locator i hash treści. Każda decyzja ma osobne uzasadnienie zachowanych warunków.
+
+To kontrola technicznej wierności przez agenta implementującego, nie opinia prawna.
+Nie zatwierdzono załączników, formularzy ani przepisów przejściowych. Wierność nie
+rozstrzyga kwalifikacji konkretnego pracownika ani ustawowych wyjątków/terminów.
+Rozporządzenia mają osobny datowany dowód ELI `verified_current`; ustawa i FAQ
+nadal `unknown`, bez decyzji approval. Całe źródła pozostają `needs_review`.

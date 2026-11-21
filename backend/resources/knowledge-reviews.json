@@ -59,6 +59,84 @@
           "reason": "Compared with original PDF p. 3: §§ 8–14, scale 3/5/7, all positive conditions, mean at least 5, at most one 3, three examination exceptions, mandatory negative/optional positive justification and transitional provisions. No verification of present legal validity."
         }
       ]
+    },
+    {
+      "source_id": "periodic-regulation-2016-html-v1",
+      "original_sha256": "e32ee6692ea3d4f4ddccc7abf16c0a600eaeee97b471f9512b9599b582cd6ba2",
+      "extractor_version": "eli-html-v1",
+      "reviewed_by": "OpenCode — original source comparison, not legal review",
+      "reviewed_at": "2026-11-21T20:19:35Z",
+      "fragments": [
+        {
+          "locator": "html:#para_2",
+          "content_sha256": "c4c8877c396ad8e877f10fdeaeccadc334d147a11631d6692229c38271500f79",
+          "status": "approved",
+          "reason": "Compared complete ELI § 2 with original PDF p. 1: direct supervisor, position-specific criteria, optional additional criteria justified by job duties, and annex 1 reference retained. Annex content is not approved by this decision. Fidelity only."
+        },
+        {
+          "locator": "html:#para_3",
+          "content_sha256": "a254a9678e7851dc37343250ee98a7547c83e8231a7feeb92e482a7e4d3d13f0",
+          "status": "approved",
+          "reason": "Compared complete ELI § 3 with original PDF p. 1: A for office head in civil service, B for direct management except A, C for other positions; all three annex references retained. No invented page number for HTML. Fidelity only."
+        },
+        {
+          "locator": "html:#para_4",
+          "content_sha256": "c32fb196b9bc21eab71ec83aa773b9e6a14a6aa465263a16da4b38f715d6a544",
+          "status": "approved",
+          "reason": "Compared complete ELI § 4 with original PDF pp. 1–2: six A, five B and five C mandatory criteria, including distinct B/C first two criteria. All paragraph and point references retained; no catalog IDs inferred from text. Fidelity only."
+        },
+        {
+          "locator": "html:#para_5",
+          "content_sha256": "d528c3d14146c294f86affa5f7143df4ad0f0fb60d849a00bb7aea3855ff73ef",
+          "status": "approved",
+          "reason": "Compared complete ELI § 5 with original PDF p. 2: initial conversation, conditional goals, optional at most three additional criteria justified by job duties, and written assessment date. May is not replaced with must; all three subsections retained. Fidelity only."
+        },
+        {
+          "locator": "html:#para_11",
+          "content_sha256": "a6b891655d25318e22cf99d0fd00d8f38461a04ea8b5a112cc6f242a88ac3265",
+          "status": "approved",
+          "reason": "Compared complete ELI § 11 with original PDF p. 3: scale 1/3/5/7/9, exact interval boundaries, positive only above 4 without any 1, negative if any 1, required negative versus optional positive justification, development conclusions and conditional promotion request. Fidelity only; runtime scores remain deterministic."
+        }
+      ]
+    },
+    {
+      "source_id": "first-regulation-2015-html-v1",
+      "original_sha256": "06515d7192f7d9501decf9013f0cde9d8313d8046eb2e4d1f1f341d64f1a2f5c",
+      "extractor_version": "eli-html-v1",
+      "reviewed_by": "OpenCode — original source comparison, not legal review",
+      "reviewed_at": "2026-11-21T20:19:35Z",
+      "fragments": [
+        {
+          "locator": "html:#para_2",
+          "content_sha256": "f0aa683f04b557307f476be32c2a5f5412b86cf1b2886029220c5f5512ce0269",
+          "status": "approved",
+          "reason": "Compared complete ELI § 2 with original PDF p. 1: all five assessment elements in original order, examination only when required and employee report retained. Does not determine statutory eligibility for first assessment. Fidelity only."
+        },
+        {
+          "locator": "html:#para_3",
+          "content_sha256": "72642ee5dc8b4b8a41ee6a5972c25603b62501409127dccead8388019b36d3d9",
+          "status": "approved",
+          "reason": "Compared complete ELI § 3 with original PDF p. 1: 21 days from employment, separate 21-day trigger for substitution employment, four initial conversation topics and annex 1 reference retained. Does not establish whether an employee is subject to the assessment. Fidelity only."
+        },
+        {
+          "locator": "html:#para_6",
+          "content_sha256": "0769fcffd6551ab2a8cc7df8fedcc61229966bf3966bcbfe3f61834a6222ce89",
+          "status": "approved",
+          "reason": "Compared complete ELI § 6 with original PDF p. 2: report covers at least seven worked months, all four content requirements and annex 3 reference. This is not the statutory assessment deadline or the report submission window. Fidelity only."
+        },
+        {
+          "locator": "html:#para_9",
+          "content_sha256": "74738cc0dc1104653f6fb3ad5c0dab1ca0931842f4a70b46dffde370514ea7a1",
+          "status": "approved",
+          "reason": "Compared complete ELI § 9 with original PDF p. 3: scale 3/5/7, consideration of conversation conclusions and recording individual plus overall scores. Cross-reference to § 7 retained; do not use this scale for periodic assessments. Fidelity only."
+        },
+        {
+          "locator": "html:#para_10",
+          "content_sha256": "7ade6c1c08ace648e2697a4d33bebe4ce587e9a3a15b0d902bd4f61d32115295",
+          "status": "approved",
+          "reason": "Compared complete ELI § 10 with original PDF p. 3: four cumulative positive conditions, at most one 3 and mean at least 5, negative on failure, all three examination exemptions, required negative/optional positive justification and optional development conclusions. No exemption or negation omitted. Fidelity only."
+        }
+      ]
     }
   ]
 }

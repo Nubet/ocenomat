@@ -16,6 +16,8 @@ def test_committed_reviews_are_explicit_and_partial():
     assert {s.source_id: len(s.fragments) for s in reviews.sources} == {
         "periodic-regulation-2016": 4,
         "first-regulation-2015": 3,
+        "periodic-regulation-2016-html-v1": 5,
+        "first-regulation-2015-html-v1": 5,
     }
     assert all("not legal review" in s.reviewed_by for s in reviews.sources)
 
@@ -34,11 +36,21 @@ def test_reviewed_originals_preserve_high_risk_conditions():
         spec = next(s for s in manifest.sources if s.source_id == review.source_id)
         path = material_path(root, spec.path)
         report = audit_source(root, spec)
-        extraction = extract_source(path, path.read_bytes())
+        extraction = extract_source(
+            path, path.read_bytes(), profile=spec.extraction_profile
+        )
         validate_review(review, spec.source_id, report["original_sha256"], extraction)
-        pages[spec.assessment_kind] = {
-            f.page: normalize_text(f.content) for f in extraction.fragments
-        }
+        if spec.extraction_profile == "original":
+            pages[spec.assessment_kind] = {
+                f.page: normalize_text(f.content) for f in extraction.fragments
+            }
+        else:
+            reviewed = {f.locator for f in review.fragments}
+            assert len(reviewed) == 5
+            assert all(locator.startswith("html:#para_") for locator in reviewed)
+            assert all(
+                not f.warnings for f in extraction.fragments if f.locator in reviewed
+            )
     assert "nie więcej niż 3 kryteria dodatkowe" in pages["periodic"][2]
     assert "powyżej 4 punktów do 6 punktów" in pages["periodic"][3]
     assert "pod warunkiem nieuzyskania" in pages["periodic"][3]
