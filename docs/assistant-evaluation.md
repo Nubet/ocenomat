@@ -20,14 +20,24 @@ podstaw, niejednoznaczności, fikcyjnych źródeł i narzucania poleceń. Odpowi
 porównano z oryginalnymi paragrafami; źródła mają hash-bound review powiązane
 z dostarczonymi PDF. Zestaw nie zastępuje przeglądu prawnego.
 
-## Wynik 2026-11-21
+## Wynik bazowy 2026-11-21
 
 - Rzeczywisty korpus PostgreSQL, transakcja read-only, bez LLM: właściwe fragmenty
   w top-5 dla **23/23** pytań referencyjnych; suma czasu retrieval **0,1575 s**.
 - Pozostałych 7 przypadków nie wlicza się do skuteczności retrieval. Samo znalezienie
   tekstu nie oznacza, że wolno na jego podstawie odpowiedzieć.
-- Generowanie, poprawność semantyczna i skuteczność odmów: **niezmierzone**,
-  OpenRouter zablokowany. Wynik 23/23 nie jest wynikiem jakości odpowiedzi.
+- Wykonano 30 rzeczywistych odpowiedzi/odmów. Przegląd techniczny z oryginałami:
+  **28/30 poprawnych rezultatów (93,3%)**, **21/23 odpowiedzi na pytania z podstawą**,
+  6 prawidłowych odmów i jedno prawidłowe sprostowanie fałszywej przesłanki (N07).
+  Dwie nadmiarowe odmowy: F03 (rozmowa wstępna), F09 (dwie trójki).
+- F03 przy późniejszej próbie odpowiedział poprawnie, F09 ponownie odmówił.
+  Nie zastępujemy nimi wyniku bazowego ani nie deklarujemy osiągnięcia celu 95%.
+- 22 odpowiedzi zawierają **53 twierdzenia i 77 cytowań**. Cytowania przeszły
+  kontrolę ID/statusu/hash/locatorów/literalności; treść odpowiedzi porównano
+  z oryginalnymi paragrafami. Nie wykryto błędnej kategorycznej odpowiedzi.
+- Czas bez przerw między pytaniami: średnia **4,469 s**, mediana **4,729 s**,
+  maksimum **8,111 s**. Początkowe równoległe uruchomienie przerwał limit 429;
+  wznowiono tylko brakujące pytania z odstępami. Nie obchodzono polityk dostawcy.
 - Jeden test narzędzia: rozdzielenie retrieval/generowania i brak kolejnych prób
   po awarii providera. Ruff lint/format OK. Bez nowych smoke/E2E i pełnej regresji.
 
@@ -45,7 +55,25 @@ z dostarczonymi PDF. Zestaw nie zastępuje przeglądu prawnego.
    Demonstracja: rzeczywista ocena → pytanie ze źródłem → oryginał → brak podstaw
    → analiza OSP → ręczny wybór kryteriów → wynik istniejącego silnika.
 
-Aktualizacja: po zmianie lokalnego klucza i odtworzeniu backendu jedna rzeczywista
-odpowiedź o liczbie kryteriów dodatkowych przeszła generowanie i review (HTTP 200,
-`answered`, 3 twierdzenia i 3 cytaty). Blokada providera usunięta; pełny zestaw
-i rekomendacje trzech OSP nadal czekają na ocenę. Faza 6 nie jest ukończona.
+## Trzy OSP i ograniczenia
+
+Pełne oryginały, przypięty katalog i wspólne prompty/walidatory, bez mutacji bazy:
+
+| OSP | Formularz | Poparte rekomendacje |
+| --- | --- | --- |
+| Cyberbezpieczeństwo, starszy specjalista | C | Podejmowanie decyzji i odpowiedzialność; radzenie sobie w sytuacjach kryzysowych; myślenie analityczne |
+| Prawo i regulacje AI, radca | C | Myślenie analityczne; podejmowanie decyzji i odpowiedzialność; kreatywność |
+| Współpraca międzynarodowa, naczelnik | B | Rzetelność |
+
+Sprawdzono rzeczywiste fragmenty pól zadań/samodzielności/odpowiedzialności.
+Naczelnik miał trzy propozycje, review poparł tylko jedną; pozostałe odrzucono.
+Z tego wynika poprawka API: odrzucenie jednej niezależnej propozycji nie kasuje
+popartych pozostałych. 21 testów OSP i 38 asystenta OK, dodano tylko jeden test.
+Weryfikacja B dotyczy rekomendacji; utworzenie procesu i dokumentu B to P7-01.
+
+Faza 6 zakończona implementacyjnie i oceniona dla ograniczonego korpusu. Cel 95%
+całych odpowiedzi pozostaje nieosiągnięty, dwie nadmiarowe odmowy są znanym
+ograniczeniem. Review drugiego promptu tego samego modelu nie jest niezależnym
+przeglądem prawnym. Scenariusz demonstracji jest gotowy; przeglądarki/E2E nie
+wykonywano zgodnie z instrukcją użytkownika. Nie twierdzimy, że cała wiedza prawna
+jest kompletna lub że wyeliminowano halucynacje.

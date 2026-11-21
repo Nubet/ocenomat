@@ -5,17 +5,18 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-07 — rzeczywista ewaluacja generowania (`in_progress`).
-- **Następny krok:** uruchomić istniejące narzędzie
-  z `--generate`, ocenić odpowiedzi i rekomendacje trzech OSP. Dopiero po zamknięciu
-  fazy 6 rozpocząć P7-01. Zestaw 30 pytań i pomiar retrieval są gotowe.
+- **Etap:** 7 — formularz B, pierwsza ocena i HR.
+- **Aktywne zadanie:** P7-01 — obsługa arkusza B (`in_progress`).
+- **Następny krok:** rozszerzyć istniejący okresowy workflow i PDF o B, zachowując
+  osobne kryteria obowiązkowe i blokadę A. Faza 6 wdrożona i oceniona w ograniczonym
+  korpusie; wynik 28/30, dwie nadmiarowe odmowy pozostają ograniczeniem jakości.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
   nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** implementacja analizy OSP (`9f4311c`) i narzędzie
-  ewaluacji P6-07: 30 pytań, 23/23 trafienia źródeł top-5 bez generowania.
+- **Ostatnia zakończona praca:** P6-06/P6-07 — 30 rzeczywistych odpowiedzi/odmów,
+  77 autentycznych cytowań i rekomendacje z trzech OSP; poprawka niezależnego
+  odrzucania propozycji OSP. Szczegóły: [assistant-evaluation.md](assistant-evaluation.md).
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -83,9 +84,9 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | done | `79fa4ce`; FTS/simple, GIN 0015, filtry, deduplikacja i atomowy kontekst. 104 testy OK; live top-5 9/9, trzy odmowy, brak zmian danych. Backend healthy. |
 | P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
 | P6-05 | Integracja istniejącego draweru Next.js | done | Sesyjna Server Action, OpenAPI, jawne tryby/zakres, wynik silnika i chronione pobranie oryginału; precommit i 180 testów OK. Przeglądarka niewykonana. |
-| P6-06 | Analiza OSP i rekomendacje kryteriów | pending | Kod/API/UI i testy gotowe; 58 testów OSP+asystenta OK. Blokada providera usunięta; pozostaje rzeczywista ocena rekomendacji trzech OSP. |
-| P6-07 | Ewaluacja jakości i demonstracja | in_progress | Zestaw 30 pytań, narzędzie read-only i protokół gotowe; retrieval 23/23 top-5. Po zmianie klucza jedna rzeczywista odpowiedź z 3 cytatami OK; pełna ewaluacja jeszcze niewykonana. |
-| P7-01 | Arkusz B | pending | — |
+| P6-06 | Analiza OSP i rekomendacje kryteriów | done | Trzy oryginały, rzeczywisty provider i deterministyczna walidacja: 3/3/1 popartych rekomendacji dla C/C/B. Jedna odrzucona propozycja nie usuwa pozostałych. 21 testów OSP OK. Workflow tworzenia B w P7-01. |
+| P6-07 | Ewaluacja jakości i demonstracja | done | Oceniono 30 przypadków: 28/30 poprawnych rezultatów, dwie nadmiarowe odmowy, zero błędnych kategorycznych odpowiedzi. 23/23 retrieval, 77 poprawnych cytowań. Cel 95% całych odpowiedzi nieosiągnięty; znane ograniczenie, nie deklaracja sukcesu progu. Scenariusz demo gotowy, przeglądarka w P8 pozostaje blocked. |
+| P7-01 | Arkusz B | in_progress | Rozszerzenie wspólnego workflow, schematu i generatora PDF. |
 | P7-02 | Pierwsza ocena | pending | — |
 | P7-03 | Monitoring HR | pending | — |
 | P8-01 | Test krytycznej ścieżki E2E | blocked | Poprzednie polecenie zabrania uruchamiania przeglądarki; potrzebna zmiana instrukcji. |
@@ -99,9 +100,12 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   darmowego modelu: płatny model jest dozwolony, priorytet skuteczność → czas → cena.
   Ustawiono Sonnet 5.5, bez automatycznej zmiany modelu. Nie deklarujemy zgodności
   tego wyboru z wcześniejszym ograniczeniem konkursowym bez jego wyjaśnienia.
-- Klucz dodany lokalnie przez użytkownika: OpenRouter `/auth/key` → 200,
-  ale `chat/completions` → 401 `User not found.` (tekst i JSON Schema).
-  Brak udanego generowania; bloker konta/dostawcy, bez obchodzenia polityk.
+- Poprzedni problem klucza OpenRouter (401) usunięto lokalną zmianą klucza.
+  Rzeczywiste generowanie działa. Równoległa ewaluacja napotkała 429; wznowiono
+  tylko brakujące pytania z odstępami, bez zmiany modelu/routingu/polityk.
+- Jakość RAG: 28/30 poprawnych rezultatów, F03/F09 nadmiarowo odmówione; cel 95%
+  całości jeszcze nieosiągnięty. Przy ponowieniu F03 model odpowiedział prawidłowo,
+  co nie zmienia wyniku bazowego. Wymagany dalszy tuning zachowania, nie approval źródeł.
 - ELI potwierdza obowiązywanie rozporządzeń 2016/470 i 2015/1144 (2026-11-21).
   Ustawa jest już dostępna w oficjalnych pobraniach (tekst jednolity 2026/590),
   załącznik został wydzielony; kontrola czasowego stosowania jednostek jest nadal
@@ -226,6 +230,35 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   odblokowania providera i pomiarów jakości. UI nie udaje powodzenia przy awarii.
 
 ## P6-07 — zestaw referencyjny i narzędzie ewaluacji
+
+Końcowa ewaluacja: **30 przypadków, 28/30 poprawnych rezultatów**, bez zmiany
+oczekiwań po zobaczeniu odpowiedzi. F03 i F09 to nadmiarowe odmowy; N07 prawidłowo
+prostuje fałszywą przesłankę, mimo statusu `answered` (zgodnie z protokołem ręcznym).
+**53 twierdzenia / 77 cytowań**, sprawdzone z oryginałami i walidacją literalności.
+Średni czas 4,469 s, mediana 4,729 s, maksimum 8,111 s, bez pauz po limicie.
+Pierwszy przebieg przerwany 429: zapisano wynik, wznowiono tylko brakujące pytania.
+Wyniki obu nadmiarowych odmów zachowano, nie zastąpiono udanymi powtórzeniami.
+
+Trzy OSP oceniono na pełnych ekstrakcjach, rzeczywistym providerze i tych samych
+promptach/walidatorach co API: cyberbezpieczeństwo C — 3 propozycje; prawo AI C — 3;
+naczelnik B — 1. Ostatni wynik zawiera tylko indeks poparty przez review, dwie
+niepoparte propozycje odrzucono. Nazwy/ID i dosłowne cytaty sprawdzono, związek
+z zadaniami porównano z oryginalnymi polami tabel. Nie zmieniano danych aplikacji.
+To weryfikacja rekomendacji B, nie działającego jeszcze workflow B.
+
+Poprawka OSP: niezależne propozycje filtrujemy według `supported_claims`; konflikt
+lub indeks spoza zakresu nadal odrzuca wynik. Formalny asystent nadal wymaga
+poparcia całej odpowiedzi. Nowy tylko jeden test tej poprawki, pozostałe reużyte:
+`tests/test_osp_analysis.py` **21 passed / 2,73 s**, `tests/test_assistant.py`
+**38 passed / 1,94 s**; Ruff lint/format OK. Próba doprecyzowania promptu dla F09
+nie pomogła i została cofnięta. Bez kolejnych smoke i pełnej regresji.
+
+P6-06/P6-07 zamknięte implementacyjnie wraz z ewaluacją i przygotowanym scenariuszem
+rzeczywistej demonstracji. **Nie deklarujemy osiągnięcia celu 95% ani wykonania
+przeglądarki/E2E.** Dwie bezpieczne odmowy pozostają jawnym ograniczeniem, modelowy
+review nie jest niezależną opinią prawną. Rozpoczynamy P7-01.
+
+Poniższe wpisy zachowują historię przygotowania i poprzedniej blokady.
 
 Aktualizacja po zmianie klucza przez użytkownika: lokalna ignorowana konfiguracja
 zaktualizowana, backend odtworzony przez Compose. Jedna rzeczywista próba pytania

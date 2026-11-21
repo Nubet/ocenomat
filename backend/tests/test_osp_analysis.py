@@ -206,6 +206,26 @@ def test_semantically_unrelated_recommendation_is_not_shown(osp_api):
 
 
 @pytest.mark.integration
+def test_one_rejected_recommendation_does_not_remove_supported_suggestions(osp_api):
+    provider = osp_api.client.app.state.llm_provider
+    provider.results[0]["recommendations"].append(
+        {
+            **provider.results[0]["recommendations"][0],
+            "criterion_id": str(REQUIRED_CRITERIA["B"][0]),
+        }
+    )
+    provider.results[1] = review(
+        status="insufficient_evidence", supported_claims=[0], answers_question=False
+    )
+    response = osp_api.client.post(osp_api.path, headers=auth(osp_api))
+    assert response.status_code == 200
+    assert response.json()["status"] == "recommended"
+    assert [item["criterion_id"] for item in response.json()["recommendations"]] == [
+        str(EXTRA)
+    ]
+
+
+@pytest.mark.integration
 def test_revocation_before_second_model_call_prevents_sending_osp_again(osp_api):
     access = osp_api
     provider = access.client.app.state.llm_provider
