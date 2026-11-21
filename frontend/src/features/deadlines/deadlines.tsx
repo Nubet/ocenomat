@@ -22,7 +22,9 @@ export function Deadlines({ monitoring }: { monitoring: Monitoring }) {
                   aria-hidden="true"
                   className="absolute top-1 -left-9 size-4 rounded-full border-3 border-primary bg-surface"
                 />
-                <div className="flex items-start justify-between gap-3 max-compact:flex-wrap">
+                <div
+                  className={`flex items-start justify-between gap-3 max-compact:flex-wrap ${deadline.overdue ? "[&>span]:border-warning/25 [&>span]:bg-warning/20" : ""}`}
+                >
                   <div>
                     <p className="text-caption font-semibold text-primary">
                       {monitoringDate(deadline.due_on)}
