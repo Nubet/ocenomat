@@ -1,3 +1,4 @@
+import re
 from typing import Literal
 
 from pydantic import AnyHttpUrl, SecretStr, field_validator
@@ -18,6 +19,32 @@ class Settings(BaseSettings):
     database_url: SecretStr | None = None
     supabase_url: AnyHttpUrl | None = None
     jwt_algorithm: Literal["ES256", "RS256"] = "ES256"
+    storage_endpoint: AnyHttpUrl | None = None
+    storage_access_key: SecretStr | None = None
+    storage_secret_key: SecretStr | None = None
+    storage_bucket: str = "kompas-private"
+
+    @field_validator("storage_endpoint")
+    @classmethod
+    def validate_storage_endpoint(cls, value: AnyHttpUrl | None) -> AnyHttpUrl | None:
+        if value is not None and (
+            value.username
+            or value.password
+            or value.path not in ("", "/")
+            or value.query
+            or value.fragment
+        ):
+            raise ValueError("Storage endpoint must be an HTTP(S) origin")
+        return value
+
+    @field_validator("storage_bucket")
+    @classmethod
+    def validate_storage_bucket(cls, value: str) -> str:
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,61}[a-z0-9]", value):
+            raise ValueError(
+                "Use a bucket name of 3–63 lowercase letters, digits or hyphens"
+            )
+        return value
 
     @field_validator("supabase_url")
     @classmethod

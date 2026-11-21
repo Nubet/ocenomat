@@ -12,6 +12,7 @@ from sqlalchemy.engine import make_url
 from alembic import command
 from app.core.config import Settings
 from app.core.database import create_database_engine
+from app.core.security import get_subject
 from app.main import create_app
 
 
@@ -33,6 +34,28 @@ def test_readiness_connection_failure():
     assert response.status_code == 503
     assert response.json() == {"detail": "Database unavailable"}
     assert "not-a-secret" not in response.text
+
+
+def test_authenticated_document_routes_fail_closed_when_identity_database_is_down():
+    app = create_app(
+        Settings(
+            database_url="postgresql+psycopg://test:not-a-secret@127.0.0.1:1/unavailable"
+        )
+    )
+    app.dependency_overrides[get_subject] = uuid4
+    path = f"/api/v1/assessments/{uuid4()}/documents"
+    with TestClient(app) as client:
+        for response in (
+            client.get("/api/v1/me"),
+            client.get(path),
+            client.get(f"{path}/{uuid4()}/download"),
+            client.post(
+                path, params={"filename": "x.pdf", "revision": 1}, content=b"x"
+            ),
+        ):
+            assert response.status_code == 503
+            assert response.json() == {"detail": "Database unavailable"}
+            assert "not-a-secret" not in response.text
 
 
 @pytest.mark.parametrize(
@@ -84,6 +107,8 @@ def test_assessment_migrations_roundtrip_in_isolated_schema(monkeypatch):
         monkeypatch.setenv(
             "KOMPAS_DATABASE_URL", isolated_url.render_as_string(hide_password=False)
         )
+        command.upgrade(config, "head")
+        command.downgrade(config, "0009")
         command.upgrade(config, "head")
         command.downgrade(config, "0008")
         command.upgrade(config, "head")

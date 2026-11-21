@@ -47,6 +47,68 @@ uv run pytest -m integration
 
 Bez tej zmiennej test integracyjny jest jawnie pomijany.
 
+## Prywatne załączniki oceny
+
+Migracja `0010` dodaje metadane `documents`; zawartość pozostaje w prywatnym
+RustFS. Compose konfiguruje klienta S3 i uruchamia `storage-init` przed API.
+Poza Compose ustaw `KOMPAS_STORAGE_ENDPOINT` (origin HTTP(S)),
+`KOMPAS_STORAGE_ACCESS_KEY`, `KOMPAS_STORAGE_SECRET_KEY` i opcjonalnie
+`KOMPAS_STORAGE_BUCKET` (domyślnie `kompas-private`), następnie:
+
+```sh
+uv run python -m app.integrations.storage
+```
+
+Polecenie tworzy brakujący bucket jako prywatny. Ponowienie nie usuwa danych;
+zastane polityki bucketu i ACL inne niż wyłączny właściciel blokują inicjalizację.
+Nie zmienia automatycznie cudzej konfiguracji dostępu. Brak konfiguracji nie
+uruchamia lokalnego ani demonstracyjnego zamiennika storage.
+
+```text
+POST /api/v1/assessments/{id}/documents?revision=1&filename=Ocena.pdf
+Content-Type: application/pdf
+Body: surowe bajty pliku (nie multipart ani JSON)
+
+GET /api/v1/assessments/{id}/documents
+GET /api/v1/assessments/{id}/documents/{document_id}/download
+```
+
+- Wszystkie operacje wymagają MANAGER, autorstwa oceny i aktualnego przypisania.
+  Cudze/brakujące oceny i pliki zwracają 404. HR/ADMIN nie mają dodatkowego dostępu.
+- Upload jest dostępny przed `completed`. Używa wspólnej blokady oceny/przypisania,
+  rewizji i atomowego zdarzenia `document_uploaded`. Odpowiedź 201 zawiera
+  `document` i `assessment_revision`; ponowienie starej rewizji daje 409, bez
+  dodatkowego obiektu. Po niepewnym wyniku zapisu odczytaj listę i bieżącą rewizję.
+  Zamknięcie nie blokuje pobierania wcześniejszych plików.
+- Limit wynosi 10 MiB i jest sprawdzany podczas odbierania strumienia, niezależnie
+  od `Content-Length` (413). Nazwa nie może zawierać ścieżki ani znaków sterujących;
+  zostaje znormalizowana do NFC. Nie jest używana jako klucz obiektu.
+- Obsługiwane są PDF i DOCX, także przy deklaracji `application/octet-stream`.
+  Rozszerzenie, deklarowany MIME i rozpoznana zawartość muszą się zgadzać (422).
+  PDF musi przejść ścisły parser, mieć strony i nie być zaszyfrowany. DOCX wymaga
+  poprawnego ZIP/CRC, części OOXML, głównej relacji i dokumentu; odrzucamy makra,
+  szyfrowanie, DTD/encje, duplikaty/ścieżki ZIP, ponad 256 wpisów, 32 MiB po
+  rozpakowaniu lub ponad 4 MiB w odczytywanej części XML. To walidacja formatu,
+  nie skan antywirusowy ani sanitizacja aktywnej zawartości.
+- Metadane przechowują UUID, powiązanie z oceną, rodzaj `attachment`, bezpieczną
+  nazwę, rozpoznany MIME, rozmiar, SHA-256, autora i czas UTC. Klucz jest losowy,
+  serwerowy i nie trafia do odpowiedzi API. Nie udostępniamy publicznych ani
+  podpisanych URL-i RustFS; pobranie przechodzi przez autoryzację API.
+- Pobranie sprawdza rozmiar i SHA-256 przed wysłaniem bajtów; brak obiektu, awaria
+  lub niespójność daje 503 bez częściowego pliku. Odpowiedzi danych są
+  `private, no-store`; plik jest załącznikiem z `nosniff` i nazwą UTF-8.
+- Nieudany zapis bazy/zdarzenia wycofuje rewizję i usuwa świeży obiekt. Usuwamy go
+  także po niejednoznacznie nieudanym PUT. Błąd usunięcia zapisuje tylko serwerowy
+  klucz: `Storage cleanup required for object ...`. Utrata potwierdzenia COMMIT
+  wymaga ponownego sprawdzenia metadanych: obiekt zatwierdzony lub o nieustalonym
+  stanie zostaje zachowany. Brak możliwości sprawdzenia daje log
+  `Storage reconciliation required for object ...`. Operator przed usunięciem
+  sprawdza `documents.object_key`; usuwa tylko obiekt bez metadanych, po zakończeniu
+  żądania. Przerwanie procesu między PUT a COMMIT też wymaga takiego porównania.
+
+Nie ma jeszcze ekranu załączników ani usuwania/nadpisywania dokumentów przez API.
+Powiązanie wersji OSP z pracownikiem i generowanie/pobranie PDF C w UI to P5-02.
+
 ## Tożsamość i pierwszy administrator
 
 `KOMPAS_SUPABASE_URL` to HTTPS origin projektu Supabase Cloud (bez `/auth/v1`).

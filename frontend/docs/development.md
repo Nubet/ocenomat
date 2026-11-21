@@ -111,6 +111,13 @@ Result and completion use the API, with no browser-side scoring:
   all edits. Retried completion does not duplicate its event or change its timestamp.
   Completion does not claim the document was signed or delivered; PDF is part of P5.
 
+P5-01 adds private attachment upload/list/download endpoints and generated types.
+Upload accepts a raw PDF/DOCX body with a filename and the current assessment
+revision, returning the document metadata and new revision. Downloads are
+authorized binary responses, not public storage URLs. These endpoints are not
+yet mounted in the assessment UI; employee OSP binding and PDF download UI belong
+to P5-02. Do not point a browser directly at RustFS or expose its credentials.
+
 Dashboard, deadlines and HR monitoring still
 contain labelled demo data until P7. Legacy flow components remain as the visual
 reference for document and later process screens; the UUID route no longer mounts them.

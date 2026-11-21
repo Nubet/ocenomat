@@ -8,6 +8,10 @@ x-api: &api
     KOMPAS_CORS_ORIGINS: ${KOMPAS_CORS_ORIGINS:-[]}
     KOMPAS_SUPABASE_URL: ${KOMPAS_SUPABASE_URL:-}
     KOMPAS_JWT_ALGORITHM: ${KOMPAS_JWT_ALGORITHM:-ES256}
+    KOMPAS_STORAGE_ENDPOINT: http://rustfs:9000
+    KOMPAS_STORAGE_BUCKET: ${KOMPAS_STORAGE_BUCKET:-kompas-private}
+    KOMPAS_STORAGE_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?Set RUSTFS_ACCESS_KEY}
+    KOMPAS_STORAGE_SECRET_KEY: ${RUSTFS_SECRET_KEY:?Set RUSTFS_SECRET_KEY}
 
 services:
   db:
@@ -37,6 +41,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      storage-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=7)"]
       interval: 10s
@@ -53,6 +59,14 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+  storage-init:
+    <<: *api
+    command: ["python", "-m", "app.integrations.storage"]
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    restart: "no"
 
   rustfs:
     image: rustfs/rustfs:1.0.6

@@ -244,6 +244,41 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/documents": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Documents */
+    get: operations["documents_api_v1_assessments__assessment_id__documents_get"];
+    put?: never;
+    /** Upload */
+    post: operations["upload_api_v1_assessments__assessment_id__documents_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/documents/{document_id}/download": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Download */
+    get: operations["download_api_v1_assessments__assessment_id__documents__document_id__download_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -495,6 +530,48 @@ export interface components {
       expectations_discussed: boolean;
       /** Arrangements Shared */
       arrangements_shared: boolean;
+    };
+    /** DocumentResponse */
+    DocumentResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Assessment Id
+       * Format: uuid
+       */
+      assessment_id: string;
+      /**
+       * Kind
+       * @constant
+       */
+      kind: "attachment";
+      /** Filename */
+      filename: string;
+      /** Media Type */
+      media_type: string;
+      /** Size */
+      size: number;
+      /** Sha256 */
+      sha256: string;
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** DocumentUploadResponse */
+    DocumentUploadResponse: {
+      document: components["schemas"]["DocumentResponse"];
+      /** Assessment Revision */
+      assessment_revision: number;
     };
     /** EmployeeResponse */
     EmployeeResponse: {
@@ -1237,6 +1314,110 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ResultResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  documents_api_v1_assessments__assessment_id__documents_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DocumentResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  upload_api_v1_assessments__assessment_id__documents_post: {
+    parameters: {
+      query: {
+        revision: number;
+        filename: string;
+      };
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/pdf": string;
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
+        "application/octet-stream": string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DocumentUploadResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  download_api_v1_assessments__assessment_id__documents__document_id__download_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+        document_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pdf": string;
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
         };
       };
       /** @description Validation Error */

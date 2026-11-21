@@ -5,12 +5,13 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 4 — trwały proces oceny C zakończony do wyniku i zamknięcia w aplikacji.
+- **Etap:** 5 — prywatne pliki i dokumentacja.
 - **Aktywne zadanie:** brak.
-- **Następny krok:** P5-01 — prywatny storage RustFS: autoryzowany upload/download,
-  metadane, walidacja PDF/DOCX, kompensacja błędów i testy; następnie OSP/PDF w P5-02.
-- **Ostatnia zakończona praca:** P4-05 — wynik z zatwierdzonych ocen, trwałe
-  podsumowanie, uzasadnienie wyniku negatywnego i jawne, idempotentne zakończenie.
+- **Następny krok:** P5-02 — powiązać wersję przykładowego OSP z pracownikiem,
+  wygenerować PDF z rzeczywistego wzoru C i zatwierdzonych danych oraz podłączyć
+  pobranie w UI; przetestować polskie znaki, wynik negatywny i dostęp do dokumentu.
+- **Ostatnia zakończona praca:** P5-01 — prywatne załączniki oceny, autoryzowane
+  upload/list/download, walidacja PDF/DOCX, metadane i kompensacja błędów.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -30,13 +31,15 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   Frontend ma ekran logowania, cookie session i chroniony workspace; monitoring
    pozostaje do podłączenia w P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
-  RustFS działa lokalnie; integracja plików z API jest w P5-01.
+  RustFS przechowuje prywatne pliki oceny; API sprawdza dostęp, format i checksum.
+  UI załączników, wersje OSP i generowanie PDF pozostają w P5-02.
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
   OpenRouter i VPS niezintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  157 testów Vitest. Backend: 270 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
+  157 testów Vitest. Backend: 351 testów z rzeczywistym PostgreSQL i źródłowym XLSX;
+  osobny live smoke z rzeczywistym RustFS i Supabase.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
   pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
@@ -65,7 +68,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P4-03 | Obserwacje i rozmowa | done | Migracja 0007, datowane wpisy i szkic rozmowy, jawne przejścia, autorzy/czasy, rewizje i UI; 206 testów backendu, 123 UI, build i live HTTP/SSR OK. |
 | P4-04 | Wskaźniki i decyzje | done | Migracja 0008, trwałe odpowiedzi/notatki, wersjonowana sugestia i ręczne zatwierdzenie; izolowane unieważnianie decyzji, rewizje i UI. 243 testy backendu, 143 UI, build i live HTTP/SSR OK. |
 | P4-05 | Wynik i zakończenie | done | Migracja 0009, wynik API, trwałe podsumowanie, idempotentne zakończenie i blokada edycji; 270 testów backendu, 157 UI, build i live HTTP/SSR OK. |
-| P5-01 | Prywatny storage | pending | — |
+| P5-01 | Prywatny storage | done | Migracja 0010, prywatny bucket, autoryzowane API, walidacja, rewizje i kompensacja/niepewny COMMIT; 351 testów backendu, 157 UI, build i live RustFS/HTTP OK. |
 | P5-02 | OSP i PDF C | pending | — |
 | P6-01 | Provider i baza wiedzy | pending | — |
 | P6-02 | Asystent | pending | — |
@@ -111,6 +114,62 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P5-01, prywatne pliki oceny
+
+- Poprzednią fazę zapisano jako `58ecfba feat(assessments): finalize periodic assessments`.
+  Przed commitem ponowiono `npm run precommit`: 157 testów, format/lint/typy OK.
+- Migracja `0010` dodaje `documents`: UUID, ocena, rodzaj załącznika, bezpieczna
+  nazwa, rozpoznany MIME, rozmiar, SHA-256, prywatny klucz, autor i czas UTC.
+  FK/CHECK/unikalność i indeks powiązania; bez zmiany danych wcześniejszych ocen.
+- `ObjectStorage` używa boto3, S3v4/path-style, jawnych timeoutów i dwóch prób.
+  Błędy SDK nie ujawniają danych połączenia. `storage-init` w Compose tworzy
+  brakujący prywatny bucket lub sprawdza owner-only ACL i brak polityki bucketu.
+  Nie nadpisuje zastanych uprawnień. Uwzględniono domyślny ACL RustFS 1.0.6,
+  który pomija ID właściciela. Klucze S3 pozostają wyłącznie po stronie serwera.
+- POST `/assessments/{id}/documents?revision=…&filename=…` odbiera surowe bajty
+  bez multipart, z limitem 10 MiB podczas czytania strumienia. Używa wspólnego
+  `edit_assessment`, blokady przypisania/oceny i atomowego zdarzenia/rewizji.
+  Zwraca metadane i nową rewizję. Starszy zapis daje 409; `completed` blokuje upload.
+- Walidacja nazwy, rzeczywistej struktury PDF (pypdf) i DOCX (ZIP/CRC/OOXML), MIME,
+  szyfrowania, makr i rozpakowywania. Limit DOCX: 256 wpisów, 32 MiB po rozpakowaniu,
+  4 MiB na odczytywaną część XML, bez DTD/encji i ścieżek ZIP. Bez ekstrakcji treści.
+- GET list/download wymaga autorstwa MANAGER i aktualnego przypisania, także po
+  zakończeniu. Inny przypisany przełożony, HR/ADMIN i cudzy plik nie dostają treści.
+  Klucz nie trafia do JSON. Download sprawdza rozmiar i checksum przed odpowiedzią,
+  zwraca załącznik UTF-8, `nosniff` i `private, no-store`; brak/awaria/niespójność → 503.
+- Błąd metadanych lub zdarzenia wycofuje rewizję i kompensuje świeży obiekt.
+  Obsłużono PUT, który dotarł do storage mimo błędu odpowiedzi. Po niepewnym COMMIT
+  sprawdzamy metadane; zatwierdzony lub niemożliwy do rozstrzygnięcia plik pozostaje.
+  Nieudane sprzątanie/reconciliation zapisuje wyłącznie wygenerowany klucz do ręcznej
+  naprawy; procedura w `backend/README.md`. Przerwanie procesu między usługami wymaga
+  porównania obiektów z metadanymi, bez automatycznego kasowania.
+- Wspólne ładowanie tożsamości zwraca 503 przy awarii PostgreSQL, zanim plik trafi
+  do storage; nie otwiera dostępu. Naprawiono losowy test P4-05: brak kryterium
+  obowiązkowego wskazywany jest teraz jawnie, zamiast zależeć od kolejności UUID.
+- Kontrole w `backend/`:
+  - `uv run ruff check app tests alembic` i `uv run ruff format --check app tests alembic` — OK.
+  - `KOMPAS_TEST_DATABASE_URL=… KOMPAS_TEST_CATALOG_XLSX=… uv run pytest -q` —
+    **351 passed**, bez skipów; znane ostrzeżenie Starlette/httpx pozostaje.
+  - Testy formatu/limitu, nazw Unicode, spoofingu, uprawnień i cofnięcia przypisania,
+    stanów oceny, rewizji, rollbacku metadanych/zdarzenia, błędów PUT/GET/DELETE,
+    utraconego potwierdzenia COMMIT i braku dostępu do bazy podczas reconciliation.
+  - Migracja head → 0009 → head, wcześniejsze roundtripy i `alembic check` — OK
+    w osobnym schemacie. Bazy operatora nie cofano.
+- Typy OpenAPI odświeżone przez `npm run api:types -- http://127.0.0.1:33081/openapi.json`.
+  `npm run precommit` — format/lint/typy i **157 testów** OK; `npm run build` — OK.
+  UI nie montuje jeszcze załączników; P5-02 obejmuje OSP i ekran pobrania PDF.
+- Compose `config --quiet` i `up --build --detach --wait --wait-timeout 180 frontend`
+  z API/migracją/storage-init — OK; migracja `0010` wdrożona, usługi healthy.
+- `PYTHONPATH=. uv run python /tmp/opencode/p5-01-smoke.py` — rzeczywisty MANAGER,
+  PDF i źródłowy DOCX OSP, ponowienie 409, błędny PDF 422, dwa równoległe uploady
+  201/409 i tylko jedna rewizja, HR/ADMIN 404, brak tokenu 401, anonimowy S3 403.
+  Zatrzymanie RustFS daje 503 pobrania i zachowuje listę; ponowny start odtwarza
+  identyczne bajty. Usunięto wyłącznie własną ocenę smoke, metadane i obiekty;
+  wylogowano sesje testowe. Compose pozostaje uruchomiony.
+- Nie uruchamiano przeglądarki ani E2E. Walidacja formatu nie jest skanerem AV;
+  procedura naprawy po przerwaniu procesu jest ręczna. Następny krok: P5-02.
+- Commit: `feat(documents): store private assessment files`.
 
 ### 2026-11-21 — P4-05, wynik i zakończenie oceny C
 

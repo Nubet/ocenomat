@@ -3,6 +3,7 @@ from app.core.config import Settings
 from app.core.database import Base, create_database_engine
 from app.modules.assessments import models as assessments_models  # noqa: F401
 from app.modules.catalog import models as catalog_models  # noqa: F401
+from app.modules.documents import models as documents_models  # noqa: F401
 from app.modules.employees import models as employees_models  # noqa: F401
 from app.modules.users import models as users_models  # noqa: F401
 

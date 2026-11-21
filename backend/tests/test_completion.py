@@ -149,8 +149,9 @@ def test_completion_rechecks_prerequisites(evaluation, missing):
     saved = summary(access, saved["revision"]).json()
     record = access.session.get(Assessment, saved["id"])
     if missing == "criteria":
-        record.criteria[0].required = False
-        record.criteria[0].justification = "Invalid selection"
+        criterion = next(item for item in record.criteria if item.required)
+        criterion.required = False
+        criterion.justification = "Invalid selection"
     elif missing == "conversation":
         record.conversation.confirmed_at = None
     else:

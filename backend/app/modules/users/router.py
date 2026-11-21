@@ -1,9 +1,10 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
@@ -17,9 +18,12 @@ def get_current_user(
     subject: Annotated[UUID, Depends(get_subject)],
     session: Annotated[Session, Depends(get_session)],
 ) -> User:
-    user = session.scalar(
-        select(User).where(User.auth_subject == subject, User.active.is_(True))
-    )
+    try:
+        user = session.scalar(
+            select(User).where(User.auth_subject == subject, User.active.is_(True))
+        )
+    except SQLAlchemyError:
+        raise HTTPException(status_code=503, detail="Database unavailable") from None
     if user is None:
         raise unauthorized()
     return user

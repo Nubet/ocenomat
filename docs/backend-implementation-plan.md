@@ -174,6 +174,20 @@ Retry `complete` w `completed` akceptuje tylko rewizję źródłową lub wynikow
 bez ponownej mutacji/zdarzenia, nadal z kontrolą aktualnego dostępu. Inne rewizje
 zwracają 409. Zamkniętej oceny nie można edytować ani otworzyć do korekty.
 
+Uszczegółowienie DEC-007/010 (2026-11-21, P5-01): prywatne załączniki należą do
+konkretnej oceny, z identyczną autoryzacją autorstwa/przypisania. Upload przesyła
+surowe bajty (bez multipart), bezpośrednio przez API ze strumieniowym limitem
+10 MiB; MIME i rozszerzenie nie zastępują parsera PDF/OOXML. Używamy boto3 oraz
+pypdf do rzeczywistej walidacji PDF, bez ekstrakcji tekstu. Metadane i zdarzenie
+podnoszą rewizję pod wspólną blokadą; `completed` blokuje nowe pliki. Istniejące
+pliki pozostają dostępne po zamknięciu, po aktualnej kontroli dostępu. Odpowiedź
+uploadu zawiera nową rewizję; niepewny rezultat klient rozstrzyga przez list/detail,
+nie powtarza automatycznie z nową rewizją. Nie ma publicznych/presigned URL-i ani
+usuwania/nadpisywania plików. Kompensacja usuwa wyłącznie świeży, niezatwierdzony
+obiekt; przy utracie odpowiedzi COMMIT sprawdzamy metadane i zachowujemy plik,
+gdy wynik transakcji jest nieustalony. Log z samym kluczem umożliwia ręczną naprawę.
+Powiązanie OSP z pracownikiem i ekran dokumentu pozostają w P5-02.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT
