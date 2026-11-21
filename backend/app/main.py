@@ -1,10 +1,16 @@
-from typing import Literal
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Annotated, Literal
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from app.core.config import Settings
+from app.core.database import create_database_engine, get_session
 
 
 class HealthResponse(BaseModel):
@@ -13,7 +19,18 @@ class HealthResponse(BaseModel):
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings if settings is not None else Settings()
-    app = FastAPI(title="Kompas Kompetencji API", version="0.1.0")
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        engine = create_database_engine(settings) if settings.database_url else None
+        app.state.database_engine = engine
+        try:
+            yield
+        finally:
+            if engine is not None:
+                engine.dispose()
+
+    app = FastAPI(title="Kompas Kompetencji API", version="0.1.0", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin).rstrip("/") for origin in settings.cors_origins],
@@ -24,6 +41,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/health", response_model=HealthResponse, tags=["health"])
     def health() -> HealthResponse:
+        return HealthResponse()
+
+    @app.get("/api/v1/health", response_model=HealthResponse, tags=["health"])
+    def readiness(session: Annotated[Session, Depends(get_session)]) -> HealthResponse:
+        try:
+            session.execute(text("SELECT 1"))
+        except SQLAlchemyError:
+            raise HTTPException(
+                status_code=503, detail="Database unavailable"
+            ) from None
         return HealthResponse()
 
     return app
