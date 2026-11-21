@@ -12,6 +12,7 @@ import { ActivityForm } from "./activity-form";
 import { EvaluationForm } from "./evaluation-form";
 import { CompletionForm } from "./completion-form";
 import { DocumentsPanel } from "./documents-panel";
+import { OspAnalysisPanel } from "./osp-analysis-panel";
 import type { AssessmentDocument, JobDescription } from "./document-types";
 import {
   assessmentHref,
@@ -193,9 +194,15 @@ export function ArrangementForm({
                 wybór.
               </Note>
               <p className="mt-5 text-body leading-6 text-muted-foreground">
-                Poniżej dodasz OSP lub wybierzesz jego zapisaną wersję. Automatyczna analiza
-                pozostaje w przygotowaniu. Kryteria dodatkowe wybierasz i uzasadniasz samodzielnie.
+                Poniżej dodasz OSP lub wybierzesz jego zapisaną wersję. Analiza może zaproponować
+                dodatkowe kryteria z cytatami. Wybór i uzasadnienie zapisujesz samodzielnie.
               </p>
+              <OspAnalysisPanel
+                key={`${current.id}:${current.job_description_id}:${current.revision}`}
+                assessmentId={current.id}
+                jobDescriptionId={current.job_description_id ?? null}
+                revision={current.revision}
+              />
               <Button className="mt-6" variant="primary" onClick={() => setStep("criteria")}>
                 Wybierz kryteria <Icon name="chevron-right" size={15} />
               </Button>

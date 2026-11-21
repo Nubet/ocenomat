@@ -347,6 +347,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ai/assessments/{assessment_id}/job-description-analysis": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Job Description Analysis */
+    post: operations["job_description_analysis_api_v1_ai_assessments__assessment_id__job_description_analysis_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/ai/assistant": {
     parameters: {
       query?: never;
@@ -681,6 +698,16 @@ export interface components {
       /** Indicators */
       indicators: components["schemas"]["Indicator"][];
     };
+    /** CriterionName */
+    CriterionName: {
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Name */
+      name: string;
+    };
     /** CriterionSelection */
     CriterionSelection: {
       /**
@@ -891,6 +918,66 @@ export interface components {
        * Format: date-time
        */
       recorded_at: string;
+    };
+    /** OspAnalysis */
+    OspAnalysis: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "recommended" | "insufficient_evidence";
+      /** Assessment Revision */
+      assessment_revision: number;
+      /** Job Description Id */
+      job_description_id: string | null;
+      /** Document Id */
+      document_id?: string | null;
+      /**
+       * Catalog Version Id
+       * Format: uuid
+       */
+      catalog_version_id: string;
+      /** Required */
+      required: components["schemas"]["CriterionName"][];
+      /** Recommendations */
+      recommendations?: components["schemas"]["OspSuggestion"][];
+      /** Limitations */
+      limitations?: string[];
+    };
+    /** OspCitation */
+    OspCitation: {
+      /**
+       * Document Id
+       * Format: uuid
+       */
+      document_id: string;
+      /**
+       * Fragment Id
+       * Format: uuid
+       */
+      fragment_id: string;
+      /** Locator */
+      locator: string;
+      /** Page */
+      page: number | null;
+      /** Quote */
+      quote: string;
+      /** Content Sha256 */
+      content_sha256: string;
+    };
+    /** OspSuggestion */
+    OspSuggestion: {
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Name */
+      name: string;
+      /** Reason */
+      reason: string;
+      /** Evidence */
+      evidence: components["schemas"]["OspCitation"][];
     };
     /** PdfGeneration */
     PdfGeneration: {
@@ -1808,6 +1895,37 @@ export interface operations {
         content: {
           "application/pdf": string;
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  job_description_analysis_api_v1_ai_assessments__assessment_id__job_description_analysis_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OspAnalysis"];
         };
       };
       /** @description Validation Error */

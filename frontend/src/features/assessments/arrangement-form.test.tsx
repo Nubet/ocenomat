@@ -5,6 +5,9 @@ import type { components } from "@/lib/api/schema";
 
 vi.mock("./actions", () => ({ saveArrangements: vi.fn<() => Promise<never>>() }));
 vi.mock("./activity-actions", () => ({ saveActivity: vi.fn<() => Promise<never>>() }));
+vi.mock("@/features/assistant/osp-actions", () => ({
+  analyzeJobDescription: vi.fn<() => Promise<never>>(),
+}));
 import { ArrangementForm } from "./arrangement-form";
 vi.mock("./document-actions", () => ({ saveDocument: vi.fn<() => Promise<never>>() }));
 

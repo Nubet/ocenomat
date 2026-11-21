@@ -6,9 +6,9 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-06 — analiza OSP i rekomendacje (`in_progress`).
-- **Następny krok:** autoryzowany odczyt wybranej wersji OSP, ekstrakcja z locatorami
-  i rekomendacje maksymalnie trzech dodatkowych kryteriów z przypiętego katalogu.
+- **Aktywne zadanie:** P6-07 — zestaw ewaluacyjny i pomiary retrieval (`in_progress`).
+- **Następny krok:** referencyjne pytania z podstawą w oryginałach i oddzielne pomiary
+  wyszukiwania; po odblokowaniu providera rzeczywista jakość odpowiedzi i trzech OSP.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
   nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
@@ -82,8 +82,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | done | `79fa4ce`; FTS/simple, GIN 0015, filtry, deduplikacja i atomowy kontekst. 104 testy OK; live top-5 9/9, trzy odmowy, brak zmian danych. Backend healthy. |
 | P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
 | P6-05 | Integracja istniejącego draweru Next.js | done | Sesyjna Server Action, OpenAPI, jawne tryby/zakres, wynik silnika i chronione pobranie oryginału; precommit i 180 testów OK. Przeglądarka niewykonana. |
-| P6-06 | Analiza OSP i rekomendacje kryteriów | in_progress | Ekstrakcja autoryzowanego OSP i walidacja rekomendacji. |
-| P6-07 | Ewaluacja jakości i demonstracja | pending | — |
+| P6-06 | Analiza OSP i rekomendacje kryteriów | blocked | Kod/API/UI i testy gotowe; 58 testów OSP+asystenta OK, w tym ekstrakcja trzech oryginałów. Do kryterium jakości rekomendacji trzech OSP potrzebne działające generowanie. |
+| P6-07 | Ewaluacja jakości i demonstracja | in_progress | Przygotowanie zestawu i pomiarów, generowanie zablokowane. |
 | P7-01 | Arkusz B | pending | — |
 | P7-02 | Pierwsza ocena | pending | — |
 | P7-03 | Monitoring HR | pending | — |
@@ -223,6 +223,38 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   sesji, input i timeout; helper kontekstu odrzuca demo ID i trasę nowej oceny.
 - Nie wykonywano przeglądarki ani rzeczywistego generowania; P6-07 nadal wymaga
   odblokowania providera i pomiarów jakości. UI nie udaje powodzenia przy awarii.
+
+## P6-06 — implementacja analizy prywatnego OSP
+
+- `POST /api/v1/ai/assessments/{id}/job-description-analysis` pobiera wyłącznie
+  wybraną w ocenie wersję `JobDescription`, po dotychczasowej autoryzacji. Odczyt
+  storage sprawdza checksum. Ponowna kontrola przypisania/rewizji/wyboru OSP przed
+  każdym wywołaniem modelu i po nim; cofnięcie dostępu 404, zmiana kontekstu 409.
+- Reuse ekstraktora DOCX/PDF; zachowane nagłówki, tabele, negacje i locatory,
+  deterministyczne ID fragmentów zależne od dokumentu/wersji ekstraktora/treści.
+  Nie ma fikcyjnych stron DOCX, wspólnego indeksowania prywatnych OSP ani nowej
+  tabeli. Unsupported/scan/pusty lub zbyt duży kontekst odmawia bez obcinania.
+- Obowiązkowe kryteria i walidacja dodatkowych przez istniejące `periodic_criteria`
+  i przypięty katalog. Pydantic: maks. 3; odrzucane duplikaty, obowiązkowe i obce ID,
+  nieistniejące fragmenty i niedosłowne cytaty. Osobny review sprawdza rzeczywisty
+  związek obowiązku z kryterium i wyklucza ocenianie osoby. Nie zmieniamy oceny.
+- Panel na istniejącym kroku analizy pokazuje rekomendacje, uzasadnienia, cytaty,
+  locatory i pobranie oryginału. Nie wybiera ani nie zapisuje kryteriów; przełożony
+  robi to istniejącymi checkboxami i zapisem. Stan analizy resetowany przy zmianie
+  wersji/rewizji. Bez OSP przycisk nieaktywny, brak usługi nie daje mocków.
+- Testy OSP+asystenta: **58 passed, 4,23 s**, w tym autoryzacja przed storage/LLM,
+  cofnięcie przypisania między wywołaniami, zmiana rewizji, brak OSP, fałszywe ID,
+  quote/required/duplicate, brak mutacji i ekstrakcja trzech oryginalnych OSP.
+  Te ostatnie testują wierność struktury/stabilność ID, nie realną jakość modelu.
+- Frontend: `npm run precommit` **188 testów / 26 plików OK**, `npm run build` OK.
+  Backend: Ruff całego app/tests i lockfile OK.
+- Jedna próba rzeczywistej odpowiedzi na publicznym korpusie przez istniejącego
+  providera kończy się kontrolowanym `LLMError(unavailable)`. Nie ujawniano body
+  błędu ani sekretów, nie zmieniano routingu/modelu/polityki danych. Wcześniej
+  zidentyfikowany problem konta 401 nie ma potwierdzonego rozwiązania.
+- P6-06 **blocked**, choć kod i testy implementacyjne gotowe: nie wykonano
+  rzeczywistego generowania i merytorycznej oceny rekomendacji trzech OSP.
+  Niezależnie przygotowujemy ewaluację P6-07; nie deklarujemy ukończenia fazy 6.
 
 ### 2026-11-21 — P6-02, zapis zmian i selektywny import CLI
 

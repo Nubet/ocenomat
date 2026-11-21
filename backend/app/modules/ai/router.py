@@ -1,5 +1,6 @@
 import re
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,15 +8,58 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_session
 from app.integrations.llm.protocol import LLMError
+from app.integrations.storage import StorageUnavailable
+from app.modules.ai.osp import OspAnalysis, analyze_osp
 from app.modules.ai.schemas import AssistantRequest, AssistantResponse
 from app.modules.ai.service import answer_question, refusal
-from app.modules.assessments.router import assessment_detail
+from app.modules.assessments.router import assessment_detail, assessment_http_error
 from app.modules.assessments.schemas import ResultResponse
+from app.modules.assessments.service import AssessmentError
 from app.modules.knowledge.retriever import PostgresKnowledgeRetriever
 from app.modules.users.models import User
 from app.modules.users.router import get_current_user
 
 router = APIRouter(prefix="/api/v1/ai", tags=["ai"])
+
+
+def llm_http_error(error: LLMError) -> HTTPException:
+    status = {"timeout": 504, "rate_limited": 429, "invalid_response": 502}.get(
+        error.code, 503
+    )
+    return HTTPException(
+        status,
+        detail={"code": f"llm_{error.code}"},
+        headers={"Cache-Control": "private, no-store"},
+    )
+
+
+@router.post(
+    "/assessments/{assessment_id}/job-description-analysis", response_model=OspAnalysis
+)
+def job_description_analysis(
+    assessment_id: UUID,
+    request: Request,
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> OspAnalysis:
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return analyze_osp(
+            session,
+            user,
+            assessment_id,
+            request.app.state.object_storage,
+            request.app.state.llm_provider,
+        )
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    except LLMError as error:
+        raise llm_http_error(error) from None
+    except (SQLAlchemyError, StorageUnavailable):
+        raise HTTPException(503, "Job description unavailable") from None
+    except ValueError:
+        raise HTTPException(422, "Job description cannot be analyzed") from None
 
 
 @router.post("/assistant", response_model=AssistantResponse)
@@ -65,14 +109,7 @@ def assistant(
             assessment_detail(data.assessment_id, user, session, response)
         return answer
     except LLMError as error:
-        status = {"timeout": 504, "rate_limited": 429, "invalid_response": 502}.get(
-            error.code, 503
-        )
-        raise HTTPException(
-            status,
-            detail={"code": f"llm_{error.code}"},
-            headers={"Cache-Control": "private, no-store"},
-        ) from None
+        raise llm_http_error(error) from None
     except SQLAlchemyError:
         raise HTTPException(
             503,
