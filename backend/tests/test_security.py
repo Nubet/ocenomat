@@ -119,6 +119,13 @@ def test_jwks_failure_is_closed(verifier, key, monkeypatch):
     assert "simulated" not in error.value.detail
 
 
+def test_empty_jwks_is_unavailable(verifier, key, jwks):
+    jwks[0]["keys"] = []
+    with pytest.raises(HTTPException) as error:
+        verifier.verify(sign(key))
+    assert error.value.status_code == 503
+
+
 def test_rsa_project(monkeypatch):
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     public = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(key.public_key()))

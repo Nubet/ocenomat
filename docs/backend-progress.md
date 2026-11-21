@@ -18,7 +18,10 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
   Supabase, OpenRouter i VPS nie zostały zintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  33 testy Vitest. Backend: 99 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
+  33 testy Vitest. Backend: 100 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
+- **Środowisko lokalne:** Compose działa na portach testowych opisanych w P1-03
+  z ignorowanym `.env.compose-check`. Oddzielny `kompas-postgres-test` został
+  zatrzymany po testach; wznowienie: `docker start kompas-postgres-test`.
 - **Frontend commity:** `5b1375c` (`chore(frontend): add react doctor diagnostics`),
   `c37a8e0` (`perf(frontend): stabilize workspace context value`).
 
@@ -66,6 +69,15 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P2-01, obsługa pustego JWKS
+
+- Pusty lub niepoprawny zestaw kluczy providera zwraca 503 zamiast nieobsłużonego
+  błędu; nie otwiera dostępu. Dodano przypadek regresyjny pustego JWKS.
+- `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest`
+  z testowym PostgreSQL i oryginalnym XLSX — OK, 100 testów, bez skipów.
+- Commit: `fix(auth): handle unusable signing key sets`.
+- Następny krok pozostaje P2-03. Próby z realnym Supabase nadal niewykonane.
 
 ### 2026-11-21 — P2-02 (kod gotowy, integracja live blocked)
 

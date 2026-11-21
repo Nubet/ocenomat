@@ -5,7 +5,12 @@ import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import PyJWKClient
-from jwt.exceptions import PyJWKClientConnectionError, PyJWKClientError
+from jwt.exceptions import (
+    PyJWKClientConnectionError,
+    PyJWKClientError,
+    PyJWKError,
+    PyJWKSetError,
+)
 
 from app.core.config import Settings
 
@@ -54,7 +59,7 @@ class TokenVerifier:
                 options={"require": ["exp", "iat", "iss", "aud", "sub"]},
             )
             return UUID(claims["sub"])
-        except PyJWKClientConnectionError:
+        except (PyJWKClientConnectionError, PyJWKError, PyJWKSetError):
             raise HTTPException(
                 status_code=503, detail="Identity verification unavailable"
             ) from None
