@@ -109,14 +109,38 @@ Result and completion use the API, with no browser-side scoring:
   Summary and evaluation remain mounted across tabs; no localStorage or demo autofill.
 - Completed assessments open on the summary, show the server completion date and lock
   all edits. Retried completion does not duplicate its event or change its timestamp.
-  Completion does not claim the document was signed or delivered; PDF is part of P5.
+  Completion does not claim the document was signed or delivered.
 
 P5-01 adds private attachment upload/list/download endpoints and generated types.
 Upload accepts a raw PDF/DOCX body with a filename and the current assessment
 revision, returning the document metadata and new revision. Downloads are
-authorized binary responses, not public storage URLs. These endpoints are not
-yet mounted in the assessment UI; employee OSP binding and PDF download UI belong
-to P5-02. Do not point a browser directly at RustFS or expose its credentials.
+authorized binary responses, not public storage URLs.
+
+P5-02 mounts `DocumentsPanel` in the position context and `?step=documents`:
+
+- OSP belongs to an employee, independently of an assessment. Upload creates an
+  immutable source version and selects it in the draft assessment atomically.
+  Existing employee versions can be selected until arrangements are confirmed;
+  a newer source does not change historical selections.
+- Attachments remain uploadable until completion. Raw bytes are forwarded by a
+  Server Action; the 10 MiB file limit is checked in the UI, action and API.
+  `serverActions.bodySizeLimit` is 11 MiB to include multipart framing.
+- After completion, `PdfFields` collects missing office/assessor details, the
+  actual period-end date and explicit civil-service status/previous assessment.
+  No signature, delivery or promotion request is manufactured. Part III is
+  omitted only after an explicit no-promotion-request declaration.
+- Generation is idempotent for the completed revision and template version.
+  The first artifact and its generation data are retained; changing details
+  returns 409. Generating a file does not revise or reopen the assessment.
+- Inputs remain controlled; pending actions lock navigation, and uncertain
+  outcomes stop resubmission until the saved file list has been inspected.
+- Same-origin GET route handlers authenticate via the existing server transport,
+  stream attachment responses and pass only download headers with private/no-store.
+  Tokens and RustFS credentials never reach client props or download URLs.
+
+Do not point a browser directly at RustFS. PDF rendering is on the backend;
+the historical DOCX is transcribed as a versioned ReportLab template with an
+embedded Unicode font. Visual comparison with the original is outstanding.
 
 Dashboard, deadlines and HR monitoring still
 contain labelled demo data until P7. Legacy flow components remain as the visual

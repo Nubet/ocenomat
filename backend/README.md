@@ -106,8 +106,72 @@ GET /api/v1/assessments/{id}/documents/{document_id}/download
   sprawdza `documents.object_key`; usuwa tylko obiekt bez metadanych, po zakończeniu
   żądania. Przerwanie procesu między PUT a COMMIT też wymaga takiego porównania.
 
-Nie ma jeszcze ekranu załączników ani usuwania/nadpisywania dokumentów przez API.
-Powiązanie wersji OSP z pracownikiem i generowanie/pobranie PDF C w UI to P5-02.
+Ekran załączników i pobrania jest dostępny w kontekście stanowiska i zakładce
+„Dokumenty i PDF”. Nie ma usuwania ani nadpisywania dokumentów przez API.
+
+## Wersje OSP i PDF arkusza C
+
+Migracje `0011`–`0012` dodają wersje OSP pracownika, jawny wybór w ocenie oraz
+pochodny dokument PDF. OSP ma `documents.assessment_id = null` i właściciela
+przez `job_descriptions.employee_id`; usunięcie procesu nie usuwa źródła pracownika.
+Historyczne załączniki i oceny pozostają zachowane. Downgrade odmawia usunięcia
+metadanych nowych rodzajów dokumentów — nie stosuj go do bazy z tymi danymi.
+
+```text
+POST /api/v1/assessments/{id}/documents?revision=1&filename=OSP.docx&kind=osp
+GET  /api/v1/assessments/{id}/documents/job-descriptions
+PUT  /api/v1/assessments/{id}/documents/job-descriptions/select
+{"revision": 2, "job_description_id": "UUID"}
+GET  /api/v1/assessments/{id}/documents/job-descriptions/{description_id}/download
+
+POST /api/v1/assessments/{id}/documents/periodic-pdf
+{"revision": 15, "office_name": "Urząd testowy", "assessor_department": "Wydział",
+ "assessor_position": "Naczelnik", "period_end": "2026-11-21",
+ "civil_service_status": "employee", "previous_assessment": null,
+ "no_promotion_request": true}
+```
+
+- Upload `kind=osp` jest dozwolony tylko w `draft`. Tworzy wersję pod blokadą
+  pracownika i wiąże ją z oceną w tej samej transakcji co rewizja/zdarzenie.
+  Lista wersji obejmuje źródła tego pracownika, także użyte w innych ocenach.
+  Wybrana wersja nie zmienia się po dodaniu nowszego OSP. Zmiana wyboru po
+  potwierdzeniu ustaleń daje 409. Pozostałe pliki mają `kind=attachment`.
+- OSP można jawnie zaimportować bez tworzenia oceny, korzystając z konfiguracji
+  bazy i RustFS oraz tożsamości aktywnego, przypisanego MANAGER:
+
+  ```sh
+  uv run python -m app.modules.documents.import_osp /path/to/OSP.docx \
+    --employee-id EMPLOYEE_UUID --author-subject SUPABASE_USER_UUID
+  ```
+
+  Identyczny ostatni plik (nazwa i SHA-256) zwraca tę samą wersję. Import używa
+  walidacji i kompensacji storage; nie wybiera OSP w istniejących ocenach.
+- Generowanie wymaga aktualnej rewizji `completed`, kompletnego wyniku i decyzji.
+  Zatwierdzone nazwy kryteriów i dane pracownika pochodzą z przypiętych snapshotów.
+  Nazwa oceniającego pochodzi z jego profilu; brakujące dane wprowadza oceniający.
+  `period_end` oznacza rzeczywistą datę „do”, od daty otwarcia okresu do dzisiaj,
+  nie planowany termin oceny. Status `official` pozwala jawnie podać poprzednią
+  ocenę: `{"outcome":"positive","level":3,"assessed_on":"2025-01-10"}`;
+  `null` oznacza zadeklarowany brak poprzedniej oceny. Dla `employee` musi być `null`.
+- ReportLab odwzorowuje części I–II rzeczywistego źródła C z 2016 r.; wersja
+  szablonu i SHA-256 źródła są utrwalone. Zgodnie z przypisem 18 część III nie
+  jest drukowana po jawnej deklaracji braku wniosku o kolejny stopień służbowy.
+  Przygotowanie wniosku nie jest obsługiwane. Podpisy i potwierdzenie odbioru są
+  puste; wygenerowanie PDF nie stanowi podpisania ani doręczenia.
+- PDF zawiera tylko zatwierdzone oceny i utrwalony wynik, w tym negatywny przy
+  ocenie 1 mimo wysokiej średniej. Nie zawiera notatek wskaźników ani obserwacji.
+  Tekst jest escapowany, długie uzasadnienia przenoszą się między stronami.
+- Compose instaluje DejaVu Sans; font jest osadzany wraz z mapą Unicode.
+  Poza Compose zainstaluj font lub ustaw `KOMPAS_PDF_FONT_PATH` na lokalny TTF
+  obsługujący polskie znaki. Brak fontu → 503, nieobsługiwany znak → 422.
+- Unikalność `(assessment_id, assessment_revision, template_version)` i blokada
+  serializują generowanie. Identyczne ponowienie zwraca istniejący dokument;
+  zmiana danych dla wygenerowanego artefaktu daje 409. Nie zmienia się status,
+  rewizja ani zdarzenia zakończonej oceny. Dane generowania pozostają prywatne.
+  Download używa istniejącego autoryzowanego endpointu i kontroli checksum.
+- Testy obejmują tekst, znaki, font, warianty wyniku i dostęp. Porównania wyglądu
+  PDF z oryginalnym DOCX nie wykonano; źródło historyczne wymaga osobnej
+  weryfikacji aktualności przed użyciem formalnym.
 
 ## Tożsamość i pierwszy administrator
 

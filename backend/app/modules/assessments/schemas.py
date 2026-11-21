@@ -31,6 +31,7 @@ class AssessmentResponse(BaseModel):
     employee_id: UUID
     assessor_id: UUID
     catalog_version_id: UUID
+    job_description_id: UUID | None
     employee_snapshot: EmployeeResponse
     kind: Literal["periodic"]
     form: Literal["C"]

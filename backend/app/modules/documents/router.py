@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 from urllib.parse import quote
 from uuid import UUID
 
@@ -10,10 +10,19 @@ from starlette.concurrency import run_in_threadpool
 from app.core.database import get_session
 from app.integrations.storage import StorageUnavailable
 from app.modules.assessments.router import assessment_http_error
+from app.modules.assessments.schemas import AssessmentResponse
 from app.modules.assessments.service import AssessmentError
 from app.modules.documents import service
-from app.modules.documents.models import Document
-from app.modules.documents.schemas import DocumentResponse, DocumentUploadResponse
+from app.modules.documents.generation import generate_periodic_pdf
+from app.modules.documents.models import Document, JobDescription
+from app.modules.documents.pdf import PdfUnavailable
+from app.modules.documents.schemas import (
+    DocumentResponse,
+    DocumentUploadResponse,
+    JobDescriptionResponse,
+    JobDescriptionSelection,
+    PdfGeneration,
+)
 from app.modules.documents.validation import (
     DOCX_TYPE,
     MAX_FILE_SIZE,
@@ -55,6 +64,7 @@ async def upload(
     filename: Annotated[str, Query(min_length=1, max_length=255)],
     user: Annotated[User, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_session)],
+    kind: Literal["attachment", "osp"] = "attachment",
 ) -> DocumentUploadResponse:
     try:
         assessment = await run_in_threadpool(
@@ -79,6 +89,7 @@ async def upload(
             request.headers.get("content-type", ""),
             bytes(content),
             storage,
+            kind=kind,
         )
         response.headers["Cache-Control"] = "private, no-store"
         return result
@@ -111,6 +122,104 @@ def documents(
     return result
 
 
+@router.get("/job-descriptions", response_model=list[JobDescriptionResponse])
+def job_descriptions(
+    assessment_id: UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> list[JobDescription]:
+    try:
+        result = service.list_job_descriptions(session, user, assessment_id)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    except SQLAlchemyError:
+        raise HTTPException(503, "Document metadata unavailable") from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.put("/job-descriptions/select", response_model=AssessmentResponse)
+def select_description(
+    assessment_id: UUID,
+    data: JobDescriptionSelection,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+):
+    try:
+        result = service.select_job_description(
+            session, user, assessment_id, data.revision, data.job_description_id
+        )
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    except SQLAlchemyError:
+        raise HTTPException(503, "Document metadata unavailable") from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.post("/periodic-pdf", response_model=DocumentResponse)
+def generate_pdf(
+    assessment_id: UUID,
+    data: PdfGeneration,
+    request: Request,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Document:
+    try:
+        result = generate_periodic_pdf(
+            session,
+            user,
+            assessment_id,
+            data,
+            request.app.state.object_storage,
+            request.app.state.pdf_font_path,
+        )
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    except InvalidDocument as error:
+        raise HTTPException(422, str(error)) from None
+    except (StorageUnavailable, PdfUnavailable, SQLAlchemyError):
+        raise HTTPException(503, "Document generation unavailable") from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.get(
+    "/job-descriptions/{description_id}/download",
+    response_class=Response,
+    responses={
+        200: {
+            "content": {
+                media: {"schema": {"type": "string", "format": "binary"}}
+                for media in (PDF_TYPE, DOCX_TYPE)
+            }
+        }
+    },
+)
+def download_description(
+    assessment_id: UUID,
+    description_id: UUID,
+    request: Request,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> Response:
+    try:
+        assessment = service.authorized_assessment(session, user, assessment_id)
+        description = service.selected_job_description(
+            session, assessment, description_id
+        )
+        document = description.document
+        content = service.read_document(document, request.app.state.object_storage)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    except (StorageUnavailable, SQLAlchemyError):
+        raise HTTPException(503, "Document storage unavailable") from None
+    return file_response(document, content)
+
+
 @router.get(
     "/{document_id}/download",
     response_class=Response,
@@ -141,6 +250,10 @@ def download(
         raise HTTPException(
             status_code=503, detail="Document storage unavailable"
         ) from None
+    return file_response(document, content)
+
+
+def file_response(document: Document, content: bytes) -> Response:
     filename = quote(document.filename, safe="")
     return Response(
         content,

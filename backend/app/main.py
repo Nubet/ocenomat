@@ -46,6 +46,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             else None
         )
         app.state.object_storage = storage
+        app.state.pdf_font_path = settings.pdf_font_path
         try:
             yield
         finally:

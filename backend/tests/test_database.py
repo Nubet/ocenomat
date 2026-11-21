@@ -108,6 +108,8 @@ def test_assessment_migrations_roundtrip_in_isolated_schema(monkeypatch):
             "KOMPAS_DATABASE_URL", isolated_url.render_as_string(hide_password=False)
         )
         command.upgrade(config, "head")
+        command.downgrade(config, "0011")
+        command.upgrade(config, "head")
         command.downgrade(config, "0009")
         command.upgrade(config, "head")
         command.downgrade(config, "0008")

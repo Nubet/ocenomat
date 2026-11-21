@@ -11,6 +11,8 @@ import { saveArrangements } from "./actions";
 import { ActivityForm } from "./activity-form";
 import { EvaluationForm } from "./evaluation-form";
 import { CompletionForm } from "./completion-form";
+import { DocumentsPanel } from "./documents-panel";
+import type { AssessmentDocument, JobDescription } from "./document-types";
 import {
   assessmentHref,
   assessmentStatusLabels,
@@ -26,6 +28,7 @@ const steps = [
   "conversation",
   "evaluation",
   "summary",
+  "documents",
 ] as const;
 const labels = [
   "Stanowisko i kontekst",
@@ -35,6 +38,7 @@ const labels = [
   "Rozmowa oceniająca",
   "Ocena zachowań",
   "Wynik i zakończenie",
+  "Dokumenty i PDF",
 ];
 const confirmations = [
   ["duties_discussed", "Omówiono obowiązki wynikające z opisu stanowiska"],
@@ -46,10 +50,14 @@ export function ArrangementForm({
   assessment,
   catalog,
   requestedStep,
+  files = [],
+  descriptions = [],
 }: {
   assessment: AssessmentRecord;
   catalog: components["schemas"]["CatalogResponse"];
   requestedStep?: string;
+  files?: AssessmentDocument[];
+  descriptions?: JobDescription[];
 }) {
   const [current, setCurrent] = useState(assessment);
   const [step, setStep] = useState(
@@ -185,9 +193,8 @@ export function ArrangementForm({
                 wybór.
               </Note>
               <p className="mt-5 text-body leading-6 text-muted-foreground">
-                Dokument OSP i jego automatyczna analiza nie są jeszcze dostępne w aplikacji.
-                Skorzystaj z dokumentu, który masz w urzędzie. System nie wybierze dodatkowych
-                kryteriów za Ciebie.
+                Poniżej dodasz OSP lub wybierzesz jego zapisaną wersję. Automatyczna analiza
+                pozostaje w przygotowaniu. Kryteria dodatkowe wybierasz i uzasadniasz samodzielnie.
               </p>
               <Button className="mt-6" variant="primary" onClick={() => setStep("criteria")}>
                 Wybierz kryteria <Icon name="chevron-right" size={15} />
@@ -372,6 +379,15 @@ export function ArrangementForm({
           ) : null}
         </fieldset>
       </form>
+      <DocumentsPanel
+        assessment={current}
+        initialFiles={files}
+        initialDescriptions={descriptions}
+        visible={step === "analysis" || step === "documents"}
+        showPdf={step === "documents"}
+        onSaved={setCurrent}
+        onPendingChange={setActivityPending}
+      />
       <ActivityForm
         assessment={current}
         catalog={catalog}

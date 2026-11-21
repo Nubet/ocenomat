@@ -188,6 +188,31 @@ obiekt; przy utracie odpowiedzi COMMIT sprawdzamy metadane i zachowujemy plik,
 gdy wynik transakcji jest nieustalony. Log z samym kluczem umożliwia ręczną naprawę.
 Powiązanie OSP z pracownikiem i ekran dokumentu pozostają w P5-02.
 
+Uszczegółowienie DEC-009/010 (2026-11-21, P5-02): OSP jest niezmiennym źródłem
+pracownika w `job_descriptions`, a nie załącznikiem należącym do jednej oceny.
+Wersje są numerowane pod blokadą pracownika. Ocena wybiera jawnie wersję w `draft`;
+potwierdzenie ustaleń zamyka wybór. Import operatora nie tworzy sztucznej oceny.
+Odczyt źródła przez ocenę wymaga jej autorstwa/przypisania i tego samego pracownika.
+
+PDF jest pochodnym artefaktem zakończonej oceny, nie kolejną edycją jej danych.
+`assessment_transaction` współdzieli blokadę/autoryzację i commit/rollback z
+`edit_assessment`; tylko operacje biznesowe inkrementują rewizję i zapisują event.
+Unikalność rewizji i wersji szablonu zapewnia jeden PDF, również przy równoległych
+żądaniach. Powtórzenie identycznych danych zwraca metadane istniejącego pliku;
+inne dane dla tego artefaktu dają 409. Zachowujemy SHA-256 źródła wzoru, jawne
+uzupełnienia i identyfikator OSP w prywatnych metadanych generowania.
+
+Szablon ReportLab `arkusz-c-2016-4845015f-v1` odwzorowuje części I–II dostarczonego
+DOCX (SHA-256 `4845015f886a56c8715006a5b803e77c6d628eab9aa4989763214c170ba662f0`).
+Imię i nazwisko przedstawiamy razem, bez zgadywania podziału nazwiska. Nazwa urzędu,
+komórka/stanowisko oceniającego, data „do”, status pracownika/urzędnika i poprzednia
+ocena są jawnymi danymi oceniającego; planowany termin nie staje się datą „do”.
+Początek okresu pochodzi z daty rozmowy i przekazania kryteriów w części I.
+Zgodnie z przypisem 18 źródła część III pomijamy po jawnej deklaracji nieskładania
+wniosku o kolejny stopień; generowanie takiego wniosku pozostaje poza tym zakresem.
+Pola podpisów i zapoznania pozostają puste. Font Unicode jest osadzony w PDF;
+brak fontu daje 503, nieobsługiwany znak 422, bez cichej utraty tekstu.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

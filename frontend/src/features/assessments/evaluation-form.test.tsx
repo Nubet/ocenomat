@@ -33,6 +33,7 @@ const assessment: AssessmentRecord = {
   employee_id: "employee",
   assessor_id: "manager",
   catalog_version_id: "catalog",
+  job_description_id: null,
   kind: "periodic",
   form: "C",
   status: "evaluation",

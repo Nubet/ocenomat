@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from typing import Literal
 
 from pydantic import AnyHttpUrl, SecretStr, field_validator
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
     storage_access_key: SecretStr | None = None
     storage_secret_key: SecretStr | None = None
     storage_bucket: str = "kompas-private"
+    pdf_font_path: Path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
 
     @field_validator("storage_endpoint")
     @classmethod

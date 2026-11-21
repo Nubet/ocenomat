@@ -6,12 +6,14 @@ import type { components } from "@/lib/api/schema";
 vi.mock("./actions", () => ({ saveArrangements: vi.fn<() => Promise<never>>() }));
 vi.mock("./activity-actions", () => ({ saveActivity: vi.fn<() => Promise<never>>() }));
 import { ArrangementForm } from "./arrangement-form";
+vi.mock("./document-actions", () => ({ saveDocument: vi.fn<() => Promise<never>>() }));
 
 const assessment: AssessmentRecord = {
   id: "test",
   employee_id: "employee",
   assessor_id: "manager",
   catalog_version_id: "catalog",
+  job_description_id: null,
   kind: "periodic",
   form: "C",
   status: "draft",

@@ -6,12 +6,11 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 5 — prywatne pliki i dokumentacja.
-- **Aktywne zadanie:** brak.
-- **Następny krok:** P5-02 — powiązać wersję przykładowego OSP z pracownikiem,
-  wygenerować PDF z rzeczywistego wzoru C i zatwierdzonych danych oraz podłączyć
-  pobranie w UI; przetestować polskie znaki, wynik negatywny i dostęp do dokumentu.
-- **Ostatnia zakończona praca:** P5-01 — prywatne załączniki oceny, autoryzowane
-  upload/list/download, walidacja PDF/DOCX, metadane i kompensacja błędów.
+- **Aktywne zadanie:** brak — P5-02 zakończone.
+- **Następny krok:** P6-01 — adapter OpenRouter, konfiguracja, limity i baza
+  wiedzy z identyfikatorami źródeł zgodnie z planem.
+- **Ostatnia zakończona praca:** P5-02 — wersjonowane OSP pracownika,
+  generowanie PDF arkusza C i autoryzowane pobieranie w UI.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -32,14 +31,16 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
    pozostaje do podłączenia w P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS przechowuje prywatne pliki oceny; API sprawdza dostęp, format i checksum.
-  UI załączników, wersje OSP i generowanie PDF pozostają w P5-02.
+   UI obsługuje załączniki, wybór wersji OSP i generowanie PDF zakończonej oceny C.
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
   OpenRouter i VPS niezintegrowane.
-- **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  157 testów Vitest. Backend: 351 testów z rzeczywistym PostgreSQL i źródłowym XLSX;
-  osobny live smoke z rzeczywistym RustFS i Supabase.
+- **Kontrole P5-02:** końcowy `npm run precommit` — OK, 170 testów Vitest;
+  wcześniejszy `npm run build` — OK. Końcowe testy dokumentów i migracji:
+  37 passed w 9,17 s; Ruff lint/format OK. Wcześniej pełny backend: 371 passed
+  oraz live RustFS/Supabase/HTTP/SSR. Po ostatnich zmianach nie powtarzano pełnej
+  regresji, builda ani smoke; szczegóły niżej.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
   pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
@@ -69,7 +70,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P4-04 | Wskaźniki i decyzje | done | Migracja 0008, trwałe odpowiedzi/notatki, wersjonowana sugestia i ręczne zatwierdzenie; izolowane unieważnianie decyzji, rewizje i UI. 243 testy backendu, 143 UI, build i live HTTP/SSR OK. |
 | P4-05 | Wynik i zakończenie | done | Migracja 0009, wynik API, trwałe podsumowanie, idempotentne zakończenie i blokada edycji; 270 testów backendu, 157 UI, build i live HTTP/SSR OK. |
 | P5-01 | Prywatny storage | done | Migracja 0010, prywatny bucket, autoryzowane API, walidacja, rewizje i kompensacja/niepewny COMMIT; 351 testów backendu, 157 UI, build i live RustFS/HTTP OK. |
-| P5-02 | OSP i PDF C | pending | — |
+| P5-02 | OSP i PDF C | done | Migracje 0011–0012, wersje OSP pracownika, wybór w draft, PDF zakończonej oceny i UI pobrania; końcowe 37 testów backendu, 170 UI, wcześniejszy build/live HTTP OK. |
 | P6-01 | Provider i baza wiedzy | pending | — |
 | P6-02 | Asystent | pending | — |
 | P6-03 | Analiza OSP | pending | — |
@@ -114,6 +115,57 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P5-02, wersje OSP i PDF arkusza C
+
+- Poprzednią fazę zapisano jako `17e3144 feat(documents): store private assessment files`.
+- Migracje `0011`–`0012`: OSP należy do pracownika niezależnie od procesu,
+  wersje numerowane pod blokadą pracownika; ocena przypina wersję wyłącznie
+  w `draft`. Nowszy plik nie zmienia historycznego wyboru. Import operatora
+  nie tworzy oceny i rozpoznaje ponowienie ostatniego identycznego źródła.
+  Downgrade chroni metadane istniejących nowych rodzajów dokumentów.
+- Przykładowy `OSP DSI WWI 5 radca.docx` zaimportowano dla fikcyjnego Jana
+  jako wersję 1; ponowienie zwróciło tę samą wersję. Źródło zachowano w RustFS.
+- PDF z części I–II dostarczonego wzoru C zawiera zatwierdzone dane i utrwalony
+  wynik; jawnie uzupełnia się brakujące dane urzędu/oceniającego, datę końca
+  okresu i status zatrudnienia. Brak wniosku o kolejny stopień wymaga deklaracji.
+  Podpisy i doręczenie pozostają niewypełnione. Wersja szablonu i hash źródła
+  są utrwalone, a dane generowania nie trafiają do publicznych metadanych.
+- Generowanie pod wspólną blokadą/transakcją nie zmienia rewizji, zdarzeń ani
+  stanu zakończonej oceny. Identyczne ponowienie zwraca istniejący artefakt,
+  inne dane dają 409. Błędy storage/bazy korzystają z kompensacji P5-01.
+- UI: wersje OSP w kontekście stanowiska, zakładka „Dokumenty i PDF”, załączniki,
+  uzupełnienia do PDF i sesyjny streaming download. Aktualizowane są rewizja,
+  lista plików i wersji; konflikt/niepewna odpowiedź blokuje ślepe ponowienie.
+  Kontrakt OpenAPI odświeżono; limit Server Action wynosi 11 MiB dla pliku 10 MiB.
+- Font Unicode jest osadzany w PDF. Docker instaluje DejaVu Sans obsługujący
+  polskie litery; lokalne testy korzystają z Liberation Sans z polskimi glifami.
+  Sprawdzono tekst „Zażółć gęślą jaźń”, mapę Unicode, długie uzasadnienia,
+  escaping oraz odrzucenie znaków nieobsługiwanych zamiast cichej utraty tekstu.
+- Kontrole końcowe:
+  - `uv run ruff check app tests alembic` oraz
+    `uv run ruff format --check app tests alembic` — OK.
+  - Z `KOMPAS_PDF_FONT_PATH`, osobnym `KOMPAS_TEST_DATABASE_URL` i źródłowym
+    `KOMPAS_TEST_CATALOG_XLSX`: `uv run pytest -q tests/test_generated_documents.py tests/test_database.py`
+    — **37 passed w 9,17 s**. Wynik dodatni/ujemny, uprawnienia, obcy OSP,
+    cofnięcie przypisania, błędy zapisu/COMMIT, import i roundtrip migracji OK.
+    Znane ostrzeżenie Starlette/httpx pozostaje.
+  - `npm run api:types -- http://127.0.0.1:33081/openapi.json` oraz
+    `npm run precommit` — format/lint/typy i **170 testów** OK (Vitest 1,25 s).
+- Wcześniej w tej fazie: pełny backend **371 passed**, build frontendu i Compose
+  z migracją do `0012` — OK. Live HTTP/SSR z RustFS i Supabase potwierdził
+  import, oba wyniki, współbieżną idempotencję PDF, checksum/polskie znaki,
+  sesyjny download PDF/OSP, HR/ADMIN 404 i anonymous 401. Usunięto własne
+  procesy/obiekty smoke i wylogowano sesje; źródłowy OSP pozostał.
+- Na prośbę użytkownika ograniczamy kosztowne kontrole: podczas rozwoju szybkie
+  testy zmienianej logiki, integracyjne tylko dla dotkniętej granicy. Pełna
+  regresja/build/smoke przy faktycznej potrzebie; nie ponawiamy zaliczonych
+  kontroli bez nowych zmian lub konkretnej wątpliwości. Precommit przed commitem
+  frontendu pozostaje wymagany. Nie dodano kolejnych skryptów smoke.
+- Nie uruchamiano przeglądarki/E2E ani porównania wizualnego PDF z DOCX.
+  Aktualność prawna historycznego źródła wymaga osobnej weryfikacji; brak AV
+  i ręczna procedura naprawy osieroconych obiektów pozostają jak w P5-01.
+- Commit: `feat(documents): generate assessment C PDFs`.
 
 ### 2026-11-21 — P5-01, prywatne pliki oceny
 

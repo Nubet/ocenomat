@@ -77,7 +77,7 @@ const questions = [
   ],
   [
     "Skąd pochodzą kryteria i co jest jeszcze w przygotowaniu?",
-    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. W zakładce „Wynik i zakończenie” sprawdzisz wynik zatwierdzonych ocen, zapiszesz wnioski rozwojowe i zakończysz proces. Wynik negatywny wymaga uzasadnienia. Po zakończeniu dane są tylko do odczytu; ten zapis nie oznacza podpisania ani doręczenia dokumentu. Dokumenty, analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
+    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. W zakładce „Wynik i zakończenie” sprawdzisz wynik zatwierdzonych ocen, zapiszesz wnioski rozwojowe i zakończysz proces. Wynik negatywny wymaga uzasadnienia. OSP dodasz lub wybierzesz w kontekście stanowiska przed potwierdzeniem ustaleń. Załączniki PDF/DOCX mogą mieć do 10 MiB. Po zakończeniu w zakładce „Dokumenty i PDF” uzupełnisz dane urzędu i oceniającego oraz wygenerujesz arkusz C z zatwierdzonych ocen. Dokument nie jest podpisany ani doręczony. Wniosek o kolejny stopień służbowy wymaga odrębnego przygotowania. Analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
   ],
 ];
 

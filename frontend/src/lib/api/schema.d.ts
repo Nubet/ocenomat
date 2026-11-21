@@ -262,6 +262,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/documents/job-descriptions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Job Descriptions */
+    get: operations["job_descriptions_api_v1_assessments__assessment_id__documents_job_descriptions_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/documents/job-descriptions/select": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Select Description */
+    put: operations["select_description_api_v1_assessments__assessment_id__documents_job_descriptions_select_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/documents/periodic-pdf": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Generate Pdf */
+    post: operations["generate_pdf_api_v1_assessments__assessment_id__documents_periodic_pdf_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/documents/job-descriptions/{description_id}/download": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Download Description */
+    get: operations["download_description_api_v1_assessments__assessment_id__documents_job_descriptions__description_id__download_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/assessments/{assessment_id}/documents/{document_id}/download": {
     parameters: {
       query?: never;
@@ -369,6 +437,8 @@ export interface components {
        * Format: uuid
        */
       catalog_version_id: string;
+      /** Job Description Id */
+      job_description_id: string | null;
       employee_snapshot: components["schemas"]["EmployeeResponse"];
       /**
        * Kind
@@ -538,16 +608,17 @@ export interface components {
        * Format: uuid
        */
       id: string;
-      /**
-       * Assessment Id
-       * Format: uuid
-       */
-      assessment_id: string;
+      /** Assessment Id */
+      assessment_id: string | null;
       /**
        * Kind
-       * @constant
+       * @enum {string}
        */
-      kind: "attachment";
+      kind: "attachment" | "osp" | "periodic_pdf";
+      /** Template Version */
+      template_version: string | null;
+      /** Assessment Revision */
+      assessment_revision: number | null;
       /** Filename */
       filename: string;
       /** Media Type */
@@ -626,6 +697,32 @@ export interface components {
       /** Note */
       note: string;
     };
+    /** JobDescriptionResponse */
+    JobDescriptionResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Employee Id
+       * Format: uuid
+       */
+      employee_id: string;
+      /** Version */
+      version: number;
+      document: components["schemas"]["DocumentResponse"];
+    };
+    /** JobDescriptionSelection */
+    JobDescriptionSelection: {
+      /** Revision */
+      revision: number;
+      /**
+       * Job Description Id
+       * Format: uuid
+       */
+      job_description_id: string;
+    };
     /** Level */
     Level: {
       /** Level */
@@ -682,11 +779,56 @@ export interface components {
        */
       recorded_at: string;
     };
+    /** PdfGeneration */
+    PdfGeneration: {
+      /** Revision */
+      revision: number;
+      /** Office Name */
+      office_name: string;
+      /** Assessor Department */
+      assessor_department: string;
+      /** Assessor Position */
+      assessor_position: string;
+      /**
+       * Period End
+       * Format: date
+       */
+      period_end: string;
+      /**
+       * Civil Service Status
+       * @enum {string}
+       */
+      civil_service_status: "employee" | "official";
+      previous_assessment: components["schemas"]["PreviousAssessment"] | null;
+      /**
+       * No Promotion Request
+       * @constant
+       */
+      no_promotion_request: true;
+    };
     /**
      * PositionKind
      * @enum {string}
      */
     PositionKind: "OFFICE_HEAD" | "DIRECT_MANAGER" | "OTHER";
+    /** PreviousAssessment */
+    PreviousAssessment: {
+      /**
+       * Outcome
+       * @enum {string}
+       */
+      outcome: "positive" | "negative";
+      /**
+       * Level
+       * @enum {integer}
+       */
+      level: 1 | 2 | 3 | 4 | 5;
+      /**
+       * Assessed On
+       * Format: date
+       */
+      assessed_on: string;
+    };
     /** RatingConfirm */
     RatingConfirm: {
       /** Revision */
@@ -1363,6 +1505,7 @@ export interface operations {
       query: {
         revision: number;
         filename: string;
+        kind?: "attachment" | "osp";
       };
       header?: never;
       path: {
@@ -1385,6 +1528,140 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["DocumentUploadResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  job_descriptions_api_v1_assessments__assessment_id__documents_job_descriptions_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["JobDescriptionResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  select_description_api_v1_assessments__assessment_id__documents_job_descriptions_select_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["JobDescriptionSelection"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  generate_pdf_api_v1_assessments__assessment_id__documents_periodic_pdf_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PdfGeneration"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["DocumentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  download_description_api_v1_assessments__assessment_id__documents_job_descriptions__description_id__download_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+        description_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/pdf": string;
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
         };
       };
       /** @description Validation Error */

@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, Note } from "@/components/ui/card";
 import type { components } from "@/lib/api/schema";
 import { saveActivity } from "./activity-actions";
@@ -225,7 +225,7 @@ export function CompletionForm({
                   ) : null}
                   <p className="mb-4 text-body">
                     Zakończenie zamknie edycję całej oceny. Nie oznacza podpisania ani doręczenia
-                    dokumentu. Przygotowanie dokumentu będzie dostępne w kolejnym etapie.
+                    dokumentu. PDF przygotujesz w zakładce „Dokumenty i PDF” po zakończeniu oceny.
                   </p>
                   <Button
                     className="mt-5"
@@ -241,10 +241,15 @@ export function CompletionForm({
               </fieldset>
             </form>
             {summary?.completed_at ? (
-              <p className="mt-5 text-body text-success">
-                Ocena zakończona: {completedAtFormatter.format(new Date(summary.completed_at))}.
-                Dane są tylko do odczytu.
-              </p>
+              <div className="mt-5 space-y-4">
+                <p className="mt-5 text-body text-success">
+                  Ocena zakończona: {completedAtFormatter.format(new Date(summary.completed_at))}.
+                  Dane są tylko do odczytu.
+                </p>
+                <ButtonLink href={`${assessmentHref(assessment.id)}?step=documents`}>
+                  Przygotuj lub pobierz arkusz C
+                </ButtonLink>
+              </div>
             ) : null}
           </Card>
         </>

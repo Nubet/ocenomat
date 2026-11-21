@@ -146,16 +146,8 @@ def create_assessment(
 
 
 @contextmanager
-def edit_assessment(
-    session: Session,
-    user: User,
-    assessment_id: UUID,
-    revision: int,
-    event: str,
-    *,
-    allowed_status: AssessmentStatus = AssessmentStatus.DRAFT,
-    occurred_on: date | None = None,
-    replay_status: AssessmentStatus | None = None,
+def assessment_transaction(
+    session: Session, user: User, assessment_id: UUID
 ) -> Iterator[Assessment]:
     try:
         assessment = session.scalar(
@@ -171,12 +163,32 @@ def edit_assessment(
         )
         if assessment is None:
             raise AssessmentError("not_found", "Assessment not found")
+        yield assessment
+        session.flush()
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+
+
+@contextmanager
+def edit_assessment(
+    session: Session,
+    user: User,
+    assessment_id: UUID,
+    revision: int,
+    event: str,
+    *,
+    allowed_status: AssessmentStatus = AssessmentStatus.DRAFT,
+    occurred_on: date | None = None,
+    replay_status: AssessmentStatus | None = None,
+) -> Iterator[Assessment]:
+    with assessment_transaction(session, user, assessment_id) as assessment:
         if assessment.status == replay_status and revision in (
             assessment.revision - 1,
             assessment.revision,
         ):
             yield assessment
-            session.commit()
             return
         if assessment.revision != revision or assessment.status != allowed_status:
             raise AssessmentError(
@@ -198,11 +210,6 @@ def edit_assessment(
                 occurred_on=occurred_on,
             )
         )
-        session.flush()
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
 
 
 def save_criteria(

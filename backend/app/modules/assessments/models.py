@@ -45,6 +45,11 @@ class Assessment(Base):
     employee_id: Mapped[UUID] = mapped_column(ForeignKey("employees.id"), index=True)
     assessor_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
     catalog_version_id: Mapped[UUID] = mapped_column(ForeignKey("catalog_versions.id"))
+    job_description_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "job_descriptions.id", name="fk_assessment_job_description", use_alter=True
+        )
+    )
     employee_snapshot: Mapped[dict] = mapped_column(JSONB)
     kind: Mapped[str] = mapped_column(String(20))
     form: Mapped[str] = mapped_column(String(1))

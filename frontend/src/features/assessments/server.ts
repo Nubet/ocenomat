@@ -5,6 +5,19 @@ import { notFound } from "next/navigation";
 import { apiRequest } from "@/lib/api/server";
 import type { AssessmentRecord } from "./types";
 import type { components } from "@/lib/api/schema";
+import type { AssessmentDocument, JobDescription } from "./document-types";
+
+export const getAssessmentDocuments = cache(
+  async (id: string): Promise<{ files: AssessmentDocument[]; descriptions: JobDescription[] }> => {
+    const base = `/api/v1/assessments/${encodeURIComponent(id)}/documents`;
+    const [files, descriptions] = await Promise.all([
+      apiRequest(base),
+      apiRequest(base + "/job-descriptions"),
+    ]);
+    if (!files.ok || !descriptions.ok) throw new Error("Nie można pobrać dokumentów oceny.");
+    return { files: await files.json(), descriptions: await descriptions.json() };
+  },
+);
 
 export const getAssessments = cache(async (employeeId?: string): Promise<AssessmentRecord[]> => {
   const query = employeeId ? `?employee_id=${encodeURIComponent(employeeId)}` : "";
