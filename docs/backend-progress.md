@@ -18,6 +18,18 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   `tsc --noEmit` i `git diff --check` — OK. Dodano testy logiki zapytań, ale
   testów, pełnego precommit, builda ani przeglądarki nie uruchamiano na prośbę
   użytkownika. Następny krok UI: ocena widoku przez użytkownika.
+- **Oceny — porządkowanie UI:** lista ma zakładki Wszystkie/Aktywne/Zakończone
+  z licznikami, wyszukiwanie osoby lub stanowiska bez wymogu polskich znaków,
+  filtry etapu i rodzaju, sortowanie po dacie utworzenia lub osobie oraz strony
+  po 10/20/50 ocen. Stan zapisany w URL; filtrowanie i paginacja w renderowaniu
+  istniejącej autoryzowanej odpowiedzi API. Współdzielone wiersze listy i historii
+  na profilu pokazują avatar, stanowisko, rodzaj/arkusz, datę i etap zamiast UUID.
+  Zachowano role, ograniczenia dostępu, tworzenie oceny i stany pustych danych.
+  Kontrole: celowane `oxfmt --write`, `oxlint --deny-warnings`, `tsc --noEmit`
+  i `git diff --check` — OK. Dodano testy logiki filtrów i paginacji; zgodnie
+  z instrukcją użytkownika testów ani pełnego precommit nie uruchamiano.
+  Nie uruchamiano builda ani przeglądarki. Następny krok UI: ocena widoku
+  przez użytkownika.
 - **Weryfikacja:** pełny backend **622 passed / 9 skipped**;
   Ruff lint/format OK (124 pliki). Frontend: `npm run precommit` — OK,
   **214 testów**; `npm run build` — OK. Testy obejmują 60 procesów, obie ścieżki,
