@@ -209,6 +209,12 @@ def main() -> None:
     parser.add_argument("materials", type=Path)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--reviews", type=Path)
+    parser.add_argument(
+        "--source",
+        action="append",
+        dest="source_ids",
+        help="Import only this source ID; repeat for each source and its parents",
+    )
     args = parser.parse_args()
     manifest = Manifest.model_validate_json(args.manifest.read_text())
     reviews = (
@@ -218,6 +224,13 @@ def main() -> None:
     )
     if {r.source_id for r in reviews} - {s.source_id for s in manifest.sources}:
         raise ValueError("Review refers to a source outside the manifest")
+    if args.source_ids:
+        if set(args.source_ids) - {s.source_id for s in manifest.sources}:
+            parser.error("Unknown source ID in --source")
+        # Validate parent closure before opening storage or writing any source.
+        manifest = Manifest(
+            sources=[s for s in manifest.sources if s.source_id in args.source_ids]
+        )
     settings = Settings()
     engine = create_database_engine(settings)
     storage = ObjectStorage(settings)

@@ -133,6 +133,19 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
 
 ## Wykonane zadania
 
+### 2026-11-21 — P6-02, zapis zmian i selektywny import CLI
+
+- Dotychczasowe zmiany zapisano: `ec1091a` (ekstrakcja/provenance), `cb17381`
+  (częściowe decyzje), `de3c406` (etykiety demo), `ac9ec1c` (audyt i ograniczenia).
+- Ponowna kontrola przed commitami: 70 testów backendu z oryginałami i oddzielnym
+  PostgreSQL, 19,37 s; Ruff lint/format OK. `npm run precommit` OK: format,
+  lint, typecheck i 170 testów UI. Bez przeglądarki.
+- CLI otrzymał powtarzalne `--source`: jawny wybór źródeł, walidacja nieznanych
+  ID i kompletu rodziców przed bazą/storage. Kolejność rodzic → dziecko, bez
+  automatycznego importu pozostałych dokumentów. Trzy testy CLI OK (0,41 s).
+- Trwa przegląd i ograniczony import rozporządzeń; ten wpis nie potwierdza
+  jeszcze zapisu do aplikacyjnej bazy ani zakończenia P6-02.
+
 ### 2026-11-21 — P6-02, kontrolowana ekstrakcja ELI/FAQ i ustawy
 
 - Dodano jawne profile `eli-html-v1`, `kprm-faq-v1`, `statute-2026-590-v1`

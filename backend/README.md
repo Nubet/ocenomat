@@ -304,6 +304,18 @@ uv run python -m app.modules.knowledge.ingestion ../docs/hacknation-materials \
   --reviews /path/to/reviews.json
 ```
 
+Do ograniczonego importu powtarzaj `--source SOURCE_ID` dla każdego wybranego
+źródła, włącznie z jego rodzicami z manifestu. CLI sprawdza nieznane ID i komplet
+rodziców przed otwarciem bazy/storage, a następnie importuje rodziców przed dziećmi.
+Nie dołącza automatycznie pozostałych dokumentów. Bez `--source` zachowuje import
+całego manifestu. Przykład dla jednej reprezentacji HTML i jej PDF:
+
+```sh
+uv run python -m app.modules.knowledge.ingestion ../docs/hacknation-materials \
+  --source periodic-regulation-2016 --source periodic-regulation-2016-html-v1 \
+  --reviews resources/knowledge-reviews.json
+```
+
 `reviews.json` odpowiada `Reviews` w `knowledge/review.py`: dla źródła podaje
 `source_id`, `original_sha256`, `extractor_version`, `reviewed_by`, `reviewed_at`
 (ISO UTC) i listę `fragments` z `locator`, `content_sha256`, `status`, `reason`.
