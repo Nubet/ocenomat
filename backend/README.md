@@ -223,6 +223,30 @@ POST /api/v1/assessments/{id}/documents/periodic-pdf
   PDF z oryginalnym DOCX nie wykonano; źródło historyczne wymaga osobnej
   weryfikacji aktualności przed użyciem formalnym.
 
+## Audyt źródeł wiedzy
+
+Manifest `resources/knowledge-manifest.json` obejmuje materiały merytoryczne,
+bez zadania/regulaminu konkursu, diagramu produktu i powielonego ZIP OSP.
+Oryginały dostarcza operator; nie są częścią obrazu ani repozytorium.
+
+```sh
+uv run python -m app.modules.knowledge.audit ../docs/hacknation-materials \
+  --output /tmp/knowledge-audit.json
+```
+
+Raport zawiera SHA-256 oryginałów, tekst i lokalizacje fragmentów, ostrzeżenia,
+grupy różnic względem pomocniczego Markdown i powody kontroli wysokiego ryzyka.
+Wyświetla maksymalnie 40 grup różnic po 300 znaków, z jawnym znacznikiem ucięcia;
+pełny tekst ekstrakcji pozostaje w raporcie. Nie oznacza automatycznie treści jako
+zatwierdzonej. Similarity słów nie potwierdza zgodności merytorycznej.
+
+PDF: istniejący pypdf zachowuje strony/layout bez nowej zależności PDF. DOCX:
+python-docx zachowuje kolejność akapitów/tabel, deduplikuje scalone komórki;
+XML uzupełnia checkboxy, symbole i przypisy. Automatyczna numeracja, rewizje,
+osadzone obiekty i układ formularzy wymagają przeglądu. XLSX wykorzystuje parser
+katalogu, jego stabilne ID i zakresy komórek. Nie importujemy Markdown zamiast
+oryginału. Aktualność prawna jest osobną weryfikacją.
+
 ## Tożsamość i pierwszy administrator
 
 `KOMPAS_SUPABASE_URL` to HTTPS origin projektu Supabase Cloud (bez `/auth/v1`).

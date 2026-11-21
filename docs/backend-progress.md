@@ -7,8 +7,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
 - **Aktywne zadanie:** P6-02 — inwentaryzacja i weryfikacja oryginałów (`in_progress`).
-- **Następny krok:** manifest źródeł, ekstrakcja i raport różnic wobec Markdown,
-  bez automatycznego zatwierdzania treści. Obowiązuje szczegółowy
+- **Następny krok:** minimalna migracja i idempotentny import zweryfikowanych
+  fragmentów PostgreSQL/RustFS. Manifest i audyt ekstrakcji gotowe. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
 - **Ostatnia zakończona praca:** P6-01 — wymienialny provider LLM, konfiguracja,
   kontrola możliwości i testy bez zewnętrznych generowań; płatny Sonnet 5.5.
@@ -94,6 +94,9 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   darmowego modelu: płatny model jest dozwolony, priorytet skuteczność → czas → cena.
   Ustawiono Sonnet 5.5, bez automatycznej zmiany modelu. Nie deklarujemy zgodności
   tego wyboru z wcześniejszym ograniczeniem konkursowym bez jego wyjaśnienia.
+- Klucz dodany lokalnie przez użytkownika: OpenRouter `/auth/key` → 200,
+  ale `chat/completions` → 401 `User not found.` (tekst i JSON Schema).
+  Brak udanego generowania; bloker konta/dostawcy, bez obchodzenia polityk.
 - Aktualność dostarczonych rozporządzeń i brakująca w materiałach ustawa o służbie
   cywilnej wymagają weryfikacji przed deklarowaniem zgodności formalnej.
 - Materiały w `docs/hacknation-materials/`, `.idea/` i `.opencode/` są obecnie
@@ -123,6 +126,32 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P6-02, manifest i niezależna ekstrakcja
+
+- Manifest 12 oryginałów i 11 jawnych powiązań z pomocniczym Markdown.
+  Na polecenie użytkownika zadanie/regulamin konkursu i diagram produktu są
+  wyłączone z korpusu aplikacji. ZIP nie jest powielony; wykaz ma parent rozporządzenia.
+- pypdf pozostaje jedynym parserem PDF (strony/layout); python-docx 1.2 dodany
+  do DOCX (kolejność, zagnieżdżone tabele, deduplikacja scaleń, checkboxy,
+  symbole i przypisy). Nieodtworzona numeracja i złożone struktury są oznaczane
+  do kontroli. XLSX wykorzystuje istniejący importer i jego UUID, z komórkami.
+- CLI `app.modules.knowledge.audit` tworzy raport SHA/stron/lokalizacji,
+  ostrzeżeń i rozbieżności słów po normalizacji białych znaków. Nie zatwierdza
+  nawet identycznej reprezentacji. Liczby, negacje i nierówności pozostają.
+- Audyt uruchomiono na wszystkich 12 dostarczonych oryginałach; pełny raport
+  lokalnie `/tmp/opencode/knowledge-audit.json`, poza Gitem. Różnice obejmują
+  formatowanie Markdown, układ tabel i sklejenia tekstu PDF; similarity nie
+  jest miarą zgodności merytorycznej. Brak automatycznego approval.
+- Kontrole pierwszej części: Ruff OK; `uv run pytest -q
+  tests/test_knowledge_extraction.py tests/test_catalog.py` — 25 passed,
+  2 skipped (brak testowej bazy/XLSX w tej komendzie), 0,98 s, w tym
+  test niezmiennego bufora XLSX.
+- Realny provider: klucz rozpoznany, generowanie odrzucone 401 `User not found.`;
+  żadnych sekretów/prompts prywatnych w artefaktach. Nie zmieniano modelu.
+- Commit pierwszej części: `feat(knowledge): audit original source extraction`.
+- P6-02 nadal in_progress: następne są migracja/import, jawny przegląd fragmentów
+  i testy PostgreSQL/RustFS. Nie rozpoczęto chatu ani retrievera.
 
 ### 2026-11-21 — P6-01, wymienialny provider LLM
 

@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import io
 from pathlib import Path
 from uuid import uuid5
 from zipfile import ZipFile
@@ -31,13 +32,15 @@ def source_text(value: object) -> str:
     return value
 
 
-def parse_workbook(path: Path) -> list[Criterion]:
-    if path.suffix.lower() != ".xlsx" or path.stat().st_size > 10 * 1024 * 1024:
+def parse_workbook(path: Path, *, content: bytes | None = None) -> list[Criterion]:
+    size = path.stat().st_size if content is None else len(content)
+    if path.suffix.lower() != ".xlsx" or size > 10 * 1024 * 1024:
         raise ValueError("Expected an XLSX file up to 10 MiB")
-    with ZipFile(path) as archive:
+    source = path if content is None else io.BytesIO(content)
+    with ZipFile(source) as archive:
         if sum(info.file_size for info in archive.infolist()) > 40 * 1024 * 1024:
             raise ValueError("Expanded workbook exceeds 40 MiB")
-    workbook = load_workbook(path, read_only=True, data_only=False, keep_links=False)
+    workbook = load_workbook(source, read_only=True, data_only=False, keep_links=False)
     try:
         if len(workbook.worksheets) != 15:
             raise ValueError("Expected summary and 14 competency sheets")

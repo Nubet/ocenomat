@@ -55,6 +55,13 @@ def test_parse_preserves_all_source_text(workbook_path):
     assert criteria == parse_workbook(workbook_path)
 
 
+def test_parse_from_checksum_bound_bytes(workbook_path):
+    content = workbook_path.read_bytes()
+    expected = parse_workbook(workbook_path)
+    workbook_path.unlink()
+    assert parse_workbook(workbook_path, content=content) == expected
+
+
 @pytest.mark.parametrize(
     "cell,value", [("B4", None), ("B4", "=1+1"), ("B3", "Bad level")]
 )

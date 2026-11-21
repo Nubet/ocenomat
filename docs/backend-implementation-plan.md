@@ -422,6 +422,8 @@ To zmienia wcześniejszy wymóg darmowego modelu; zgodności z ograniczeniem
 konkursowym dotyczącym darmowych narzędzi nie deklarujemy bez jego wyjaśnienia.
 
 Original First, Evidence First: manifest wiąże oryginały z pomocniczym Markdown.
+Zmiana zakresu na polecenie użytkownika: treść zadania konkursowego, regulamin
+i diagram produktu są poza korpusem aplikacji i nie są importowane do RAG.
 CLI importuje niezmienne źródła do prywatnego RustFS i lokalizowane fragmenty do
 PostgreSQL. Tylko zatwierdzone fragmenty stanowią podstawę odpowiedzi formalnych;
 aktualność prawna jest weryfikowana niezależnie od wierności ekstrakcji.
@@ -596,7 +598,7 @@ Commit: `feat(ai): add configurable llm provider`.
 ID i jawnych powiązań PDF/DOCX/XLSX → Markdown, SHA-256, typ i wersja źródła.
 Ekstrakcja zachowuje kolejność, strony PDF, strukturalne lokalizacje DOCX,
 tabele/scalenia/checkboxy/przypisy; XLSX korzysta z importera P3, bez drugiego
-katalogu. Diagram jest niezweryfikowaną interpretacją; ZIP nie powiela OSP.
+katalogu. Zadanie/regulamin konkursu i diagram są poza korpusem; ZIP nie powiela OSP.
 Trzystronicowy wykaz kryteriów jest załącznikiem do pełnego rozporządzenia,
 nie niezależną podstawą. Oryginały pozostają niezmienne i dostępne po wdrożeniu.
 Raport ekstrakcji, różnic Markdown i miejsc do ręcznej kontroli. Normalizacja
