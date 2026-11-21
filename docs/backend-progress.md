@@ -6,12 +6,12 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-02 — inwentaryzacja i weryfikacja oryginałów (`in_progress`).
-- **Następny krok:** jawny hash-bound review nowych fragmentów i ograniczony,
-  idempotentny import zweryfikowanego zakresu. Ekstrakcja ELI HTML/FAQ i ustawy
-  z rozdzieleniem obwieszczenia wykonana; kontrola czasowej stosowalności pozostaje
-  osobną decyzją przed zatwierdzeniem aktualnego korpusu. Audyt źródeł zakończony,
-  backend Compose przywrócony, addytywne migracje wdrożone do 0014. Obowiązuje
+- **Aktywne zadanie:** P6-03 — wyszukiwanie wiedzy PostgreSQL (`in_progress`).
+- **Następny krok:** `KnowledgeRetriever` z FTS, filtrowaniem approval/aktualności,
+  rodzaju oceny i zależności kontekstu oraz deduplikacją reprezentacji aktu.
+  P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
+  wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
+  nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0014. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
 - **Ostatnia zakończona praca:** P6-01 — wymienialny provider LLM, konfiguracja,
   kontrola możliwości i testy bez zewnętrznych generowań; płatny Sonnet 5.5.
@@ -77,8 +77,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P5-01 | Prywatny storage | done | Migracja 0010, prywatny bucket, autoryzowane API, walidacja, rewizje i kompensacja/niepewny COMMIT; 351 testów backendu, 157 UI, build i live RustFS/HTTP OK. |
 | P5-02 | OSP i PDF C | done | Migracje 0011–0012, wersje OSP pracownika, wybór w draft, PDF zakończonej oceny i UI pobrania; końcowe 37 testów backendu, 170 UI, wcześniejszy build/live HTTP OK. |
 | P6-01 | Wymienialny provider LLM | done | Kontrakt, adapter, Settings/Compose i dependency injection; 63 celowane testy OK w 0,58 s. `feat(ai): add configurable llm provider` |
-| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | in_progress | Audyt 55 plików, 25 pobrań zgodnych z SHA. Manifest 16 źródeł; ELI 19/18 fragmentów, FAQ 31, ustawa 218; warunki/przypisy i warianty zachowane. 70 testów OK. Bez importu do aplikacji; kolejne są review i ograniczony import. Raport: `official-sources-audit.md`, §9. |
-| P6-03 | Wyszukiwanie wiedzy PostgreSQL | pending | — |
+| P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | done | Ograniczony korpus 4 źródeł/64 fragmentów w PostgreSQL i prywatnym RustFS, 17 indywidualnych approval, 47 needs_review. Hashy/ID/danych chronionych nie zmieniono; retry bez PUT i mutacji. Pełny audyt 16 źródeł lokalnie, reszta niezatwierdzona. |
+| P6-03 | Wyszukiwanie wiedzy PostgreSQL | in_progress | Filtrowanie i wyszukiwanie na ograniczonym korpusie; bez chatu/LLM. |
 | P6-04 | Asystent formalny RAG i cytowania | pending | — |
 | P6-05 | Integracja istniejącego draweru Next.js | pending | — |
 | P6-06 | Analiza OSP i rekomendacje kryteriów | pending | — |
@@ -143,8 +143,25 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
 - CLI otrzymał powtarzalne `--source`: jawny wybór źródeł, walidacja nieznanych
   ID i kompletu rodziców przed bazą/storage. Kolejność rodzic → dziecko, bez
   automatycznego importu pozostałych dokumentów. Trzy testy CLI OK (0,41 s).
-- Trwa przegląd i ograniczony import rozporządzeń; ten wpis nie potwierdza
-  jeszcze zapisu do aplikacyjnej bazy ani zakończenia P6-02.
+- `fe5f611`: selektywny CLI; `5741157`: 10 decyzji wierności pełnych paragrafów
+  ELI HTML (okresowa §§2–5,11; pierwsza §§2,3,6,9,10), z osobnymi uzasadnieniami
+  i hashami. Zachowano siedem decyzji PDF. To nie niezależna opinia prawna.
+- Testy po zmianach: CLI/reviews/importer/ekstrakcja oficjalna **37 passed,
+  9,36 s**; Ruff lint OK, końcowy format OK. Po korekcie formatu testy reviews/CLI
+  **5 passed, 2,26 s**. Znane ostrzeżenie Starlette/httpx bez zmiany zależności.
+- Rzeczywisty CLI uruchomiony z hosta uv, z konfiguracją kontenera przekazaną
+  wyłącznie w pamięci i lokalnymi portami DB/RustFS. Wybrano dwa PDF i dwie
+  reprezentacje HTML, bez importu reszty manifestu. **4 źródła / 64 fragmenty**,
+  **17 approved / 47 needs_review**; całe źródła nadal needs_review.
+- Pierwszy import zapisał cztery obiekty. Kontrola powtórzeń: **0 PUT**, identyczne
+  rekordy źródeł/fragmentów (ID, review, daty), klucze/ETag/rozmiary. Checksum
+  wszystkich czterech oryginałów i istniejącego dokumentu zgodne z DB.
+  Pełne migawki `catalog_versions`, `documents`, `job_descriptions`, `assessments`
+  bez zmian; obiekty spoza `knowledge/` również bez zmian.
+- Lokalny skrypt kontrolny po udanym imporcie miał błąd serializacji SQLAlchemy Row
+  w końcowym wydruku; poprawiono wyłącznie wydruk i powtórzono całą weryfikację.
+  Nie powtórzono PUT ani nie resetowano danych. P6-02 done dla jawnie ograniczonego
+  korpusu, zgodnie z zakresem MVP planu. Kolejny krok: P6-03.
 
 ### 2026-11-21 — P6-02, kontrolowana ekstrakcja ELI/FAQ i ustawy
 
