@@ -1,8 +1,5 @@
 import { criterionNames } from "@/features/assessments/data/competencies";
-import {
-  formType,
-  requiredCriteria,
-} from "@/features/assessments/model/scoring";
+import { formType, requiredCriteria } from "@/features/assessments/model/scoring";
 import type { Employee } from "@/features/assessments/model/types";
 
 export type AssistantMode = "formal" | "conversation";
@@ -33,11 +30,7 @@ export function assistantSuggestions(mode: AssistantMode, context: string) {
   ];
 }
 
-export function assistantReply(
-  question: string,
-  mode: AssistantMode,
-  employee: Employee,
-) {
+export function assistantReply(question: string, mode: AssistantMode, employee: Employee) {
   const query = question.toLocaleLowerCase("pl");
   if (/pierwsz|egzamin|sprawozda/.test(query))
     return {
@@ -47,9 +40,7 @@ export function assistantReply(
     };
   if (/obowiązkow|kryteri/.test(query))
     return {
-      answer: `Arkusz ${formType(employee)}: wymagane kryteria to ${requiredCriteria(
-        employee,
-      )
+      answer: `Arkusz ${formType(employee)}: wymagane kryteria to ${requiredCriteria(employee)
         .map((id) => criterionNames[id])
         .join(
           "; ",

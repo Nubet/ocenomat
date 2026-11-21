@@ -18,15 +18,13 @@ export function FlowFrame({
   children: ReactNode;
 }) {
   const { employee, step, assessment } = useAssessment();
-  const phase = ["setup", "analysis", "criteria", "timing", "saved"].includes(
-    step,
-  )
+  const phase = ["setup", "analysis", "criteria", "timing", "saved"].includes(step)
     ? 0
     : step === "period"
       ? 1
       : 2;
   return (
-    <div className="print-layout mx-auto max-w-flow">
+    <div className="print-layout mx-auto max-w-flow animate-enter">
       <div className="no-print">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <Badge>
@@ -37,9 +35,7 @@ export function FlowFrame({
             <span className="text-subtle-foreground">/</span>
             {employee.name}
           </Badge>
-          <span className="text-caption text-subtle-foreground">
-            Demo v0.2 · zapis lokalny
-          </span>
+          <span className="text-caption text-subtle-foreground">Demo v0.2 · zapis lokalny</span>
         </div>
         <nav
           aria-label="Fazy procesu"
@@ -71,11 +67,7 @@ export function FlowFrame({
             </div>
           ))}
         </nav>
-        <PageHeading
-          eyebrow={eyebrow}
-          title={title}
-          description={description}
-        />
+        <PageHeading eyebrow={eyebrow} title={title} description={description} />
       </div>
       {children}
     </div>
@@ -114,12 +106,7 @@ export function FlowFooter({
         <Icon name="check" size={12} className="mr-1 inline" />
         {note}
       </span>
-      <Button
-        variant="primary"
-        onClick={onNext}
-        disabled={disabled}
-        className="max-compact:flex-1"
-      >
+      <Button variant="primary" onClick={onNext} disabled={disabled} className="max-compact:flex-1">
         {label}
         <Icon name="chevron-right" size={16} />
       </Button>

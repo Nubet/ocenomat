@@ -14,11 +14,7 @@ export function FirstAssessment() {
   const { assessment, employee, update } = useAssessment();
   const router = useRouter();
   const step = assessment.firstStep;
-  const result = firstResult(
-    assessment.firstScores,
-    assessment.firstReport,
-    assessment.firstExam,
-  );
+  const result = firstResult(assessment.firstScores, assessment.firstReport, assessment.firstExam);
   return (
     <div className="mx-auto max-w-flow">
       <PageHeading
@@ -26,8 +22,7 @@ export function FirstAssessment() {
         title="Pierwsza ocena"
         description="Inny formularz, inna skala i cztery łączne warunki oceny pozytywnej."
       />
-      <div
-        role="group"
+      <fieldset
         aria-label="Etapy pierwszej oceny"
         className="mb-6 inline-flex flex-wrap gap-1 rounded-xl border bg-surface-muted p-1"
       >
@@ -42,7 +37,7 @@ export function FirstAssessment() {
             {index + 1}. {label}
           </button>
         ))}
-      </div>
+      </fieldset>
       {step === 0 ? (
         <div className="grid gap-4 lg:grid-cols-[1.1fr_.9fr]">
           <Card className="p-7">
@@ -51,9 +46,7 @@ export function FirstAssessment() {
               <Avatar employee={employee} size={44} />
               <div>
                 <h2 className="text-base font-semibold">{employee.name}</h2>
-                <p className="mt-1 text-label text-muted-foreground">
-                  {employee.role}
-                </p>
+                <p className="mt-1 text-label text-muted-foreground">{employee.role}</p>
               </div>
             </div>
             <label>
@@ -66,8 +59,8 @@ export function FirstAssessment() {
               />
             </label>
             <Note className="mt-5">
-              Rozmowa wstępna co do zasady w ciągu 21 dni. W wybranych
-              przypadkach obowiązują odrębne zasady kwalifikacji.
+              Rozmowa wstępna co do zasady w ciągu 21 dni. W wybranych przypadkach obowiązują
+              odrębne zasady kwalifikacji.
             </Note>
           </Card>
           <Card className="p-7">
@@ -80,13 +73,8 @@ export function FirstAssessment() {
                 "Pięć ocen 3/5/7",
                 "Egzamin, warunki i arkusz",
               ].map((label, index) => (
-                <li
-                  key={label}
-                  className="flex gap-3 border-b py-3 text-body last:border-0"
-                >
-                  <span className="font-semibold text-primary">
-                    {index + 1}.
-                  </span>
+                <li key={label} className="flex gap-3 border-b py-3 text-body last:border-0">
+                  <span className="font-semibold text-primary">{index + 1}.</span>
                   <span>{label}</span>
                 </li>
               ))}
@@ -105,31 +93,22 @@ export function FirstAssessment() {
               "Sposób przeprowadzenia pierwszej oceny",
               "Termin i zakres sprawozdania",
             ].map((label) => (
-              <div
-                key={label}
-                className="flex gap-3 rounded-xl border p-5 text-body"
-              >
-                <Icon
-                  name="check"
-                  size={17}
-                  className="shrink-0 text-primary"
-                />
+              <div key={label} className="flex gap-3 rounded-xl border p-5 text-body">
+                <Icon name="check" size={17} className="shrink-0 text-primary" />
                 {label}
               </div>
             ))}
           </div>
           <Note className="mt-6">
-            Źródło: rozporządzenie PRM z 23.07.2015 r., § 3. Potwierdzenia i
-            podpisy są w rzeczywistym arkuszu odrębnymi czynnościami.
+            Źródło: rozporządzenie PRM z 23.07.2015 r., § 3. Potwierdzenia i podpisy są w
+            rzeczywistym arkuszu odrębnymi czynnościami.
           </Note>
         </Card>
       ) : null}
       {step === 2 ? (
         <Card className="p-6 sm:p-7">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <h2 className="text-[0.9375rem] font-semibold">
-              Pięć elementów oceny
-            </h2>
+            <h2 className="text-[0.9375rem] font-semibold">Pięć elementów oceny</h2>
             <Badge tone="primary">Skala: 3 / 5 / 7</Badge>
           </div>
           {firstNames.map((name, index) => (
@@ -180,9 +159,7 @@ export function FirstAssessment() {
                 <Badge tone={result.positive ? "success" : "danger"}>
                   {result.positive ? "Ocena pozytywna" : "Ocena negatywna"}
                 </Badge>
-                <p className="mt-2 text-label text-muted-foreground">
-                  Średnia z pięciu ocen
-                </p>
+                <p className="mt-2 text-label text-muted-foreground">Średnia z pięciu ocen</p>
               </div>
             </div>
             <ul className="mt-6 space-y-4">
@@ -208,30 +185,24 @@ export function FirstAssessment() {
                   <Icon
                     name={pass ? "check" : "info"}
                     size={16}
-                    className={
-                      pass ? "shrink-0 text-success" : "shrink-0 text-warning"
-                    }
+                    className={pass ? "shrink-0 text-success" : "shrink-0 text-warning"}
                   />
                   <span>
-                    <span className="sr-only">
-                      {pass ? "Spełniono: " : "Nie spełniono: "}
-                    </span>
+                    <span className="sr-only">{pass ? "Spełniono: " : "Nie spełniono: "}</span>
                     {label}
                   </span>
                 </li>
               ))}
             </ul>
             <Note className="mt-6 bg-surface text-caption">
-              Rozporządzenie PRM z 23.07.2015 r., §§ 9–10. Cztery warunki muszą
-              być spełnione jednocześnie.
+              Rozporządzenie PRM z 23.07.2015 r., §§ 9–10. Cztery warunki muszą być spełnione
+              jednocześnie.
             </Note>
           </Card>
           <Card className="p-7">
             <h3 className="mb-5 text-sm font-semibold">Warunki pozapunktowe</h3>
             <label>
-              <span className="field-label">
-                Egzamin ze służby przygotowawczej
-              </span>
+              <span className="field-label">Egzamin ze służby przygotowawczej</span>
               <select
                 className="field"
                 value={assessment.firstExam}
@@ -253,8 +224,7 @@ export function FirstAssessment() {
                 value={assessment.firstReport}
                 onChange={(event) => {
                   const value = event.target.value;
-                  if (value === "yes" || value === "no")
-                    update({ firstReport: value });
+                  if (value === "yes" || value === "no") update({ firstReport: value });
                 }}
               >
                 <option value="yes">Złożone w terminie</option>
@@ -262,17 +232,15 @@ export function FirstAssessment() {
               </select>
             </label>
             <Note className="mt-6">
-              W demie status egzaminu „Nie dotyczy” wybiera użytkownik; nie
-              weryfikujemy tutaj przesłanek zwolnienia.
+              W demie status egzaminu „Nie dotyczy” wybiera użytkownik; nie weryfikujemy tutaj
+              przesłanek zwolnienia.
             </Note>
           </Card>
         </div>
       ) : null}
       <FlowFooter
         onBack={step ? () => update({ firstStep: step - 1 }) : undefined}
-        onNext={() =>
-          step === 3 ? router.push("/") : update({ firstStep: step + 1 })
-        }
+        onNext={() => (step === 3 ? router.push("/") : update({ firstStep: step + 1 }))}
         label={step === 3 ? "Wróć do pulpitu" : "Dalej"}
       />
     </div>

@@ -84,5 +84,6 @@ export interface Assessment {
 
 export interface WorkspaceState {
   theme: "light" | "dark";
+  // shortcut: one active assessment per employee; use assessment IDs when retaining process history.
   assessments: Record<EmployeeId, Assessment>;
 }

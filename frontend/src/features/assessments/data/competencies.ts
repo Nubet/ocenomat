@@ -31,8 +31,7 @@ const baseCompetencies: Competency[] = [
     name: criterionNames.wiedza,
     indicators: [
       {
-        question:
-          "Jak pracownik wykorzystuje posiadaną wiedzę w codziennych zadaniach?",
+        question: "Jak pracownik wykorzystuje posiadaną wiedzę w codziennych zadaniach?",
         descriptions: [
           "Nie stosuje potrzebnej wiedzy mimo wsparcia.",
           "Potrzebuje częstej pomocy przy typowych zadaniach.",
@@ -58,8 +57,7 @@ const baseCompetencies: Competency[] = [
     name: criterionNames.rzetelnosc,
     indicators: [
       {
-        question:
-          "Jak pracownik dba o jakość i poprawność przygotowanych materiałów?",
+        question: "Jak pracownik dba o jakość i poprawność przygotowanych materiałów?",
         descriptions: [
           "Często oddaje pracę z poważnymi błędami.",
           "Wymaga częstych poprawek i dodatkowej kontroli.",
@@ -175,10 +173,7 @@ const additionalQuestions: Partial<Record<CriterionId, string[]>> = {
     "Jak dostrzega zależności między informacjami?",
     "Jak formułuje wnioski?",
   ],
-  kreatywnosc: [
-    "Jak proponuje nowe rozwiązania?",
-    "Jak podchodzi do zadań niestandardowych?",
-  ],
+  kreatywnosc: ["Jak proponuje nowe rozwiązania?", "Jak podchodzi do zadań niestandardowych?"],
   negocjowanie: [
     "Jak przygotowuje argumentację do negocjacji?",
     "Jak dobiera strategie negocjacyjne?",
@@ -187,18 +182,9 @@ const additionalQuestions: Partial<Record<CriterionId, string[]>> = {
     "Jak rozpoznaje potrzeby interesanta?",
     "Jak proponuje rozwiązania odpowiadające potrzebom?",
   ],
-  kryzys: [
-    "Jak rozpoznaje sytuacje kryzysowe?",
-    "Jak podejmuje działania rozwiązujące kryzys?",
-  ],
-  wystapienia: [
-    "Jak nawiązuje kontakt z audytorium?",
-    "Jak zarządza czasem wystąpienia?",
-  ],
-  strategiczne: [
-    "Jak wyznacza cele strategiczne?",
-    "Jak analizuje ryzyka działań strategicznych?",
-  ],
+  kryzys: ["Jak rozpoznaje sytuacje kryzysowe?", "Jak podejmuje działania rozwiązujące kryzys?"],
+  wystapienia: ["Jak nawiązuje kontakt z audytorium?", "Jak zarządza czasem wystąpienia?"],
+  strategiczne: ["Jak wyznacza cele strategiczne?", "Jak analizuje ryzyka działań strategicznych?"],
 };
 
 export const competencies: Competency[] = [

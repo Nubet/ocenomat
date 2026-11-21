@@ -7,16 +7,12 @@ export interface AssessmentContextValue {
   employee: Employee;
   assessment: Assessment;
   step: AssessmentStep;
-  update: (
-    patch: Partial<Assessment> | ((assessment: Assessment) => Assessment),
-  ) => void;
+  update: (patch: Partial<Assessment> | ((assessment: Assessment) => Assessment)) => void;
   go: (step: AssessmentStep) => void;
   notify: (message: string) => void;
 }
 
-export const AssessmentContext = createContext<AssessmentContextValue | null>(
-  null,
-);
+export const AssessmentContext = createContext<AssessmentContextValue | null>(null);
 
 export function useAssessment() {
   const context = useContext(AssessmentContext);

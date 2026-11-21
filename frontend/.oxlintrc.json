@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "nextjs", "jsx-a11y", "import", "vitest", "unicorn", "oxc"],
+  "categories": { "correctness": "error" },
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error"
+  },
+  "settings": {
+    "jsx-a11y": { "components": { "Link": "a", "ButtonLink": "a", "Button": "button" } }
+  },
+  "ignorePatterns": [".next/**", "out/**", "coverage/**", "next-env.d.ts"]
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -85,10 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   Dane demonstracyjne
                 </Badge>
               </span>
-              <Button
-                onClick={openAssistant}
-                aria-label="Otwórz asystenta Kompas"
-              >
+              <Button onClick={openAssistant} aria-label="Otwórz asystenta Kompas">
                 <Icon name="sparkles" size={16} />
                 <span className="hidden compact:inline">Zapytaj Kompas</span>
               </Button>
@@ -108,10 +105,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Sidebar onNavigate={() => setMobileOpen(false)} onSearch={search} />
         </Dialog>
       ) : null}
-      {searchOpen ? (
-        <CommandSearch onClose={() => setSearchOpen(false)} />
-      ) : null}
-      <AssistantDrawer />
+      {searchOpen ? <CommandSearch onClose={() => setSearchOpen(false)} /> : null}
+      <Suspense fallback={null}>
+        <AssistantDrawer />
+      </Suspense>
     </>
   );
 }

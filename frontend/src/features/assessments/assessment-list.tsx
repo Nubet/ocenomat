@@ -34,9 +34,7 @@ export function AssessmentList() {
                 className="flex items-center gap-4 border-b px-6 py-5 last:border-0 hover:bg-surface-muted max-compact:flex-wrap"
               >
                 <span className="min-w-0 flex-1">
-                  <strong className="block text-[0.8125rem] font-semibold">
-                    {employee.name}
-                  </strong>
+                  <strong className="block text-[0.8125rem] font-semibold">{employee.name}</strong>
                   <span className="mt-1 block text-label text-muted-foreground">
                     {employee.role} · Arkusz {formType(employee)}
                   </span>

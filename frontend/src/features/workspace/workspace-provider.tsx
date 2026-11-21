@@ -1,22 +1,8 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useReducer,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  createAssessment,
-  createWorkspace,
-} from "@/features/assessments/model/defaults";
-import type {
-  Assessment,
-  EmployeeId,
-  WorkspaceState,
-} from "@/features/assessments/model/types";
+import { createContext, useContext, useEffect, useReducer, useState, type ReactNode } from "react";
+import { createAssessment, createWorkspace } from "@/features/assessments/model/defaults";
+import type { Assessment, EmployeeId, WorkspaceState } from "@/features/assessments/model/types";
 import { parseWorkspace, serializeWorkspace, storageKey } from "./storage";
 
 type Action =
@@ -107,8 +93,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       dispatch({
         type: "restore",
         state: createWorkspace(),
-        error:
-          "Zapis lokalny jest niedostępny. Zmiany pozostaną tylko w tej sesji.",
+        error: "Zapis lokalny jest niedostępny. Zmiany pozostaną tylko w tej sesji.",
       });
     }
   }, []);
@@ -141,12 +126,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         type: "update",
         id,
         update:
-          typeof update === "function"
-            ? update
-            : (assessment) => ({ ...assessment, ...update }),
+          typeof update === "function" ? update : (assessment) => ({ ...assessment, ...update }),
       }),
-    startAssessment: (id) =>
-      dispatch({ type: "update", id, update: () => createAssessment() }),
+    startAssessment: (id) => dispatch({ type: "update", id, update: () => createAssessment() }),
     toggleTheme: () => dispatch({ type: "theme" }),
     reset: () => {
       dispatch({ type: "reset" });

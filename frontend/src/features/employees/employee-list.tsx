@@ -18,12 +18,8 @@ export function EmployeeList() {
             <Avatar employee={employee} size={46} />
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold">{employee.name}</h2>
-              <p className="mt-1 text-label text-muted-foreground">
-                {employee.role}
-              </p>
-              <p className="mt-1 text-label text-subtle-foreground">
-                {employee.department}
-              </p>
+              <p className="mt-1 text-label text-muted-foreground">{employee.role}</p>
+              <p className="mt-1 text-label text-subtle-foreground">{employee.department}</p>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
                 <Badge tone={employee.id === "alicja" ? "success" : "primary"}>
                   {employee.id === "alicja"

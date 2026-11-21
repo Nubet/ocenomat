@@ -7,13 +7,7 @@ const colors = {
   purple: "bg-avatar-purple text-avatar-purple-foreground",
 };
 
-export function Avatar({
-  employee,
-  size = 37,
-}: {
-  employee: Employee;
-  size?: number;
-}) {
+export function Avatar({ employee, size = 37 }: { employee: Employee; size?: number }) {
   return (
     <span
       aria-hidden="true"

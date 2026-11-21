@@ -1,12 +1,7 @@
 import { Card, Note } from "@/components/ui/card";
 import { RadioChoice } from "@/components/ui/choice";
 import { levels } from "../data/competencies";
-import {
-  activeCompetencies,
-  formatMean,
-  nextUnrated,
-  suggestScore,
-} from "../model/scoring";
+import { activeCompetencies, formatMean, nextUnrated, suggestScore } from "../model/scoring";
 import { useAssessment } from "./assessment-context";
 import { FlowFrame, FlowFooter } from "./flow-frame";
 
@@ -33,11 +28,7 @@ export function Recommendation() {
       ...assessment,
       scores: { ...assessment.scores, [competency.id]: chosen },
     };
-    const next = nextUnrated(
-      employee,
-      nextAssessment,
-      list.indexOf(competency),
-    );
+    const next = nextUnrated(employee, nextAssessment, list.indexOf(competency));
     update({
       scores: nextAssessment.scores,
       competencyIndex: next >= 0 ? next : 0,
@@ -67,21 +58,16 @@ export function Recommendation() {
                   ? "Brak wystarczających obserwacji"
                   : levels.find(({ score }) => score === suggested)?.label}
               </h2>
-              <p className="mt-2 text-label text-muted-foreground">
-                {competency.name}
-              </p>
+              <p className="mt-2 text-label text-muted-foreground">{competency.name}</p>
             </div>
           </div>
           <Note className="mt-6">
-            <b>Jak to policzono?</b> W demonstracji liczymy średnią z wybranych
-            poziomów ({mean === null ? "brak ocen" : formatMean(mean)}) i
-            wskazujemy najbliższą wartość z 1/3/5/7/9. Pozycje „brak podstaw”
-            pomijamy. Ta agregacja <b>nie jest urzędową regułą</b> i wymaga
-            walidacji.
+            <b>Jak to policzono?</b> W demonstracji liczymy średnią z wybranych poziomów (
+            {mean === null ? "brak ocen" : formatMean(mean)}) i wskazujemy najbliższą wartość z
+            1/3/5/7/9. Pozycje „brak podstaw” pomijamy. Ta agregacja <b>nie jest urzędową regułą</b>{" "}
+            i wymaga walidacji.
           </Note>
-          <h3 className="mt-6 mb-4 text-body font-semibold">
-            Podstawa sugestii
-          </h3>
+          <h3 className="mt-6 mb-4 text-body font-semibold">Podstawa sugestii</h3>
           <div className="space-y-3">
             {competency.indicators.map((indicator, index) => (
               <div key={indicator.question} className="rounded-xl border p-3">

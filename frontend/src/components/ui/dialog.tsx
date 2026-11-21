@@ -22,14 +22,15 @@ export function Dialog({
     const dialog = ref.current;
     const previous = document.activeElement;
     dialog?.showModal();
+    dialog?.querySelector<HTMLInputElement>("input")?.focus();
     return () => {
       dialog?.close();
-      if (previous instanceof HTMLElement && previous.isConnected)
-        previous.focus();
+      if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
     };
   }, []);
 
   return (
+    // oxlint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions -- Native backdrop clicks complement the dialog's Escape handling.
     <dialog
       ref={ref}
       aria-labelledby={titleId}

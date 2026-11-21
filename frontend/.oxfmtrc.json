@@ -1,0 +1,5 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "sortTailwindcss": { "stylesheet": "./src/app/globals.css", "functions": ["buttonClass"] },
+  "ignorePatterns": [".next/**", "out/**", "coverage/**", "package-lock.json", "next-env.d.ts"]
+}

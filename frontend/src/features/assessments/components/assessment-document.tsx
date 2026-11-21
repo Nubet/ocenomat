@@ -30,15 +30,11 @@ export function DocumentPaper({
         <h2 className="text-center text-[1.0625rem] font-bold">
           Arkusz oceny okresowej — {formType(employee)}
         </h2>
-        <p className="mt-2 text-center text-label">
-          Część {part} · przykład wypełnienia
-        </p>
+        <p className="mt-2 text-center text-label">Część {part} · przykład wypełnienia</p>
       </div>
       {part === "I" ? (
         <>
-          <h3 className="mb-3 font-bold">
-            CZĘŚĆ I — Ustalenie kryteriów i terminu
-          </h3>
+          <h3 className="mb-3 font-bold">CZĘŚĆ I — Ustalenie kryteriów i terminu</h3>
           <table>
             <tbody>
               {[
@@ -80,9 +76,7 @@ export function DocumentPaper({
               {result.list.map((competency) => (
                 <tr key={competency.id}>
                   <th scope="row">{competency.name}</th>
-                  <td className="w-18">
-                    {assessment.scores[competency.id] ?? "—"}
-                  </td>
+                  <td className="w-18">{assessment.scores[competency.id] ?? "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -94,11 +88,7 @@ export function DocumentPaper({
                 ["Poziom ogólny", result.complete ? result.level : "W trakcie"],
                 [
                   "Wynik",
-                  !result.complete
-                    ? "Do ustalenia"
-                    : result.positive
-                      ? "Pozytywny"
-                      : "Negatywny",
+                  !result.complete ? "Do ustalenia" : result.positive ? "Pozytywny" : "Negatywny",
                 ],
               ].map(([label, value]) => (
                 <tr key={label}>
@@ -117,23 +107,18 @@ export function DocumentPaper({
         <>
           <h3 className="mb-4 font-bold">CZĘŚĆ III — Przypadki szczególne</h3>
           <p className="border border-document-border p-4 text-label leading-6">
-            Ta część dotyczy określonych przypadków urzędników służby cywilnej
-            (wniosek dotyczący stopnia służbowego). Nie każda osoba oceniana
-            wypełnia część III. W demo pole pozostaje poglądowe.
+            Ta część dotyczy określonych przypadków urzędników służby cywilnej (wniosek dotyczący
+            stopnia służbowego). Nie każda osoba oceniana wypełnia część III. W demo pole pozostaje
+            poglądowe.
           </p>
         </>
       )}
       <div className="mt-12 grid grid-cols-2 gap-8 text-center text-caption">
-        <p className="border-t border-document-border pt-2">
-          Podpis oceniającego
-        </p>
-        <p className="border-t border-document-border pt-2">
-          Potwierdzenie zapoznania
-        </p>
+        <p className="border-t border-document-border pt-2">Podpis oceniającego</p>
+        <p className="border-t border-document-border pt-2">Potwierdzenie zapoznania</p>
       </div>
       <p className="mt-8 text-[0.5625rem] opacity-65">
-        Nie jest urzędowym formularzem B/C; drukowanie służy wyłącznie pokazaniu
-        danych w makiecie.
+        Nie jest urzędowym formularzem B/C; drukowanie służy wyłącznie pokazaniu danych w makiecie.
       </p>
     </article>
   );
@@ -163,8 +148,7 @@ export function AssessmentDocument() {
             </h2>
             <Badge>Nieoficjalny podgląd</Badge>
           </div>
-          <div
-            role="group"
+          <fieldset
             aria-label="Części dokumentu"
             className="no-print mb-5 inline-flex rounded-xl border bg-surface-muted p-1"
           >
@@ -179,18 +163,12 @@ export function AssessmentDocument() {
                 Część {value}
               </button>
             ))}
-          </div>
-          <DocumentPaper
-            employee={employee}
-            assessment={assessment}
-            part={part}
-          />
+          </fieldset>
+          <DocumentPaper employee={employee} assessment={assessment} part={part} />
         </Card>
         <aside className="no-print space-y-4">
           <Card className="p-6">
-            <h2 className="text-[0.8125rem] font-semibold">
-              Formalności i potwierdzenia
-            </h2>
+            <h2 className="text-[0.8125rem] font-semibold">Formalności i potwierdzenia</h2>
             <p className="mt-2 mb-6 text-label leading-5 text-muted-foreground">
               Samo pobranie dokumentu nie zamyka prawnie procesu.
             </p>
@@ -201,9 +179,7 @@ export function AssessmentDocument() {
                   checked={assessment.formal[index]}
                   onChange={(checked) =>
                     update({
-                      formal: assessment.formal.map((value, i) =>
-                        i === index ? checked : value,
-                      ),
+                      formal: assessment.formal.map((value, i) => (i === index ? checked : value)),
                     })
                   }
                 >
@@ -227,8 +203,8 @@ export function AssessmentDocument() {
           </Card>
           {result.complete && !result.positive ? (
             <Note>
-              Wynik negatywny wymaga formalnego uzasadnienia. Tutaj pokazujemy
-              jedynie makietę układu dokumentu.
+              Wynik negatywny wymaga formalnego uzasadnienia. Tutaj pokazujemy jedynie makietę
+              układu dokumentu.
             </Note>
           ) : null}
         </aside>
@@ -236,8 +212,7 @@ export function AssessmentDocument() {
       <FlowFooter
         onBack={() => go("summary")}
         onNext={() => {
-          if (result.complete && assessment.formal.every(Boolean))
-            go("finished");
+          if (result.complete && assessment.formal.every(Boolean)) go("finished");
         }}
         label="Zamknij prezentację procesu"
         disabled={!assessment.formal.every(Boolean) || !result.complete}

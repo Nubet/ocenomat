@@ -54,12 +54,8 @@ export function Deadlines() {
                     <p className="text-caption font-semibold text-primary">
                       {deadline.day} {deadline.month}
                     </p>
-                    <h3 className="mt-2 text-[0.8125rem] font-semibold">
-                      {deadline.title}
-                    </h3>
-                    <p className="mt-1 text-label text-muted-foreground">
-                      {deadline.name}
-                    </p>
+                    <h3 className="mt-2 text-[0.8125rem] font-semibold">{deadline.title}</h3>
+                    <p className="mt-1 text-label text-muted-foreground">{deadline.name}</p>
                   </div>
                   <Badge tone={deadline.tone}>Zaplanowano</Badge>
                 </div>
@@ -70,8 +66,8 @@ export function Deadlines() {
         <Card className="h-fit p-6">
           <h2 className="mb-3 text-body font-semibold">Spokojna organizacja</h2>
           <p className="text-label leading-6 text-muted-foreground">
-            Każda ocena ma swój etap, termin i zapisane ustalenia. W docelowej
-            wersji będą tu też przypomnienia.
+            Każda ocena ma swój etap, termin i zapisane ustalenia. W docelowej wersji będą tu też
+            przypomnienia.
           </p>
         </Card>
       </div>

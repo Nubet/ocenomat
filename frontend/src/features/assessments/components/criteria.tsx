@@ -8,11 +8,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import { criterionNames } from "../data/competencies";
 import { criterionIds, type CriterionId } from "../model/types";
-import {
-  requiredCriteria,
-  suggestedCriteria,
-  formType,
-} from "../model/scoring";
+import { requiredCriteria, suggestedCriteria, formType } from "../model/scoring";
 import { useAssessment } from "./assessment-context";
 import { FlowFrame, FlowFooter } from "./flow-frame";
 
@@ -26,9 +22,7 @@ function useExtraCriteria() {
       return;
     }
     update({
-      extra: selected
-        ? assessment.extra.filter((item) => item !== id)
-        : [...assessment.extra, id],
+      extra: selected ? assessment.extra.filter((item) => item !== id) : [...assessment.extra, id],
       override: null,
     });
   };
@@ -81,16 +75,14 @@ export function PositionAnalysis() {
             </p>
           </div>
           <Note className="mt-5">
-            Opis stanowiska mówi, <b>czego wymaga rola</b>. Nie dowodzi, jak
-            konkretny pracownik wykonywał zadania.
+            Opis stanowiska mówi, <b>czego wymaga rola</b>. Nie dowodzi, jak konkretny pracownik
+            wykonywał zadania.
           </Note>
         </Card>
         <Card className="p-6 sm:p-7">
           <div className="flex items-center gap-2 text-primary">
             <Icon name="sparkles" size={17} />
-            <p className="text-label font-semibold">
-              REKOMENDACJA DODATKOWYCH KRYTERIÓW
-            </p>
+            <p className="text-label font-semibold">REKOMENDACJA DODATKOWYCH KRYTERIÓW</p>
           </div>
           <h2 className="mt-5 text-[1.1875rem] font-semibold tracking-tight">
             {criterionNames[suggestions[0]]}
@@ -101,8 +93,8 @@ export function PositionAnalysis() {
               : "Praca z dokumentami i formułowanie wniosków uzasadniają rozważenie kompetencji analitycznych."}
           </p>
           <Note className="mt-3 bg-surface text-caption">
-            OSP: {employee.osp} · powiązanie koncepcyjne, bez cytatu dosłownego.
-            Decyzję podejmuje przełożony.
+            OSP: {employee.osp} · powiązanie koncepcyjne, bez cytatu dosłownego. Decyzję podejmuje
+            przełożony.
           </Note>
           <div className="mt-7 space-y-2">
             {suggestions.map((id) => (
@@ -173,16 +165,11 @@ export function Criteria() {
             <Badge tone="success">5 wymaganych</Badge>
           </div>
           {required.map((id) => (
-            <div
-              key={id}
-              className="flex items-center gap-3 border-b py-4 last:border-0"
-            >
+            <div key={id} className="flex items-center gap-3 border-b py-4 last:border-0">
               <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-success-muted text-success">
                 <Icon name="lock" size={14} />
               </span>
-              <span className="flex-1 text-body leading-5 font-medium">
-                {criterionNames[id]}
-              </span>
+              <span className="flex-1 text-body leading-5 font-medium">{criterionNames[id]}</span>
               <Icon name="check" size={15} className="text-subtle-foreground" />
             </div>
           ))}
@@ -191,9 +178,7 @@ export function Criteria() {
           <div className="mb-5 flex items-start justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold">Kryteria dodatkowe</h2>
-              <p className="mt-2 text-label text-muted-foreground">
-                Wybierz 0–3 na podstawie OSP.
-              </p>
+              <p className="mt-2 text-label text-muted-foreground">Wybierz 0–3 na podstawie OSP.</p>
             </div>
             <Badge tone="primary">{assessment.extra.length} / 3</Badge>
           </div>
@@ -213,18 +198,15 @@ export function Criteria() {
                     className="size-4 shrink-0"
                   />
                   <span className="flex-1 leading-5">{criterionNames[id]}</span>
-                  {suggestions.includes(id) ? (
-                    <Badge tone="primary">OSP</Badge>
-                  ) : null}
+                  {suggestions.includes(id) ? <Badge tone="primary">OSP</Badge> : null}
                 </label>
               ))}
           </fieldset>
         </Card>
       </div>
       <Note className="mt-4">
-        Źródło reguł: rozporządzenie PRM z 4 kwietnia 2016 r., §§ 2–5. Oficjalny
-        katalog obejmuje 14 kryteriów. Wybór opcjonalnych kryteriów wymaga
-        uzasadnienia obowiązkami z OSP.
+        Źródło reguł: rozporządzenie PRM z 4 kwietnia 2016 r., §§ 2–5. Oficjalny katalog obejmuje 14
+        kryteriów. Wybór opcjonalnych kryteriów wymaga uzasadnienia obowiązkami z OSP.
       </Note>
       <FlowFooter
         onBack={() => go("analysis")}

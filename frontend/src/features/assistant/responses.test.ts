@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test } from "vitest";
 import { employees } from "@/features/assessments/data/employees";
 import { assistantReply, assistantSuggestions } from "./responses";
 
@@ -17,8 +17,7 @@ test("all suggested questions have a deterministic answer and source", () => {
 
 test("manager guidance uses B criteria and unknown questions do not invent a source", () => {
   assert.match(
-    assistantReply("Jakie kryteria są obowiązkowe?", "formal", employees[3])
-      .answer,
+    assistantReply("Jakie kryteria są obowiązkowe?", "formal", employees[3]).answer,
     /Arkusz B.*Zarządzanie ludźmi/,
   );
   assert.match(

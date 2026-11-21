@@ -20,18 +20,11 @@ function member<T>(value: unknown, choices: readonly T[]): value is T {
   return choices.includes(value as T);
 }
 function integer(value: unknown, maximum: number) {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= 0 &&
-    value <= maximum
-  );
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= maximum;
 }
 function confirmations(value: unknown) {
   return (
-    Array.isArray(value) &&
-    value.length === 3 &&
-    value.every((item) => typeof item === "boolean")
+    Array.isArray(value) && value.length === 3 && value.every((item) => typeof item === "boolean")
   );
 }
 
@@ -58,13 +51,10 @@ function isAssessment(value: unknown): value is Assessment {
     record(conversation) &&
     ["agenda", "strengths", "growth"].every((key) => text(conversation[key])) &&
     record(value.notes) &&
-    Object.entries(value.notes).every(
-      ([key, note]) => /^[a-z]+-\d$/.test(key) && text(note),
-    ) &&
+    Object.entries(value.notes).every(([key, note]) => /^[a-z]+-\d$/.test(key) && text(note)) &&
     record(value.scores) &&
     Object.entries(value.scores).every(
-      ([id, score]) =>
-        member(id, criterionIds) && member(score, [1, 3, 5, 7, 9]),
+      ([id, score]) => member(id, criterionIds) && member(score, [1, 3, 5, 7, 9]),
     ) &&
     (value.override === null || member(value.override, [1, 3, 5, 7, 9])) &&
     record(value.answers) &&
@@ -75,9 +65,7 @@ function isAssessment(value: unknown): value is Assessment {
         Object.entries(answers).every(
           ([index, answer]) =>
             /^\d$/.test(index) &&
-            Number(index) <
-              (competencies.find((item) => item.id === id)?.indicators.length ??
-                0) &&
+            Number(index) < (competencies.find((item) => item.id === id)?.indicators.length ?? 0) &&
             member(answer, [-1, 0, 1, 2, 3, 4]),
         ),
     ) &&
@@ -86,10 +74,7 @@ function isAssessment(value: unknown): value is Assessment {
     Array.isArray(value.observations) &&
     value.observations.every(
       (item) =>
-        record(item) &&
-        text(item.date) &&
-        text(item.text) &&
-        member(item.criterion, criterionIds),
+        record(item) && text(item.date) && text(item.text) && member(item.criterion, criterionIds),
     ) &&
     Array.isArray(value.firstScores) &&
     value.firstScores.length === 5 &&
@@ -102,20 +87,16 @@ function isAssessment(value: unknown): value is Assessment {
 export function parseWorkspace(raw: string): WorkspaceState | null {
   try {
     const value: unknown = JSON.parse(raw);
-    if (!record(value) || value.version !== 1 || !record(value.state))
-      return null;
+    if (!record(value) || value.version !== 1 || !record(value.state)) return null;
     const state = value.state;
-    if (!member(state.theme, ["light", "dark"]) || !record(state.assessments))
-      return null;
+    if (!member(state.theme, ["light", "dark"]) || !record(state.assessments)) return null;
     const assessments = state.assessments;
     if (
       !employees.every((employee) => {
         const assessment = assessments[employee.id];
         return (
           isAssessment(assessment) &&
-          assessment.extra.every(
-            (id) => !requiredCriteria(employee).includes(id),
-          )
+          assessment.extra.every((id) => !requiredCriteria(employee).includes(id))
         );
       })
     )

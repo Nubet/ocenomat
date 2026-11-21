@@ -22,19 +22,18 @@ export function Button({
   type = "button",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
-  return (
-    <button
-      type={type}
-      className={buttonClass(variant, className)}
-      {...props}
-    />
-  );
+  return <button type={type} className={buttonClass(variant, className)} {...props} />;
 }
 
 export function ButtonLink({
   variant = "secondary",
   className,
+  children,
   ...props
 }: ComponentProps<typeof Link> & { variant?: Variant }) {
-  return <Link className={buttonClass(variant, className)} {...props} />;
+  return (
+    <Link className={buttonClass(variant, className)} {...props}>
+      {children}
+    </Link>
+  );
 }

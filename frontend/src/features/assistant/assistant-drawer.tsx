@@ -1,29 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Note } from "@/components/ui/card";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { employees, findEmployee } from "@/features/assessments/data/employees";
-import {
-  assistantReply,
-  assistantSuggestions,
-  type AssistantMode,
-} from "./responses";
+import { resolveAssessmentStep } from "@/features/assessments/model/navigation";
+import { assistantReply, assistantSuggestions, type AssistantMode } from "./responses";
 
 export function AssistantDrawer() {
   const { assistantOpen, closeAssistant, state } = useWorkspace();
   const pathname = usePathname();
+  const query = useSearchParams();
   const employee = findEmployee(pathname.split("/")[2] ?? "") ?? employees[0];
   const assessment = state.assessments[employee.id];
+  const step = resolveAssessmentStep(employee, assessment, query.get("step"));
   const [mode, setMode] = useState<AssistantMode>("formal");
   const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState<
-    { question: string; answer: string; source: string }[]
-  >([]);
+  const [messages, setMessages] = useState<{ question: string; answer: string; source: string }[]>(
+    [],
+  );
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,15 +45,11 @@ export function AssistantDrawer() {
       <div className="flex h-full flex-col">
         <div className="border-b bg-surface-muted p-4">
           <p className="mb-3 text-caption text-subtle-foreground">
-            Kontekst:{" "}
-            {pathname.includes("/assessments/")
-              ? employee.name
-              : "Przestrzeń robocza"}{" "}
-            · {assessment.step}
+            Kontekst: {pathname.includes("/assessments/") ? employee.name : "Przestrzeń robocza"} ·{" "}
+            {step}
           </p>
-          <div
+          <fieldset
             className="flex flex-wrap gap-1 rounded-xl border p-1"
-            role="group"
             aria-label="Tryb asystenta"
           >
             {(
@@ -73,19 +68,17 @@ export function AssistantDrawer() {
                 {label}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           <Note className="mb-5">
-            Asystent korzysta z gotowych odpowiedzi. Cytowania wskazują akty
-            źródłowe — nie oznaczają automatycznej weryfikacji pytania.
+            Asystent korzysta z gotowych odpowiedzi. Cytowania wskazują akty źródłowe — nie
+            oznaczają automatycznej weryfikacji pytania.
           </Note>
           <div aria-live="polite" aria-relevant="additions">
             {messages.map((message, index) => (
               <div key={index} className="mb-4">
-                <p className="mb-2 text-body font-semibold">
-                  {message.question}
-                </p>
+                <p className="mb-2 text-body font-semibold">{message.question}</p>
                 <div className="rounded-xl border bg-surface-muted p-4">
                   <p className="text-body leading-6">{message.answer}</p>
                   <div className="mt-3 rounded-lg border bg-surface p-3 text-caption text-muted-foreground">
@@ -98,7 +91,7 @@ export function AssistantDrawer() {
           </div>
           <p className="eyebrow mb-3">Proponowane pytania</p>
           <div className="space-y-2">
-            {assistantSuggestions(mode, assessment.step).map((suggestion) => (
+            {assistantSuggestions(mode, step).map((suggestion) => (
               <button
                 key={suggestion}
                 type="button"

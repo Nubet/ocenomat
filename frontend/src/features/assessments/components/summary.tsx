@@ -34,9 +34,7 @@ export function Summary() {
         <Card className="overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b px-6 py-5">
             <div>
-              <h2 className="text-sm font-semibold">
-                Formalne oceny cząstkowe
-              </h2>
+              <h2 className="text-sm font-semibold">Formalne oceny cząstkowe</h2>
               <p className="mt-1 text-label text-muted-foreground">
                 Pięć obowiązkowych i {assessment.extra.length} dodatkowych.
               </p>
@@ -68,15 +66,11 @@ export function Summary() {
                         </small>
                       ) : null}
                     </td>
-                    <td className="font-semibold">
-                      {assessment.scores[competency.id] ?? "—"}
-                    </td>
+                    <td className="font-semibold">{assessment.scores[competency.id] ?? "—"}</td>
                     <td>
                       <Badge
                         tone={
-                          assessment.scores[competency.id] !== undefined
-                            ? "success"
-                            : "warning"
+                          assessment.scores[competency.id] !== undefined ? "success" : "warning"
                         }
                       >
                         {assessment.scores[competency.id] !== undefined
@@ -107,9 +101,7 @@ export function Summary() {
             </table>
           </div>
           <div className="flex flex-wrap gap-2 border-t px-6 py-4">
-            <Button onClick={() => fill()}>
-              Wypełnij przykładowe oceny (demo)
-            </Button>
+            <Button onClick={() => fill()}>Wypełnij przykładowe oceny (demo)</Button>
             <Button onClick={() => fill(true)}>Sprawdź warunek 1 pkt</Button>
           </div>
         </Card>
@@ -125,15 +117,7 @@ export function Summary() {
               {result.complete ? result.level : "Wynik niekompletny"}
             </p>
             <div className="mt-5 border-t border-white/20 pt-4">
-              <Badge
-                tone={
-                  !result.complete
-                    ? "neutral"
-                    : result.positive
-                      ? "success"
-                      : "danger"
-                }
-              >
+              <Badge tone={!result.complete ? "neutral" : result.positive ? "success" : "danger"}>
                 {!result.complete
                   ? "W trakcie"
                   : result.positive
@@ -154,8 +138,8 @@ export function Summary() {
                     : "Średnia przekracza 4 i żadne kryterium nie ma 1 punktu."}
             </p>
             <Note className="mt-3 bg-surface text-caption">
-              Rozporządzenie PRM z 4.04.2016 r., § 11. Obliczenia bez
-              zaokrąglania przed ustaleniem wyniku.
+              Rozporządzenie PRM z 4.04.2016 r., § 11. Obliczenia bez zaokrąglania przed ustaleniem
+              wyniku.
             </Note>
           </Card>
         </aside>

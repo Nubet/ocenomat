@@ -11,9 +11,7 @@ import { FlowFrame, FlowFooter } from "./flow-frame";
 export function ObservationJournal() {
   const { assessment, employee, update, go, notify } = useAssessment();
   const list = activeCompetencies(employee, assessment.extra);
-  const criterion = list.some(
-    ({ id }) => id === assessment.observationCriterion,
-  )
+  const criterion = list.some(({ id }) => id === assessment.observationCriterion)
     ? assessment.observationCriterion
     : list[0].id;
 
@@ -43,16 +41,12 @@ export function ObservationJournal() {
         <Card className="p-6 sm:p-7">
           <div className="mb-6 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-[0.9375rem] font-semibold">
-                Dziennik obserwacji
-              </h2>
+              <h2 className="text-[0.9375rem] font-semibold">Dziennik obserwacji</h2>
               <p className="mt-2 text-label text-muted-foreground">
                 Przykłady zachowań podczas trwającego okresu oceny.
               </p>
             </div>
-            <Badge tone="primary">
-              {assessment.observations.length} wpis(y)
-            </Badge>
+            <Badge tone="primary">{assessment.observations.length} wpis(y)</Badge>
           </div>
           <div className="space-y-3">
             {assessment.observations.length ? (
@@ -62,9 +56,7 @@ export function ObservationJournal() {
                     <span className="text-caption font-semibold">
                       {criterionNames[observation.criterion]}
                     </span>
-                    <span className="text-caption text-subtle-foreground">
-                      {observation.date}
-                    </span>
+                    <span className="text-caption text-subtle-foreground">{observation.date}</span>
                   </div>
                   <p className="text-body leading-6 whitespace-pre-wrap text-muted-foreground">
                     {observation.text}
@@ -72,9 +64,7 @@ export function ObservationJournal() {
                 </div>
               ))
             ) : (
-              <p className="text-body text-muted-foreground">
-                Nie dodano jeszcze obserwacji.
-              </p>
+              <p className="text-body text-muted-foreground">Nie dodano jeszcze obserwacji.</p>
             )}
           </div>
           <form
@@ -93,9 +83,7 @@ export function ObservationJournal() {
               placeholder="Sytuacja · działanie · rezultat…"
               maxLength={10000}
               value={assessment.observationDraft}
-              onChange={(event) =>
-                update({ observationDraft: event.target.value })
-              }
+              onChange={(event) => update({ observationDraft: event.target.value })}
             />
             <div className="mt-3 flex items-end gap-2 max-compact:flex-wrap">
               <label className="min-w-0 flex-1">
@@ -104,9 +92,7 @@ export function ObservationJournal() {
                   className="field"
                   value={criterion}
                   onChange={(event) => {
-                    const id = criterionIds.find(
-                      (id) => id === event.target.value,
-                    );
+                    const id = criterionIds.find((id) => id === event.target.value);
                     if (id) update({ observationCriterion: id });
                   }}
                 >
@@ -129,8 +115,8 @@ export function ObservationJournal() {
             <p className="eyebrow mb-4">Faza 02 / Okres oceny</p>
             <h2 className="text-lg font-semibold tracking-tight">Praca trwa</h2>
             <p className="mt-3 text-body leading-6 text-muted-foreground">
-              Zbieranie obserwacji jest opcjonalnym wsparciem. Nie zastępuje
-              rozmowy oceniającej ani formalnych ocen cząstkowych.
+              Zbieranie obserwacji jest opcjonalnym wsparciem. Nie zastępuje rozmowy oceniającej ani
+              formalnych ocen cząstkowych.
             </p>
             <dl className="mt-5 space-y-3 text-label">
               {[
@@ -146,27 +132,17 @@ export function ObservationJournal() {
             </dl>
           </Card>
           <Card className="p-6">
-            <h2 className="mb-3 text-label font-semibold">
-              Symulacja do prezentacji
-            </h2>
+            <h2 className="mb-3 text-label font-semibold">Symulacja do prezentacji</h2>
             <p className="mb-5 text-label leading-5 text-muted-foreground">
-              Przejdź do kolejnej fazy tak, jakby ustalony okres oceny już
-              minął.
+              Przejdź do kolejnej fazy tak, jakby ustalony okres oceny już minął.
             </p>
-            <Button
-              variant="primary"
-              className="w-full"
-              onClick={() => go("conversation")}
-            >
+            <Button variant="primary" className="w-full" onClick={() => go("conversation")}>
               Symuluj koniec okresu
             </Button>
           </Card>
         </aside>
       </div>
-      <FlowFooter
-        onNext={() => go("conversation")}
-        label="Przejdź do rozmowy oceniającej"
-      />
+      <FlowFooter onNext={() => go("conversation")} label="Przejdź do rozmowy oceniającej" />
     </FlowFrame>
   );
 }

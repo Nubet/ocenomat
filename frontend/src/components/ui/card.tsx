@@ -1,9 +1,6 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
-export function Card({
-  className = "",
-  ...props
-}: HTMLAttributes<HTMLElement>) {
+export function Card({ className = "", ...props }: HTMLAttributes<HTMLElement>) {
   return (
     <section
       className={`rounded-card border bg-surface shadow-card max-compact:rounded-[0.875rem] ${className}`}
@@ -12,13 +9,7 @@ export function Card({
   );
 }
 
-export function Note({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Note({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
       className={`rounded-xl border bg-surface-muted px-4 py-3 text-label leading-relaxed text-muted-foreground ${className}`}
@@ -40,7 +31,7 @@ export function PageHeading({
   return (
     <div className="mb-8">
       <p className="eyebrow mb-3">{eyebrow}</p>
-      <h1 className="text-[1.75rem] font-semibold tracking-heading sm:text-title">
+      <h1 className="text-[1.75rem] leading-heading font-semibold tracking-heading sm:text-title">
         {title}
       </h1>
       {description ? (

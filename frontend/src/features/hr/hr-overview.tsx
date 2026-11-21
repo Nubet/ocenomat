@@ -30,17 +30,14 @@ export function HrOverview() {
         ].map(([count, label]) => (
           <Card key={label} className="p-5">
             <h2 className="text-label text-muted-foreground">{label}</h2>
-            <p className="mt-4 text-[1.75rem] font-semibold tracking-heading">
-              {count}
-            </p>
+            <p className="mt-4 text-[1.75rem] font-semibold tracking-heading">{count}</p>
           </Card>
         ))}
       </div>
       <Card className="overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5">
           <h2 className="text-sm font-semibold">Rejestr ocen</h2>
-          <div
-            role="group"
+          <fieldset
             aria-label="Filtr procesów HR"
             className="inline-flex rounded-xl border bg-surface-muted p-1"
           >
@@ -58,7 +55,7 @@ export function HrOverview() {
                 {label}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
         <div className="overflow-x-auto">
           <table className="clean-table min-w-[40rem]">
@@ -88,9 +85,7 @@ export function HrOverview() {
                       <td>
                         <Badge tone={status.tone}>{status.label}</Badge>
                       </td>
-                      <td className="text-muted-foreground">
-                        {assessment.dateAssessment}
-                      </td>
+                      <td className="text-muted-foreground">{assessment.dateAssessment}</td>
                       <td>
                         <button
                           type="button"
@@ -122,13 +117,12 @@ export function HrOverview() {
               Termin: {state.assessments[selected.id].dateAssessment}
             </p>
             <p className="text-muted-foreground">
-              Potwierdzenia formalne:{" "}
-              {state.assessments[selected.id].formal.filter(Boolean).length}/3
+              Potwierdzenia formalne: {state.assessments[selected.id].formal.filter(Boolean).length}
+              /3
             </p>
             <p className="text-muted-foreground">
-              W panelu HR dostępne byłyby terminy, status wymaganych czynności
-              oraz historia przypomnień. HR nie zmienia ocen cząstkowych
-              pracownika.
+              W panelu HR dostępne byłyby terminy, status wymaganych czynności oraz historia
+              przypomnień. HR nie zmienia ocen cząstkowych pracownika.
             </p>
             <Button onClick={() => setSelected(null)}>Zamknij</Button>
           </div>

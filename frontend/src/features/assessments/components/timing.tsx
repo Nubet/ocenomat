@@ -51,23 +51,18 @@ export function Timing() {
                 required
                 min={assessment.dateTalk}
                 value={assessment.dateAssessment}
-                onChange={(event) =>
-                  update({ dateAssessment: event.target.value })
-                }
+                onChange={(event) => update({ dateAssessment: event.target.value })}
               />
             </label>
           </div>
           <Note className="mt-6">
-            W przypadku typowego rozpoczęcia oceny przepisy przewidują terminy
-            na ustalenie kryteriów. Dla szczególnych przypadków, w tym
-            poprzedniej oceny negatywnej, obowiązują odrębne reguły. Daty w demo
-            są fikcyjne i wymagają ręcznej weryfikacji.
+            W przypadku typowego rozpoczęcia oceny przepisy przewidują terminy na ustalenie
+            kryteriów. Dla szczególnych przypadków, w tym poprzedniej oceny negatywnej, obowiązują
+            odrębne reguły. Daty w demo są fikcyjne i wymagają ręcznej weryfikacji.
           </Note>
         </Card>
         <Card className="p-6 sm:p-7">
-          <h2 className="mb-2 text-sm font-semibold">
-            Potwierdzenia z rozmowy
-          </h2>
+          <h2 className="mb-2 text-sm font-semibold">Potwierdzenia z rozmowy</h2>
           <p className="mb-6 text-label text-muted-foreground">
             Zaznacz wyłącznie wykonane czynności.
           </p>
@@ -78,9 +73,7 @@ export function Timing() {
                 checked={assessment.agreed[index]}
                 onChange={(checked) =>
                   update({
-                    agreed: assessment.agreed.map((value, i) =>
-                      index === i ? checked : value,
-                    ),
+                    agreed: assessment.agreed.map((value, i) => (index === i ? checked : value)),
                   })
                 }
               >
@@ -119,8 +112,8 @@ export function TimingSaved() {
           Teraz trwa okres oceny
         </h2>
         <p className="mx-auto mt-3 max-w-[28.125rem] text-body leading-6 text-muted-foreground">
-          Przełożona wróci do procesu, aby dokumentować konkretne zdarzenia i
-          zaobserwowane zachowania.
+          Przełożona wróci do procesu, aby dokumentować konkretne zdarzenia i zaobserwowane
+          zachowania.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-2">
           <ButtonLink href="/">Wróć na pulpit</ButtonLink>
@@ -129,8 +122,7 @@ export function TimingSaved() {
           </Button>
         </div>
         <p className="mt-4 text-caption text-subtle-foreground">
-          Na potrzeby prezentacji możesz przejść dalej bez rzeczywistego upływu
-          czasu.
+          Na potrzeby prezentacji możesz przejść dalej bez rzeczywistego upływu czasu.
         </p>
       </Card>
     </FlowFrame>

@@ -83,8 +83,7 @@ export function Conversation() {
                 onClick={() => setSelected(index)}
                 onKeyDown={(event) => {
                   let next = selected;
-                  if (event.key === "ArrowRight")
-                    next = (selected + 1) % tabs.length;
+                  if (event.key === "ArrowRight") next = (selected + 1) % tabs.length;
                   else if (event.key === "ArrowLeft")
                     next = (selected + tabs.length - 1) % tabs.length;
                   else if (event.key === "Home") next = 0;
@@ -108,9 +107,7 @@ export function Conversation() {
           >
             <label className="field-label" htmlFor="conversation-text">
               {tab.label}{" "}
-              <span className="font-normal text-subtle-foreground">
-                · szkic do edycji
-              </span>
+              <span className="font-normal text-subtle-foreground">· szkic do edycji</span>
             </label>
             <textarea
               id="conversation-text"
@@ -128,8 +125,7 @@ export function Conversation() {
             />
             <p className="mt-4 flex items-center gap-2 text-caption text-muted-foreground">
               <Icon name="edit" size={15} />
-              Tekst możesz zmienić przed rozmową. Nic nie zostanie automatycznie
-              zatwierdzone.
+              Tekst możesz zmienić przed rozmową. Nic nie zostanie automatycznie zatwierdzone.
             </p>
           </div>
         </Card>
@@ -145,22 +141,15 @@ export function Conversation() {
                   <span className="grid size-5 shrink-0 place-items-center rounded-md bg-primary-muted text-caption text-primary">
                     {index + 1}
                   </span>
-                  <p className="text-label leading-5 text-muted-foreground">
-                    {prompt}
-                  </p>
+                  <p className="text-label leading-5 text-muted-foreground">{prompt}</p>
                 </li>
               ))}
             </ol>
           </Card>
-          <Button
-            className="w-full justify-start gap-3 p-5! text-primary"
-            onClick={openAssistant}
-          >
+          <Button className="w-full justify-start gap-3 p-5! text-primary" onClick={openAssistant}>
             <Icon name="message" size={19} />
             <span className="flex-1 text-left">
-              <span className="block text-body font-semibold">
-                Zapytaj Kompas
-              </span>
+              <span className="block text-body font-semibold">Zapytaj Kompas</span>
               <span className="mt-1 block text-label font-normal text-muted-foreground">
                 Pytania przed rozmową
               </span>

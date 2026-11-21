@@ -12,10 +12,7 @@ export function BehavioralRating() {
   const { assessment, employee, update, go } = useAssessment();
   const list = activeCompetencies(employee, assessment.extra);
   const competency = list[assessment.competencyIndex] ?? list[0];
-  const index = Math.min(
-    assessment.indicatorIndex,
-    competency.indicators.length - 1,
-  );
+  const index = Math.min(assessment.indicatorIndex, competency.indicators.length - 1);
   const indicator = competency.indicators[index];
   const answer = assessment.answers[competency.id]?.[index];
   const noteKey = `${competency.id}-${index}`;
@@ -46,9 +43,7 @@ export function BehavioralRating() {
               <p className="eyebrow mb-2">
                 Kryterium {list.indexOf(competency) + 1} z {list.length}
               </p>
-              <h2 className="text-lg font-semibold tracking-tight">
-                {competency.name}
-              </h2>
+              <h2 className="text-lg font-semibold tracking-tight">{competency.name}</h2>
             </div>
             <Badge>
               Wskaźnik {index + 1}/{competency.indicators.length}
@@ -62,13 +57,9 @@ export function BehavioralRating() {
               {indicator.question}
             </h3>
             <p className="mb-6 text-label text-muted-foreground">
-              Wybierz najbliższy opis zachowania. Skala punktowa pozostaje
-              oddzielną decyzją.
+              Wybierz najbliższy opis zachowania. Skala punktowa pozostaje oddzielną decyzją.
             </p>
-            <fieldset
-              aria-labelledby="indicator-question"
-              className="space-y-2"
-            >
+            <fieldset aria-labelledby="indicator-question" className="space-y-2">
               {levels.map((level, value) => (
                 <RadioChoice
                   key={level.score}
@@ -98,8 +89,8 @@ export function BehavioralRating() {
               Kompas podpowiada
             </h2>
             <p className="text-label leading-6 text-muted-foreground">
-              Odnieś odpowiedź do konkretnego zdarzenia, nie do ogólnego
-              wrażenia. Brak obserwacji nie oznacza poziomu 1.
+              Odnieś odpowiedź do konkretnego zdarzenia, nie do ogólnego wrażenia. Brak obserwacji
+              nie oznacza poziomu 1.
             </p>
           </Card>
           <Card className="p-5">
@@ -121,28 +112,23 @@ export function BehavioralRating() {
             />
           </Card>
           <Note>
-            Opisy pięciu poziomów są <b>autorskimi przykładami do demo</b> — nie
-            są pełnym tekstem Model_kompetencji.xlsx.
+            Opisy pięciu poziomów są <b>autorskimi przykładami do demo</b> — nie są pełnym tekstem
+            Model_kompetencji.xlsx.
           </Note>
         </aside>
       </div>
       <FlowFooter
-        onBack={() =>
-          index ? update({ indicatorIndex: index - 1 }) : go("conversation")
-        }
+        onBack={() => (index ? update({ indicatorIndex: index - 1 }) : go("conversation"))}
         onNext={() => {
           if (answer === undefined) return;
-          if (index < competency.indicators.length - 1)
-            update({ indicatorIndex: index + 1 });
+          if (index < competency.indicators.length - 1) update({ indicatorIndex: index + 1 });
           else {
             update({ override: null });
             go("recommendation");
           }
         }}
         label={
-          index === competency.indicators.length - 1
-            ? "Pokaż rekomendację"
-            : "Kolejne zachowanie"
+          index === competency.indicators.length - 1 ? "Pokaż rekomendację" : "Kolejne zachowanie"
         }
         disabled={answer === undefined}
       />

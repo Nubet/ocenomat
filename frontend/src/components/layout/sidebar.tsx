@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import { Icon } from "@/components/ui/icon";
-import { Avatar } from "@/components/ui/avatar";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
-import {
-  assessmentHref,
-  findEmployee,
-} from "@/features/assessments/data/employees";
-import { navigation, processNavigation } from "./navigation";
+import { findEmployee } from "@/features/assessments/data/employees";
+import { navigation } from "./navigation";
+import { AssessmentNavigation } from "./assessment-navigation";
 
 export function Sidebar({
   onNavigate,
@@ -22,17 +20,6 @@ export function Sidebar({
   const { state, toggleTheme } = useWorkspace();
   const employee = findEmployee(pathname.split("/")[2] ?? "");
   const assessment = employee ? state.assessments[employee.id] : null;
-  const current =
-    assessment?.step === "recommendation"
-      ? "rating"
-      : assessment?.step === "saved"
-        ? "timing"
-        : assessment?.step === "finished"
-          ? "document"
-          : assessment?.step;
-  const currentIndex = processNavigation.findIndex(
-    ({ step }) => step === current,
-  );
   const linkClass =
     "flex min-h-[2.5625rem] w-full items-center gap-3 rounded-[0.6875rem] border px-3 py-2.5 text-left text-[0.8125rem] font-medium transition-colors";
 
@@ -75,8 +62,7 @@ export function Sidebar({
         <p className="eyebrow mx-3 mb-3 text-caption">Przestrzeń robocza</p>
         <nav aria-label="Sekcje aplikacji" className="space-y-1">
           {navigation.map(({ href, label, icon }) => {
-            const active =
-              href === "/" ? pathname === href : pathname.startsWith(href);
+            const active = href === "/" ? pathname === href : pathname.startsWith(href);
             return (
               <Link
                 key={href}
@@ -92,9 +78,7 @@ export function Sidebar({
                 />
                 <span>{label}</span>
                 {href === "/assessments" ? (
-                  <span className="ml-auto text-caption text-subtle-foreground">
-                    03
-                  </span>
+                  <span className="ml-auto text-caption text-subtle-foreground">03</span>
                 ) : null}
               </Link>
             );
@@ -102,56 +86,9 @@ export function Sidebar({
         </nav>
       </div>
       {employee && assessment && assessment.type === "periodic" ? (
-        <div className="mx-4 mt-6 border-t pt-6 pb-4">
-          <p className="eyebrow mx-3 mb-3 text-caption">Bieżąca ocena</p>
-          <div className="mb-3 flex items-center gap-2 px-2">
-            <Avatar employee={employee} size={29} />
-            <div>
-              <p className="text-label font-semibold">{employee.name}</p>
-              <p className="text-caption text-subtle-foreground">
-                Ocena okresowa
-              </p>
-            </div>
-          </div>
-          <nav aria-label="Etapy oceny" className="space-y-0.5">
-            {processNavigation.map(({ step, label }, index) => {
-              const content = (
-                <>
-                  <span
-                    className={`grid size-6 shrink-0 place-items-center rounded-lg border text-caption font-bold ${index === currentIndex ? "border-primary-border bg-primary-muted text-primary" : index < currentIndex ? "border-transparent bg-success-muted text-success" : "bg-surface-muted"}`}
-                  >
-                    {index < currentIndex ? (
-                      <Icon name="check" size={13} />
-                    ) : (
-                      index + 1
-                    )}
-                  </span>
-                  {label}
-                </>
-              );
-              const className = `flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-label ${index === currentIndex ? "bg-surface font-bold" : "text-muted-foreground"}`;
-              return index <= currentIndex ? (
-                <Link
-                  key={step}
-                  href={assessmentHref(employee.id, step)}
-                  onClick={onNavigate}
-                  className={className}
-                  aria-current={index === currentIndex ? "step" : undefined}
-                >
-                  {content}
-                </Link>
-              ) : (
-                <span
-                  key={step}
-                  aria-disabled="true"
-                  className={`${className} opacity-45`}
-                >
-                  {content}
-                </span>
-              );
-            })}
-          </nav>
-        </div>
+        <Suspense fallback={null}>
+          <AssessmentNavigation employee={employee} onNavigate={onNavigate} />
+        </Suspense>
       ) : null}
       <div className="mt-auto px-4 pt-6 pb-4">
         <div className="border-t pt-4">
@@ -179,15 +116,9 @@ export function Sidebar({
           </span>
           <div>
             <p className="text-label font-semibold">Anna Nowak</p>
-            <p className="text-caption text-subtle-foreground">
-              Przełożona · Demo
-            </p>
+            <p className="text-caption text-subtle-foreground">Przełożona · Demo</p>
           </div>
-          <Icon
-            name="more"
-            size={17}
-            className="ml-auto text-subtle-foreground"
-          />
+          <Icon name="more" size={17} className="ml-auto text-subtle-foreground" />
         </div>
       </div>
     </div>

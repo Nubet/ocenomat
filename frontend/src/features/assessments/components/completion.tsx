@@ -12,12 +12,10 @@ export function Completion() {
           <Icon name="check" size={32} />
         </span>
         <p className="eyebrow mb-3">Proces demonstracyjny</p>
-        <h1 className="text-[1.6875rem] font-semibold tracking-heading">
-          Ocena przygotowana
-        </h1>
+        <h1 className="text-[1.6875rem] font-semibold tracking-heading">Ocena przygotowana</h1>
         <p className="mx-auto mt-4 max-w-[27.5rem] text-body leading-6 text-muted-foreground">
-          Wszystkie czynności w makiecie zostały potwierdzone. Możesz ponownie
-          otworzyć podgląd lub wrócić do listy ocen.
+          Wszystkie czynności w makiecie zostały potwierdzone. Możesz ponownie otworzyć podgląd lub
+          wrócić do listy ocen.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button onClick={() => go("document")}>
@@ -29,8 +27,7 @@ export function Completion() {
           </ButtonLink>
         </div>
         <p className="mt-8 text-caption text-subtle-foreground">
-          To zakończenie prezentacji interfejsu, nie potwierdzenie prawnego
-          zakończenia oceny.
+          To zakończenie prezentacji interfejsu, nie potwierdzenie prawnego zakończenia oceny.
         </p>
       </Card>
     </div>

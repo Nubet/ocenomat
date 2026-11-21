@@ -185,7 +185,13 @@ continue through all phases without approval gates and do not launch a browser.
    calculation/state tests, type checks, lint, production build, and a verification
    record. Browser-based visual, interaction, and print checks are excluded
    at the user's request.
-   Commit: `test: verify frontend flows and visual fidelity`
+   Commit: `chore: finalize frontend tooling and verification`
+
+Implementation refinements: browser persistence belongs to
+`src/features/workspace/`, not a generic `lib/` importing feature models.
+Unit tests are colocated with their modules and use Vitest. Oxfmt and Oxlint
+replace the initial Prettier/ESLint setup following the user's tooling request.
+The final results and excluded browser checks are recorded in `verification.md`.
 
 ## Verification criteria
 

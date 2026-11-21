@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test } from "vitest";
 import { employees } from "../data/employees";
 import { createAssessment, createWorkspace } from "./defaults";
 import {
@@ -31,10 +31,7 @@ test("B and C select different mandatory criteria without duplicates", () => {
     "wspolpraca",
     "komunikacja",
   ]);
-  assert.equal(
-    activeCompetencies(manager, ["decyzje", "analityczne"]).length,
-    6,
-  );
+  assert.equal(activeCompetencies(manager, ["decyzje", "analityczne"]).length, 6);
 });
 
 test("suggestions omit missing observations and choose the lower score on ties", () => {
@@ -80,10 +77,7 @@ test("formal level uses the unrounded mean at every boundary", () => {
   assessment.scores.rzetelnosc = 5;
   assert.equal(periodicResult(specialist, assessment).mean, 4.2);
   assert.equal(periodicResult(specialist, assessment).positive, true);
-  assert.equal(
-    periodicResult(specialist, assessment).level,
-    "Na poziomie oczekiwań",
-  );
+  assert.equal(periodicResult(specialist, assessment).level, "Na poziomie oczekiwań");
 });
 
 test("approval continues to optional and manager criteria, including earlier omissions", () => {
@@ -120,10 +114,7 @@ test("timing rejects missing, impossible, and reversed dates and incomplete conf
   assert.equal(timingError(assessment), null);
   for (const value of ["", "2026-02-30", "not-a-date", "2026-13-01"])
     assert.match(timingError({ ...assessment, dateTalk: value })!, /daty/);
-  assert.match(
-    timingError({ ...assessment, dateAssessment: "2025-01-01" })!,
-    /poprzedzać/,
-  );
+  assert.match(timingError({ ...assessment, dateAssessment: "2025-01-01" })!, /poprzedzać/);
   assert.match(timingError({ ...assessment, agreed: [] })!, /Potwierdź/);
 });
 

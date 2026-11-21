@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { test } from "vitest";
 import { createWorkspace } from "@/features/assessments/model/defaults";
 import { parseWorkspace, serializeWorkspace } from "./storage";
 
@@ -13,15 +13,11 @@ test("malformed JSON, unknown versions, missing people and wrong types are rejec
     assert.equal(parseWorkspace(raw), null);
   const state = createWorkspace();
   assert.equal(
-    parseWorkspace(
-      JSON.stringify({ version: 1, state: { ...state, theme: "surprise" } }),
-    ),
+    parseWorkspace(JSON.stringify({ version: 1, state: { ...state, theme: "surprise" } })),
     null,
   );
   assert.equal(
-    parseWorkspace(
-      JSON.stringify({ version: 1, state: { ...state, assessments: {} } }),
-    ),
+    parseWorkspace(JSON.stringify({ version: 1, state: { ...state, assessments: {} } })),
     null,
   );
 });
@@ -38,20 +34,14 @@ test("invalid scores, optional criteria, indicators and confirmations are reject
     { firstScores: [5, 5, 5, 5, 9] },
     { conversation: null },
     {
-      observations: [
-        { text: "Test", date: "2026-01-01", criterion: "unknown" },
-      ],
+      observations: [{ text: "Test", date: "2026-01-01", criterion: "unknown" }],
     },
     { competencyIndex: 100 },
   ];
   for (const patch of patches) {
     const state = createWorkspace();
     Object.assign(state.assessments.jan, patch);
-    assert.equal(
-      parseWorkspace(serializeWorkspace(state)),
-      null,
-      JSON.stringify(patch),
-    );
+    assert.equal(parseWorkspace(serializeWorkspace(state)), null, JSON.stringify(patch));
   }
 });
 
@@ -59,9 +49,7 @@ test("user notes remain text and are never interpreted as HTML", () => {
   const state = createWorkspace();
   state.assessments.jan.notes["wiedza-0"] = '<script>alert("example")</script>';
   assert.equal(
-    parseWorkspace(serializeWorkspace(state))?.assessments.jan.notes[
-      "wiedza-0"
-    ],
+    parseWorkspace(serializeWorkspace(state))?.assessments.jan.notes["wiedza-0"],
     state.assessments.jan.notes["wiedza-0"],
   );
 });

@@ -8,6 +8,7 @@ import { Icon } from "@/components/ui/icon";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { assessmentHref } from "../data/employees";
 import type { EmployeeId } from "../model/types";
+import { hasAssessmentProgress } from "../model/defaults";
 
 export function NewAssessmentButton({
   employeeId = "jan",
@@ -16,7 +17,7 @@ export function NewAssessmentButton({
   employeeId?: EmployeeId;
   compact?: boolean;
 }) {
-  const { state, startAssessment } = useWorkspace();
+  const { state, startAssessment, ready } = useWorkspace();
   const router = useRouter();
   const [confirm, setConfirm] = useState(false);
   function start() {
@@ -28,8 +29,9 @@ export function NewAssessmentButton({
     <>
       <Button
         variant={compact ? "ghost" : "primary"}
+        disabled={!ready}
         onClick={() => {
-          if (state.assessments[employeeId].step !== "setup") setConfirm(true);
+          if (hasAssessmentProgress(state.assessments[employeeId])) setConfirm(true);
           else start();
         }}
       >
@@ -40,8 +42,8 @@ export function NewAssessmentButton({
         <Dialog title="Rozpocząć nową ocenę?" onClose={() => setConfirm(false)}>
           <div className="p-6">
             <p className="text-body leading-6 text-muted-foreground">
-              Nowa ocena zastąpi bieżący proces tej osoby zapisany w tej
-              przeglądarce. Dotychczasowe notatki i oceny zostaną usunięte.
+              Nowa ocena zastąpi bieżący proces tej osoby zapisany w tej przeglądarce. Dotychczasowe
+              notatki i oceny zostaną usunięte.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-2">
               <Button

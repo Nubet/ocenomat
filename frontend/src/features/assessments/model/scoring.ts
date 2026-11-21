@@ -1,12 +1,5 @@
 import { competencies, levels } from "../data/competencies";
-import type {
-  Answer,
-  Assessment,
-  CriterionId,
-  Employee,
-  FirstScore,
-  Score,
-} from "./types";
+import type { Answer, Assessment, CriterionId, Employee, FirstScore, Score } from "./types";
 
 export function formType(employee: Employee) {
   return employee.manager ? "B" : "C";
@@ -20,9 +13,7 @@ export function requiredCriteria(employee: Employee): CriterionId[] {
 
 export function activeCompetencies(employee: Employee, extra: CriterionId[]) {
   const ids = new Set([...requiredCriteria(employee), ...extra]);
-  return [...ids].map((id) =>
-    competencies.find((competency) => competency.id === id)!,
-  );
+  return [...ids].map((id) => competencies.find((competency) => competency.id === id)!);
 }
 
 export function suggestedCriteria(employee: Employee): CriterionId[] {
@@ -31,9 +22,7 @@ export function suggestedCriteria(employee: Employee): CriterionId[] {
   return ["analityczne", "kryzys", "decyzje"];
 }
 
-export function suggestScore(
-  answers: Record<number, Answer> = {},
-): Score | null {
+export function suggestScore(answers: Record<number, Answer> = {}): Score | null {
   const scores = Object.values(answers)
     .filter((value) => value >= 0)
     .map((value) => levels[value].score);
@@ -57,9 +46,7 @@ export function periodicResult(
     : null;
   const hasOne = scores.includes(1);
   const level =
-    mean === null
-      ? "—"
-      : levels[Math.min(4, Math.max(0, Math.ceil(mean / 2) - 1))].label;
+    mean === null ? "—" : levels[Math.min(4, Math.max(0, Math.ceil(mean / 2) - 1))].label;
   return {
     list,
     scores,
@@ -71,42 +58,24 @@ export function periodicResult(
   };
 }
 
-export function firstResult(
-  scores: FirstScore[],
-  report: "yes" | "no",
-  exam: "yes" | "no" | "na",
-) {
+export function firstResult(scores: FirstScore[], report: "yes" | "no", exam: "yes" | "no" | "na") {
   const complete = scores.length === 5;
-  const mean = complete
-    ? scores.reduce<number>((sum, score) => sum + score, 0) / 5
-    : null;
+  const mean = complete ? scores.reduce<number>((sum, score) => sum + score, 0) / 5 : null;
   const threes = scores.filter((score) => score === 3).length;
   return {
     mean,
     threes,
     positive:
-      complete &&
-      mean !== null &&
-      mean >= 5 &&
-      threes <= 1 &&
-      report === "yes" &&
-      exam !== "no",
+      complete && mean !== null && mean >= 5 && threes <= 1 && report === "yes" && exam !== "no",
   };
 }
 
-export function nextUnrated(
-  employee: Employee,
-  assessment: Assessment,
-  current: number,
-) {
+export function nextUnrated(employee: Employee, assessment: Assessment, current: number) {
   const list = activeCompetencies(employee, assessment.extra);
   const after = list.findIndex(
-    (item, index) =>
-      index > current && assessment.scores[item.id] === undefined,
+    (item, index) => index > current && assessment.scores[item.id] === undefined,
   );
-  return after >= 0
-    ? after
-    : list.findIndex((item) => assessment.scores[item.id] === undefined);
+  return after >= 0 ? after : list.findIndex((item) => assessment.scores[item.id] === undefined);
 }
 
 export function isDate(value: string) {

@@ -16,10 +16,8 @@ export function createAssessment(): Assessment {
     conversation: {
       agenda:
         "1. Cel i przebieg spotkania\n2. Najważniejsze osiągnięcia\n3. Obszary do rozwoju\n4. Ustalenie dalszych działań",
-      strengths:
-        "Docenić samodzielność w analizie danych i dobrą współpracę z innymi komórkami.",
-      growth:
-        "Zapytać, jakie zmiany pomogłyby lepiej planować pracę w okresach spiętrzenia zadań.",
+      strengths: "Docenić samodzielność w analizie danych i dobrą współpracę z innymi komórkami.",
+      growth: "Zapytać, jakie zmiany pomogłyby lepiej planować pracę w okresach spiętrzenia zadań.",
     },
     conversationDone: false,
     competencyIndex: 0,
@@ -36,12 +34,13 @@ export function createAssessment(): Assessment {
   };
 }
 
+export function hasAssessmentProgress(assessment: Assessment) {
+  return JSON.stringify(assessment) !== JSON.stringify(createAssessment());
+}
+
 export function createWorkspace(): WorkspaceState {
   const assessments = Object.fromEntries(
-    (["jan", "maria", "alicja", "piotr"] as EmployeeId[]).map((id) => [
-      id,
-      createAssessment(),
-    ]),
+    (["jan", "maria", "alicja", "piotr"] as EmployeeId[]).map((id) => [id, createAssessment()]),
   ) as Record<EmployeeId, Assessment>;
   assessments.jan = {
     ...assessments.jan,
