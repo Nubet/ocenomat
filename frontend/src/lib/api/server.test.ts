@@ -41,4 +41,10 @@ describe("server API transport", () => {
       "redirect:/login?error=account",
     );
   });
+
+  it("retains a server-supplied timeout signal for AI requests", async () => {
+    const signal = AbortSignal.timeout(130000);
+    await apiRequest("/api/v1/ai/assistant", { signal });
+    expect(vi.mocked(fetch).mock.calls[0]?.[1]?.signal).toBe(signal);
+  });
 });

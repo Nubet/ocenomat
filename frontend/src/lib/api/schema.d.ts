@@ -347,6 +347,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ai/assistant": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Assistant */
+    post: operations["assistant_api_v1_ai_assistant_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/knowledge/sources/{source_id}/original": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Original */
+    get: operations["original_api_v1_knowledge_sources__source_id__original_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -495,6 +529,56 @@ export interface components {
        */
       action: "agree_criteria" | "start_period" | "confirm_conversation" | "complete";
     };
+    /** AssistantClaim */
+    AssistantClaim: {
+      /** Text */
+      text: string;
+      /** Citations */
+      citations: components["schemas"]["Citation"][];
+    };
+    /** AssistantRequest */
+    AssistantRequest: {
+      /** Question */
+      question: string;
+      /**
+       * Mode
+       * @default formal
+       * @enum {string}
+       */
+      mode: "formal" | "conversation";
+      /** Assessment Id */
+      assessment_id?: string | null;
+      /**
+       * Assessment Kind
+       * @default unspecified
+       * @enum {string}
+       */
+      assessment_kind: "first" | "periodic" | "unspecified";
+      /**
+       * Task
+       * @default question
+       * @enum {string}
+       */
+      task: "question" | "assessment_result";
+    };
+    /** AssistantResponse */
+    AssistantResponse: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "answered" | "insufficient_evidence" | "conflicting_sources";
+      /**
+       * Mode
+       * @enum {string}
+       */
+      mode: "formal" | "conversation";
+      /** Claims */
+      claims?: components["schemas"]["AssistantClaim"][];
+      /** Limitations */
+      limitations?: string[];
+      result?: components["schemas"]["ResultResponse"] | null;
+    };
     /** CatalogResponse */
     CatalogResponse: {
       /**
@@ -510,6 +594,35 @@ export interface components {
       source_sha256: string;
       /** Criteria */
       criteria: components["schemas"]["Criterion"][];
+    };
+    /** Citation */
+    Citation: {
+      /**
+       * Chunk Id
+       * Format: uuid
+       */
+      chunk_id: string;
+      /** Source Id */
+      source_id: string;
+      /** Title */
+      title: string;
+      /** Document Version */
+      document_version: string;
+      /** Locator */
+      locator: string;
+      /** Page */
+      page: number | null;
+      /** Quote */
+      quote: string;
+      /** Content Sha256 */
+      content_sha256: string;
+      /**
+       * Legal Checked On
+       * Format: date
+       */
+      legal_checked_on: string;
+      /** Original Path */
+      original_path: string;
     };
     /** ConversationResponse */
     ConversationResponse: {
@@ -1696,6 +1809,68 @@ export interface operations {
           "application/pdf": string;
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  assistant_api_v1_ai_assistant_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssistantRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssistantResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  original_api_v1_knowledge_sources__source_id__original_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        source_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {

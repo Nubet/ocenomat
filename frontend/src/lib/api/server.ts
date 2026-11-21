@@ -13,7 +13,7 @@ export async function apiRequest(path: string, init: RequestInit = {}): Promise<
     ...init,
     headers,
     cache: "no-store",
-    signal: AbortSignal.timeout(8000),
+    signal: init.signal ?? AbortSignal.timeout(8000),
     redirect: "error",
   });
   if (response.status === 401) redirect("/login?error=account");

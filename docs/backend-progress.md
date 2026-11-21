@@ -6,9 +6,9 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-05 — integracja draweru (`in_progress`).
-- **Następny krok:** sesyjne wywołanie API, jawny zakres, kontekst istniejącej oceny,
-  stany oczekiwania/błędów i pobieranie oryginału przez autoryzowany backend.
+- **Aktywne zadanie:** P6-06 — analiza OSP i rekomendacje (`in_progress`).
+- **Następny krok:** autoryzowany odczyt wybranej wersji OSP, ekstrakcja z locatorami
+  i rekomendacje maksymalnie trzech dodatkowych kryteriów z przypiętego katalogu.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
   nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
@@ -40,7 +40,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
    Adapter OpenRouter jest podłączony przez lifecycle; API asystenta i bezpieczne
-   pobieranie źródeł są zaimplementowane. Drawer jeszcze demo. VPS niezintegrowany.
+   pobieranie źródeł są zaimplementowane. Drawer korzysta z API, bez fallbacku demo.
+   Żywe generowanie zablokowane kontem OpenRouter. VPS niezintegrowany.
 - **Kontrole P5-02:** końcowy `npm run precommit` — OK, 170 testów Vitest;
   wcześniejszy `npm run build` — OK. Końcowe testy dokumentów i migracji:
   37 passed w 9,17 s; Ruff lint/format OK. Wcześniej pełny backend: 371 passed
@@ -80,8 +81,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | done | Ograniczony korpus 4 źródeł/64 fragmentów w PostgreSQL i prywatnym RustFS, 17 indywidualnych approval, 47 needs_review. Hashy/ID/danych chronionych nie zmieniono; retry bez PUT i mutacji. Pełny audyt 16 źródeł lokalnie, reszta niezatwierdzona. |
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | done | `79fa4ce`; FTS/simple, GIN 0015, filtry, deduplikacja i atomowy kontekst. 104 testy OK; live top-5 9/9, trzy odmowy, brak zmian danych. Backend healthy. |
 | P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
-| P6-05 | Integracja istniejącego draweru Next.js | in_progress | Podłączenie sesyjnego API i odczytu źródeł. |
-| P6-06 | Analiza OSP i rekomendacje kryteriów | pending | — |
+| P6-05 | Integracja istniejącego draweru Next.js | done | Sesyjna Server Action, OpenAPI, jawne tryby/zakres, wynik silnika i chronione pobranie oryginału; precommit i 180 testów OK. Przeglądarka niewykonana. |
+| P6-06 | Analiza OSP i rekomendacje kryteriów | in_progress | Ekstrakcja autoryzowanego OSP i walidacja rekomendacji. |
 | P6-07 | Ewaluacja jakości i demonstracja | pending | — |
 | P7-01 | Arkusz B | pending | — |
 | P7-02 | Pierwsza ocena | pending | — |
@@ -201,6 +202,27 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   testowy teardown savepoint przy symulacji cofnięcia approval, potem asystent OK.
 - Żywa jakość generowania i pełna ewaluacja nadal niewykonane: wcześniejszy bloker
   OpenRouter 401. Testy używają jawnych atrap providera, nie fallbacku produkcyjnego.
+
+## P6-05 — podłączenie draweru
+
+- Usunięto hardcoded `assistantReply`, fikcyjnego domyślnego pracownika oraz blokadę
+  draweru na zapisanych ocenach. Zostały wyłącznie propozycje pytań, nie odpowiedzi.
+- Server Action korzysta z istniejącego sesyjnego `apiRequest`; jawne pola requestu,
+  wygenerowane z OpenAPI typy, timeout 130 s dla dwóch przejść LLM po maks. 60 s.
+  Transport zachowuje jawny sygnał serwera, domyślne 8 s pozostałych requestów bez zmian.
+- Tryb formal/conversation i zakres first/periodic; assessment_id wyłącznie z UUID
+  prawdziwej trasy. Zakres i dostęp do konkretnej oceny ponownie sprawdza API.
+  Przycisk sprawdzenia zapisanego wyniku nie uruchamia modelu.
+- Oczekiwanie blokuje powtórzenie zapytania/zmianę trybu; błąd zachowuje pytanie,
+  oddzielne komunikaty timeoutu, limitu, awarii i braku podstaw. Cytaty, locator,
+  datowana aktualność i link do oryginału. Bez renderowania Markdown/HTML modelu.
+- Pobranie przez sesyjny Route Handler, attachment/nosniff/CSP sandbox/no-store.
+  Czat tylko w pamięci panelu, znika przy zamknięciu lub zmianie trasy; brak retencji.
+- `npm run precommit`: format/lint/typecheck i **180 testów w 25 plikach OK**.
+  Testy akcji obejmują kody błędów, brak ujawnienia szczegółów dostawcy, redirect
+  sesji, input i timeout; helper kontekstu odrzuca demo ID i trasę nowej oceny.
+- Nie wykonywano przeglądarki ani rzeczywistego generowania; P6-07 nadal wymaga
+  odblokowania providera i pomiarów jakości. UI nie udaje powodzenia przy awarii.
 
 ### 2026-11-21 — P6-02, zapis zmian i selektywny import CLI
 
