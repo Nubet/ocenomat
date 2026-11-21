@@ -42,7 +42,7 @@ export function Sidebar({
           className="flex h-10 w-full items-center gap-2.5 rounded-control border bg-surface px-3 text-body text-muted-foreground"
         >
           <Icon name="search" size={16} />
-          <span className="flex-1 text-left">Szukaj w OcenoMat</span>
+          <span className="flex-1 text-left">Szukaj</span>
           <kbd className="rounded-md border px-1.5 py-0.5 text-caption text-subtle-foreground">
             Ctrl K
           </kbd>
