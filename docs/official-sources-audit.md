@@ -462,3 +462,53 @@ hash-bound dla ograniczonego zakresu (wierność oraz osobno daty/wyjątki), pot
 kontrolowany import i retry. Przed użyciem CLI w Compose trzeba odbudować obraz
 z nowym manifestem/resources; bieżące testy i audyt uruchamiano przez `uv` na hoście.
 Nie uruchamiano przeglądarki ani LLM; nie zatwierdzono pełnej zgodności prawnej.
+
+## 10. Ograniczony import i wyszukiwanie — aktualizacja 2026-11-21
+
+Później wykonano kolejny krok: indywidualne decyzje wierności i import czterech
+oryginałów (dwa rozporządzenia PDF oraz odpowiadające im HTML). Nie importowano
+pozostałych dwunastu źródeł manifestu. Zakres decyzji:
+
+| Reprezentacja | Fragmenty w DB | Approved | Needs review |
+| --- | ---: | ---: | ---: |
+| Okresowa PDF | 19 | 4 (s.1–4) | 15 |
+| Pierwsza PDF | 8 | 3 (s.1–3) | 5 |
+| Okresowa HTML | 19 | 5 (§§2,3,4,5,11) | 14 |
+| Pierwsza HTML | 18 | 5 (§§2,3,6,9,10) | 13 |
+| **Razem** | **64** | **17** | **47** |
+
+Każda decyzja w `backend/resources/knowledge-reviews.json` jest przypięta do
+SHA oryginału, ekstraktora, locatora i SHA treści; ma osobne uzasadnienie.
+Pełne warunki, negacje, wyjątki egzaminacyjne i przedziały zachowane. To przegląd
+wierności przez agenta implementującego, nie niezależne zatwierdzenie prawne.
+Wszystkie cztery źródła jako całość nadal mają `needs_review`.
+
+CLI obsługuje wielokrotne `--source`, weryfikuje ID i komplet rodziców przed
+otwarciem bazy/storage. Import uruchomiono przez host uv na lokalnym PostgreSQL
+i prywatnym RustFS. Cztery oryginały mają checksum zgodne z DB; retry nie
+wykonuje PUT ani nie zmienia rekordów/ID/dat/decyzji. Pozostałe dokumenty,
+istniejący OSP, katalog i oceny pozostały niezmienione.
+
+P6-03 dodaje `KnowledgeRetriever`/PostgreSQL FTS oraz migrację `0015` z indeksem
+GIN. Instancja ma `simple`, nie ma słownika `polish`; wyszukiwanie korzysta z
+translacji polskich znaków i prefiksów, bez zmiany tekstu źródłowego. Tylko approved
+i verified_current z właściwym przeznaczeniem i rodzajem oceny trafiają do wyników.
+Canonical ID deduplikuje reprezentacje, z preferencją całych paragrafów HTML.
+
+Zależności kontekstu są sprawdzane przechodnio w obrębie źródła; brak zatwierdzenia,
+niezgodny hash, niezweryfikowany wariant czasowy lub przekroczenie limitu blokuje
+dany kontekst. Strony zwykłego PDF nie są samodzielnym fallbackiem: bez struktury
+potrzebny jest cały zatwierdzony dokument mieszczący się w limitach. Nie rozstrzygamy
+czasowej stosowalności ustawy ani konfliktów rankingiem.
+
+**Kontrole:** 104 testy wiedzy/CLI/importu/migracji OK, bez skipów; Ruff i lockfile
+OK. `0015` wdrożona, powtórny upgrade i `alembic check` OK, GIN valid. Live smoke:
+9/9 pytań ma właściwy paragraf w top-5, trzy przypadki bez podstaw nie zwracają
+wyników. To mały test wyszukiwania, nie ewaluacja LLM ani deklaracja pełnego RAG.
+Po odbudowie Compose `/api/v1/health` 200 i backend healthy; migawki rekordów
+wiedzy/katalogu/dokumentów/OSP/ocen przed/po identyczne.
+
+P6-02 i P6-03 zakończone dla tego ograniczonego korpusu. Następne P6-04: odpowiedź
+grounded i walidacja cytowań, potem drawer, OSP oraz pełna ewaluacja. Ustawa, FAQ,
+formularze i poradniki nadal wymagają osobnego review; braki nie mogą być
+uzupełniane wiedzą modelu. Provider nadal ma wcześniejszy bloker konta 401.

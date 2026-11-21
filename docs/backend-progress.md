@@ -6,15 +6,15 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-03 — wyszukiwanie wiedzy PostgreSQL (`in_progress`).
-- **Następny krok:** `KnowledgeRetriever` z FTS, filtrowaniem approval/aktualności,
-  rodzaju oceny i zależności kontekstu oraz deduplikacją reprezentacji aktu.
+- **Aktywne zadanie:** brak — P6-03 zakończone; następne P6-04 (`pending`).
+- **Następny krok:** asystent formalny korzystający z retrievera, deterministyczna
+  walidacja cytowań oraz rozdzielenie braku podstaw od błędu providera.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
-  nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0014. Obowiązuje
+  nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P6-01 — wymienialny provider LLM, konfiguracja,
-  kontrola możliwości i testy bez zewnętrznych generowań; płatny Sonnet 5.5.
+- **Ostatnia zakończona praca:** P6-03 — retriever PostgreSQL i indeks GIN,
+  104 testy wiedzy/migracji, rzeczywisty smoke korpusu 9/9 pytań top-5.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -78,7 +78,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P5-02 | OSP i PDF C | done | Migracje 0011–0012, wersje OSP pracownika, wybór w draft, PDF zakończonej oceny i UI pobrania; końcowe 37 testów backendu, 170 UI, wcześniejszy build/live HTTP OK. |
 | P6-01 | Wymienialny provider LLM | done | Kontrakt, adapter, Settings/Compose i dependency injection; 63 celowane testy OK w 0,58 s. `feat(ai): add configurable llm provider` |
 | P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | done | Ograniczony korpus 4 źródeł/64 fragmentów w PostgreSQL i prywatnym RustFS, 17 indywidualnych approval, 47 needs_review. Hashy/ID/danych chronionych nie zmieniono; retry bez PUT i mutacji. Pełny audyt 16 źródeł lokalnie, reszta niezatwierdzona. |
-| P6-03 | Wyszukiwanie wiedzy PostgreSQL | in_progress | Filtrowanie i wyszukiwanie na ograniczonym korpusie; bez chatu/LLM. |
+| P6-03 | Wyszukiwanie wiedzy PostgreSQL | done | `79fa4ce`; FTS/simple, GIN 0015, filtry, deduplikacja i atomowy kontekst. 104 testy OK; live top-5 9/9, trzy odmowy, brak zmian danych. Backend healthy. |
 | P6-04 | Asystent formalny RAG i cytowania | pending | — |
 | P6-05 | Integracja istniejącego draweru Next.js | pending | — |
 | P6-06 | Analiza OSP i rekomendacje kryteriów | pending | — |
@@ -152,7 +152,22 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   20,65 s, bez skipów**; Ruff lint/format OK. Dziewięć pytań na oryginałach ma
   właściwy paragraf w top-5; to nie pełna ewaluacja P6-07. Znane ostrzeżenie
   deprecjacji Starlette/httpx, bez wpływu na wynik.
-- Pozostaje wdrożenie `0015` i smoke na bazie aplikacji, po nim finalny status.
+- Commit `79fa4ce`. `0015` wdrożona do aplikacji, upgrade head powtórzony,
+  `alembic check` bez nowych operacji. Indeks `indisvalid=true`. Faktyczna instancja
+  udostępnia `simple`, nie ma `polish`; wybrana konfiguracja jest dostępna.
+- Rzeczywisty smoke na zaimportowanym korpusie: **9/9** pytań ze spodziewanym
+  paragrafem w top-5, prawidłowy rodzaj oceny i wyłącznie reprezentacja HTML.
+  Trzy przypadki bez podstaw (`§999`, `art.81`, podróże międzygalaktyczne) bez
+  wyników. Cały smoke 0,066 s lokalnie; nie jest to benchmark obciążeniowy.
+- Migawki wszystkich rekordów wiedzy i czterech tabel aplikacyjnych identyczne
+  przed/po migracji i smoke. Żadnej zmiany treści, ID, approval ani dat rekordów.
+- Odbudowano backend/migrate/storage-init przez Compose `up --build -d backend`,
+  bez resetu danych. Obraz zawiera aktualne zasoby (16 źródeł). Retriever wywołany
+  również wewnątrz kontenera wskazuje §5 dla pytania o kryteria dodatkowe.
+  `/api/v1/health` 200, kontener healthy. Końcowy Ruff lint/format i `uv lock --check` OK.
+- P6-03 done dla ograniczonego korpusu. P6-04 pending: wynik `matched` nie jest
+  jeszcze odpowiedzią ani dowodem poparcia dowolnego twierdzenia. Błąd konta
+  OpenRouter pozostaje nierozwiązany; nie wykonywano nowego generowania ani E2E.
 
 ### 2026-11-21 — P6-02, zapis zmian i selektywny import CLI
 
