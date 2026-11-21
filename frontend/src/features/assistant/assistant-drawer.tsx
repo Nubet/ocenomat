@@ -81,8 +81,8 @@ export function AssistantDrawer() {
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           <Note className="mb-5">
-            Asystent korzysta z gotowych odpowiedzi. Cytowania wskazują akty źródłowe — nie
-            oznaczają automatycznej weryfikacji pytania.
+            Gotowe odpowiedzi demonstracyjne. Odwołania są wpisane ręcznie i nie są powiązane ze
+            zweryfikowanymi fragmentami dokumentów. To nie jest odpowiedź systemu RAG.
           </Note>
           <div aria-live="polite" aria-relevant="additions">
             {messages.map((message, index) => (
@@ -92,7 +92,7 @@ export function AssistantDrawer() {
                   <p className="text-body leading-6">{message.answer}</p>
                   <div className="mt-3 rounded-lg border bg-surface p-3 text-caption text-muted-foreground">
                     <Icon name="file" size={13} className="mr-1 inline" />
-                    {message.source}
+                    Niezweryfikowane odwołanie demo: {message.source}
                   </div>
                 </div>
               </div>
