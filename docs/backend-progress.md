@@ -1,13 +1,18 @@
 # Kompas Kompetencji — postęp backendu
 
 Plan i obowiązujące decyzje: [backend-implementation-plan.md](backend-implementation-plan.md).
-Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-21.
+Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-22.
 
 ## Bieżący stan
 
 - **Etap:** 7 zakończony; przygotowanie etapu 8.
 - **Aktywne zadanie:** zestaw demonstracyjny dla jury (`in_progress`), na życzenie
   użytkownika przed P8-02: 60 dodatkowych osób, realistyczne zadania i scenariusze.
+- **Weryfikacja importera demonstracyjnego:** pełny backend 614 passed / 9 skipped;
+  Ruff lint/format OK (124 pliki). Testy obejmują 60 procesów, obie ścieżki,
+  formularze B/C/P, dwa wyniki negatywne, decyzję inną od sugestii, prywatne DOCX,
+  idempotentne ponowienie bez nadpisania pracy użytkownika i rollback po błędzie storage.
+  Scenariusze: `f561e44`; importer gotowy, weryfikacja lokalnego załadowania trwa.
 - **Następny krok:** przetestować i załadować scenariusze do rzeczywistego API/DB/storage.
   Następnie P8-02 — przygotowanie produkcyjnej konfiguracji i procedur VPS;
   faktyczne wdrożenie wymaga dostępu do serwera/domeny. P8-01 pozostaje zablokowane

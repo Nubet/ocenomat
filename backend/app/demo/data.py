@@ -24,6 +24,46 @@ class Team:
     people: tuple[Person, ...]
 
 
+PREVIOUS_PERIOD = (
+    (
+        "Przy porządkowaniu instrukcji dyżurowej porównała cztery listy kontaktowe "
+        "i wskazała dwa nieaktualne punkty eskalacji. Korektę uzgodniła z opiekunem "
+        "procedury przed kolejną turą dyżurów.",
+        "Powierzyć samodzielne porównanie wersji procedury i przedstawienie różnic partnerom.",
+    ),
+    (
+        "W przeglądzie 12 pytań konsultacyjnych oddzieliła kwestie prawne od "
+        "organizacyjnych. Dwie odpowiedzi doprecyzowała po uwagach przełożonego, "
+        "ponieważ nie rozróżniały projektu przepisów od obowiązującego prawa.",
+        "Rozwinąć analizę niejednoznacznych przypadków i jawne oznaczanie założeń opinii.",
+    ),
+    (
+        "Przy analizie zgłoszeń do poprzedniej wersji formularza połączyła duplikaty "
+        "i rozdzieliła błędy działania od niejasnych instrukcji. Zespół wykorzystał "
+        "zestawienie do ustalenia kolejności poprawek.",
+        "Rozszerzyć analizę o rozmowy z użytkownikami i sprawdzanie hipotez przed zmianą formularza.",
+    ),
+    (
+        "Przygotował reguły sprawdzania dat i jednostek miary w kwartalnym zbiorze. "
+        "Po przeglądzie z opiekunem dodał brakującą kontrolę zakresu czasowego "
+        "i poprawnie wyjaśnił rozbieżności dostawcy.",
+        "Przejść od kontroli pojedynczego pliku do analizy porównywalności danych między okresami.",
+    ),
+    (
+        "Przygotowała pakiet materiałów do cyklu spotkań roboczych. Po pierwszym "
+        "przeglądzie uzupełniła brakujące stanowiska komórek i utrzymała aktualny "
+        "wykaz spraw pozostawionych do decyzji.",
+        "Samodzielnie proponować układ tez z rozdzieleniem interesów wspólnych i rozbieżności.",
+    ),
+    (
+        "Zebrał potrzeby szkoleniowe z sześciu komórek i wyeliminował powtórzone "
+        "zgłoszenia. W pierwszym projekcie planu brakowało powiązania części szkoleń "
+        "z zadaniami; uzupełnił je po konsultacji z przełożonymi.",
+        "Analizować przyczynę potrzeby rozwojowej przed zaproponowaniem formy wsparcia.",
+    ),
+)
+
+
 TEAMS = (
     Team(
         "cyber",
