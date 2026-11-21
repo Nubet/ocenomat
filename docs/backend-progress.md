@@ -6,8 +6,10 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 7 zakończony; przygotowanie etapu 8.
-- **Aktywne zadanie:** P7-03 zakończone; następne P8-02 (`pending`).
-- **Następny krok:** P8-02 — przygotowanie produkcyjnej konfiguracji i procedur VPS;
+- **Aktywne zadanie:** zestaw demonstracyjny dla jury (`in_progress`), na życzenie
+  użytkownika przed P8-02: 60 dodatkowych osób, realistyczne zadania i scenariusze.
+- **Następny krok:** przetestować i załadować scenariusze do rzeczywistego API/DB/storage.
+  Następnie P8-02 — przygotowanie produkcyjnej konfiguracji i procedur VPS;
   faktyczne wdrożenie wymaga dostępu do serwera/domeny. P8-01 pozostaje zablokowane
   zakazem przeglądarki. Faza 6 wdrożona i oceniona
   w ograniczonym korpusie; wynik 28/30, dwie nadmiarowe odmowy i brak demonstracji
