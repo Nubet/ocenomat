@@ -14,10 +14,12 @@ from app.core.database import create_database_engine, get_session
 from app.core.security import TokenVerifier
 from app.integrations.llm.factory import create_llm_provider
 from app.integrations.storage import ObjectStorage
+from app.modules.ai.router import router as ai_router
 from app.modules.assessments.router import router as assessments_router
 from app.modules.catalog.router import router as catalog_router
 from app.modules.documents.router import router as documents_router
 from app.modules.employees.router import router as employees_router
+from app.modules.knowledge.router import router as knowledge_router
 from app.modules.users.router import router as users_router
 
 
@@ -66,6 +68,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(employees_router)
     app.include_router(assessments_router)
     app.include_router(documents_router)
+    app.include_router(ai_router)
+    app.include_router(knowledge_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin).rstrip("/") for origin in settings.cors_origins],

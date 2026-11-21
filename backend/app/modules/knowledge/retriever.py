@@ -56,6 +56,33 @@ class KnowledgeRetriever(Protocol):
     def retrieve(self, query: RetrievalQuery) -> RetrievalResult: ...
 
 
+def source_provenance(source: KnowledgeSource) -> Provenance | None:
+    try:
+        evidence = Provenance.model_validate(source.provenance)
+    except ValidationError:
+        return None
+    if (
+        source.verification_status == "rejected"
+        or source.legal_status != "verified_current"
+        or source.source_type
+        not in (
+            "legal_act",
+            "legal_appendix",
+            "official_guideline",
+            "official_form",
+            "approved_faq",
+        )
+        or evidence.usage != "context"
+        or not evidence.official_url
+        or not evidence.legal_checked_on
+        or evidence.legal_checked_on > date.today()
+        or not evidence.legal_status_url
+        or evidence.original_sha256 != source.original_sha256
+    ):
+        return None
+    return evidence
+
+
 def query_terms(question: str) -> str:
     normalized = question.lower().translate(str.maketrans("ąćęłńóśźż", "acelnoszz"))
     words = re.findall(r"[a-z0-9]+", normalized)
@@ -144,27 +171,17 @@ class PostgresKnowledgeRetriever:
         else:
             statement = statement.where(vector.op("@@")(tsquery))
         candidates = self.session.execute(
-            statement.order_by(
+            statement.execution_options(populate_existing=True)
+            .order_by(
                 score.desc(), KnowledgeChunk.source_id, KnowledgeChunk.chunk_index
-            ).limit(100)
+            )
+            .limit(100)
         ).all()
         diagnostics = {"candidate_limit"} if len(candidates) == 100 else set()
         eligible = []
         for chunk, source, rank in candidates:
-            try:
-                evidence = Provenance.model_validate(source.provenance)
-            except ValidationError:
-                diagnostics.add("invalid_provenance")
-                continue
-            if (
-                evidence.usage != "context"
-                or not evidence.official_url
-                or not evidence.legal_checked_on
-                or evidence.legal_checked_on > date.today()
-                or not evidence.legal_status_url
-                or evidence.original_sha256 != source.original_sha256
-                or not usable(chunk)
-            ):
+            evidence = source_provenance(source)
+            if evidence is None or not usable(chunk):
                 diagnostics.add("ineligible_evidence")
                 continue
             eligible.append((chunk, source, rank, evidence))
@@ -237,6 +254,7 @@ class PostgresKnowledgeRetriever:
             # Without structural boundaries, only a complete approved PDF is safe.
             pages = self.session.scalars(
                 select(KnowledgeChunk)
+                .execution_options(populate_existing=True)
                 .where(KnowledgeChunk.source_id == source.source_id)
                 .order_by(KnowledgeChunk.chunk_index)
                 .limit(11)
@@ -255,10 +273,12 @@ class PostgresKnowledgeRetriever:
                 if locator in parts:
                     continue
                 dependency = self.session.scalar(
-                    select(KnowledgeChunk).where(
+                    select(KnowledgeChunk)
+                    .where(
                         KnowledgeChunk.source_id == source.source_id,
                         KnowledgeChunk.locator == locator,
                     )
+                    .execution_options(populate_existing=True)
                 )
                 if dependency is None or len(parts) >= 10:
                     return None

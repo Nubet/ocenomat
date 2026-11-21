@@ -6,9 +6,9 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** brak — P6-03 zakończone; następne P6-04 (`pending`).
-- **Następny krok:** asystent formalny korzystający z retrievera, deterministyczna
-  walidacja cytowań oraz rozdzielenie braku podstaw od błędu providera.
+- **Aktywne zadanie:** P6-05 — integracja draweru (`in_progress`).
+- **Następny krok:** sesyjne wywołanie API, jawny zakres, kontekst istniejącej oceny,
+  stany oczekiwania/błędów i pobieranie oryginału przez autoryzowany backend.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
   nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
@@ -39,8 +39,8 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
   Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
-  Adapter OpenRouter jest podłączony przez lifecycle/zależność; endpoint asystenta
-  i RAG jeszcze nie istnieją. VPS niezintegrowany.
+   Adapter OpenRouter jest podłączony przez lifecycle; API asystenta i bezpieczne
+   pobieranie źródeł są zaimplementowane. Drawer jeszcze demo. VPS niezintegrowany.
 - **Kontrole P5-02:** końcowy `npm run precommit` — OK, 170 testów Vitest;
   wcześniejszy `npm run build` — OK. Końcowe testy dokumentów i migracji:
   37 passed w 9,17 s; Ruff lint/format OK. Wcześniej pełny backend: 371 passed
@@ -79,8 +79,8 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-01 | Wymienialny provider LLM | done | Kontrakt, adapter, Settings/Compose i dependency injection; 63 celowane testy OK w 0,58 s. `feat(ai): add configurable llm provider` |
 | P6-02 | Inwentaryzacja, ekstrakcja i weryfikacja oryginałów | done | Ograniczony korpus 4 źródeł/64 fragmentów w PostgreSQL i prywatnym RustFS, 17 indywidualnych approval, 47 needs_review. Hashy/ID/danych chronionych nie zmieniono; retry bez PUT i mutacji. Pełny audyt 16 źródeł lokalnie, reszta niezatwierdzona. |
 | P6-03 | Wyszukiwanie wiedzy PostgreSQL | done | `79fa4ce`; FTS/simple, GIN 0015, filtry, deduplikacja i atomowy kontekst. 104 testy OK; live top-5 9/9, trzy odmowy, brak zmian danych. Backend healthy. |
-| P6-04 | Asystent formalny RAG i cytowania | pending | — |
-| P6-05 | Integracja istniejącego draweru Next.js | pending | — |
+| P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
+| P6-05 | Integracja istniejącego draweru Next.js | in_progress | Podłączenie sesyjnego API i odczytu źródeł. |
 | P6-06 | Analiza OSP i rekomendacje kryteriów | pending | — |
 | P6-07 | Ewaluacja jakości i demonstracja | pending | — |
 | P7-01 | Arkusz B | pending | — |
@@ -168,6 +168,39 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
 - P6-03 done dla ograniczonego korpusu. P6-04 pending: wynik `matched` nie jest
   jeszcze odpowiedzią ani dowodem poparcia dowolnego twierdzenia. Błąd konta
   OpenRouter pozostaje nierozwiązany; nie wykonywano nowego generowania ani E2E.
+
+## P6-04 — autoryzowany asystent i walidacja cytowań
+
+- `POST /api/v1/ai/assistant`: jawny tryb formal/conversation, rodzaj oceny,
+  opcjonalny assessment_id i zadanie assessment_result. Klient nie przekazuje
+  pracownika, ról ani danych oceny. Kontekst odczytuje dotychczasowa autoryzacja,
+  również po generowaniu; obcy manager/HR/admin bez przypisania otrzymują 404.
+- Brak podstaw kończy się bez wywołania LLM. Przy opisowej odpowiedzi są dwa
+  wywołania tego samego skonfigurowanego providera: generowanie i osobny prompt
+  recenzenta poparcia całej odpowiedzi, warunków, wyjątków oraz konfliktów.
+  To kontrola semantyczna LLM, nie deterministyczny dowód prawdziwości.
+- Cytaty muszą występować w przekazanej treści; ID, hash, status, locator i
+  ponownie pobrane metadane muszą się zgadzać. Odpowiedź zostaje odrzucona przy
+  zmianie approval, braku poparcia któregokolwiek twierdzenia albo niepełnym
+  rozwiązaniu pytania. Nie pokazujemy odrzuconej treści ani swobodnych uzasadnień
+  modelu. Publiczne metadane pochodzą z bazy, nie z wygenerowanych URL/stron.
+- Wynik konkretnej oceny pochodzi z `Assessment.result` i istniejących reguł,
+  bez LLM. Wysyłka formalnego pytania nie przekazuje nazwiska, notatek ani OSP.
+  Nie zapisujemy historii ani nie zmieniamy ocen. Cache-Control private/no-store.
+- `GET /api/v1/knowledge/sources/{source_id}/original`: tylko zalogowany użytkownik
+  i wspólne źródło kontekstowe z aktualną provenance oraz approved fragmentem.
+  Prywatne OSP i inne niedozwolone typy odrzucane przed storage. Checksum oryginału
+  sprawdzana; attachment, nosniff i CSP sandbox chronią także źródłowy HTML.
+- Błędy providera to osobne kody HTTP: 429/502/503/504, nie brak wiedzy.
+- Kontrole: Ruff całego app/tests OK. Pierwszy pełny pytest: 562 passed, 1 skipped,
+  7 failures wyłącznie w istniejącym generowaniu PDF — host nie ma domyślnego
+  DejaVu (obraz Compose go ma). Po jawnym ustawieniu istniejącego hostowego fontu
+  `KOMPAS_PDF_FONT_PATH=/usr/share/fonts/open-sans/OpenSans-Regular.ttf` powtórzono
+  testy dokumentów i asystenta: **67 passed, 10,53 s**. Brak zmiany kodu PDF.
+  Celowane retriever+asystent: wszystkie 69 asercyjnych przypadków OK; poprawiono
+  testowy teardown savepoint przy symulacji cofnięcia approval, potem asystent OK.
+- Żywa jakość generowania i pełna ewaluacja nadal niewykonane: wcześniejszy bloker
+  OpenRouter 401. Testy używają jawnych atrap providera, nie fallbacku produkcyjnego.
 
 ### 2026-11-21 — P6-02, zapis zmian i selektywny import CLI
 
