@@ -7,29 +7,29 @@ import { ButtonLink } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { NewAssessmentButton } from "@/features/assessments/components/new-assessment-button";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
-import { employees, assessmentHref } from "@/features/assessments/data/employees";
+import { employees } from "@/features/assessments/data/employees";
 import { assessmentStatus } from "@/features/assessments/components/assessment-status";
 
-export function Dashboard() {
+export function Dashboard({ canCreate }: { canCreate: boolean }) {
   const { state } = useWorkspace();
   const tasks = [
     {
       number: "01",
       title: "Potwierdź rozmowę rozpoczynającą",
       person: "Maria Wiśniewska",
-      href: assessmentHref("maria", "timing"),
+      href: "/assessments",
     },
     {
       number: "02",
       title: "Sprawdź kryteria dla kierownika",
       person: "Piotr Nowak · Arkusz B",
-      href: assessmentHref("piotr"),
+      href: "/assessments",
     },
     {
       number: "03",
       title: "Przejrzyj obserwacje",
       person: "Jan Kowalski",
-      href: assessmentHref("jan"),
+      href: "/assessments",
     },
   ];
   return (
@@ -44,7 +44,7 @@ export function Dashboard() {
             Twoje oceny i najbliższe decyzje.
           </p>
         </div>
-        <NewAssessmentButton />
+        {canCreate ? <NewAssessmentButton /> : null}
       </div>
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         {[
@@ -100,8 +100,8 @@ export function Dashboard() {
               Zobacz zebrane przykłady zachowań, a następnie przejdź do rozmowy oceniającej.
             </p>
             <div className="mt-7">
-              <ButtonLink href={assessmentHref("jan")} variant="feature">
-                Otwórz ocenę
+              <ButtonLink href="/assessments" variant="feature">
+                Przejdź do ocen
                 <Icon name="arrow-up-right" size={15} />
               </ButtonLink>
             </div>
@@ -144,7 +144,7 @@ export function Dashboard() {
             return (
               <Link
                 key={employee.id}
-                href={assessmentHref(employee.id)}
+                href="/assessments"
                 className="flex w-full items-center gap-4 border-b px-6 py-4 text-left last:border-0 hover:bg-surface-muted max-compact:flex-wrap"
               >
                 <span className="min-w-0 flex-1">

@@ -38,6 +38,75 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/employees": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employees */
+    get: operations["employees_api_v1_employees_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/employees/{employee_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Employee Detail */
+    get: operations["employee_detail_api_v1_employees__employee_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessments */
+    get: operations["assessments_api_v1_assessments_get"];
+    put?: never;
+    /** Create */
+    post: operations["create_api_v1_assessments_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assessment Detail */
+    get: operations["assessment_detail_api_v1_assessments__assessment_id__get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -76,6 +145,66 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** AssessmentCreate */
+    AssessmentCreate: {
+      /**
+       * Employee Id
+       * Format: uuid
+       */
+      employee_id: string;
+      /**
+       * Kind
+       * @constant
+       */
+      kind: "periodic";
+    };
+    /** AssessmentResponse */
+    AssessmentResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Employee Id
+       * Format: uuid
+       */
+      employee_id: string;
+      /**
+       * Assessor Id
+       * Format: uuid
+       */
+      assessor_id: string;
+      /**
+       * Catalog Version Id
+       * Format: uuid
+       */
+      catalog_version_id: string;
+      employee_snapshot: components["schemas"]["EmployeeResponse"];
+      /**
+       * Kind
+       * @constant
+       */
+      kind: "periodic";
+      /**
+       * Form
+       * @constant
+       */
+      form: "C";
+      status: components["schemas"]["AssessmentStatus"];
+      /** Revision */
+      revision: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /**
+     * AssessmentStatus
+     * @enum {string}
+     */
+    AssessmentStatus: "draft" | "criteria_agreed" | "in_progress" | "evaluation" | "completed";
     /** CatalogResponse */
     CatalogResponse: {
       /**
@@ -103,6 +232,21 @@ export interface components {
       name: string;
       /** Indicators */
       indicators: components["schemas"]["Indicator"][];
+    };
+    /** EmployeeResponse */
+    EmployeeResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Name */
+      name: string;
+      /** Position */
+      position: string;
+      position_kind: components["schemas"]["PositionKind"];
+      /** Department */
+      department: string;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -139,6 +283,11 @@ export interface components {
       /** Description */
       description: string;
     };
+    /**
+     * PositionKind
+     * @enum {string}
+     */
+    PositionKind: "OFFICE_HEAD" | "DIRECT_MANAGER" | "OTHER";
     /**
      * Role
      * @enum {string}
@@ -216,6 +365,166 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CatalogResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  employees_api_v1_employees_get: {
+    parameters: {
+      query?: {
+        q?: string;
+        assigned_only?: boolean;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  employee_detail_api_v1_employees__employee_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        employee_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  assessments_api_v1_assessments_get: {
+    parameters: {
+      query?: {
+        employee_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_api_v1_assessments_post: {
+    parameters: {
+      query?: never;
+      header: {
+        "Idempotency-Key": string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AssessmentCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  assessment_detail_api_v1_assessments__assessment_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
         };
       };
       /** @description Validation Error */

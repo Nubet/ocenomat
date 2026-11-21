@@ -5,15 +5,21 @@ import { useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import { navigation } from "@/components/layout/navigation";
-import { employees, assessmentHref } from "@/features/assessments/data/employees";
+import { employeeHref, type EmployeeRecord } from "@/features/employees/types";
 
-export function CommandSearch({ onClose }: { onClose: () => void }) {
+export function CommandSearch({
+  onClose,
+  employees,
+}: {
+  onClose: () => void;
+  employees: EmployeeRecord[];
+}) {
   const [query, setQuery] = useState("");
   const choices = [
     ...navigation,
     ...employees.map((employee) => ({
-      href: assessmentHref(employee.id),
-      label: `${employee.name} · ${employee.role}`,
+      href: employeeHref(employee.id),
+      label: `${employee.name} · ${employee.position}`,
       icon: "users" as const,
     })),
   ].filter(({ label }) => label.toLocaleLowerCase("pl").includes(query.toLocaleLowerCase("pl")));

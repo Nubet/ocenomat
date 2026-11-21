@@ -40,6 +40,15 @@ export function AssistantDrawer() {
   }
 
   if (!assistantOpen) return null;
+  if (pathname.startsWith("/assessments/"))
+    return (
+      <Dialog title="Zapytaj Kompas" onClose={closeAssistant} drawer="right">
+        <Note className="m-5">
+          Asystent nie jest jeszcze podłączony do zapisanych ocen. Integracja z autoryzowanym
+          kontekstem oceny jest zaplanowana w etapie AI.
+        </Note>
+      </Dialog>
+    );
   return (
     <Dialog title="Zapytaj Kompas" onClose={closeAssistant} drawer="right">
       <div className="flex h-full flex-col">

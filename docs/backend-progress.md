@@ -5,22 +5,31 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 2 — tożsamość; fundament techniczny zakończony.
-- **Aktywne zadanie:** brak; kod P2-02 sprawdzony, integracja live blocked.
-- **Następny krok:** P2-03 — pracownicy, przypisania i integracja listy/wyszukiwarki;
-  P2-01/P2-02 wymagają Supabase Cloud do testu live, bez obejścia autoryzacji.
-- **Ostatnia zakończona praca:** logowanie SSR, ochrona workspace i profil z `/me`.
-- **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`
-  i `/api/v1/health`, PostgreSQL, tabele użytkowników/ról i wersjonowany katalog.
+- **Etap:** 4 — trwały proces oceny C; P4-01 zakończone.
+- **Aktywne zadanie:** brak.
+- **Następny krok:** P4-02 — kryteria i terminy: zapis wyboru z przypiętego katalogu,
+  walidacja do trzech dodatkowych kryteriów, uzasadnienia i daty, atomowe sprawdzenie
+  rewizji/409, autoryzacja i podłączenie istniejących ekranów do API.
+- **Ostatnia zakończona praca:** utworzenie, lista, historia i wznowienie oceny C;
+  czterokrokowy wybór, UUID procesu, snapshoty, idempotencja i testy live HTTP.
+- **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
+  backend ma `/health`
+  i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
+  i wersjonowany katalog. Lista pracowników, profile, wyszukiwarka oraz utworzenie,
+  historia i szczegół ocen korzystają z API. Rewizja nowej oceny to 1, status `draft`.
   Frontend ma ekran logowania, cookie session i chroniony workspace; jego ekrany
-  biznesowe nadal korzystają z demo do czasu P2-03/P4. Bez konfiguracji Supabase
+  dalszych etapów oceny i monitoringu pozostają do podłączenia w P4/P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
-  Supabase, OpenRouter i VPS nie zostały zintegrowane.
+  Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
+  Użytkownik potwierdził logowanie; live HTTP potwierdził JWT, autoryzację API,
+  SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
+  OpenRouter i VPS niezintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  33 testy Vitest. Backend: 100 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
-- **Środowisko lokalne:** Compose działa na portach testowych opisanych w P1-03
-  z ignorowanym `.env.compose-check`. Oddzielny `kompas-postgres-test` został
+  68 testów Vitest. Backend: 144 testy z rzeczywistym PostgreSQL i źródłowym XLSX.
+- **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
+  frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
+  pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
   zatrzymany po testach; wznowienie: `docker start kompas-postgres-test`.
 - **Frontend commity:** `5b1375c` (`chore(frontend): add react doctor diagnostics`),
   `c37a8e0` (`perf(frontend): stabilize workspace context value`).
@@ -36,12 +45,12 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P1-01 | Projekt FastAPI i health | done | 8 testów; `chore(backend): initialize api` |
 | P1-02 | PostgreSQL, Alembic, readiness | done | 14 testów z PostgreSQL; `feat(backend): add database readiness` |
 | P1-03 | Compose: frontend, API, PostgreSQL, RustFS | done | Build, HTTP, S3, restart i 19 testów UI; `chore(infra): add local compose environment` |
-| P2-01 | Tożsamość, role, weryfikacja JWT | blocked | Kod i 45 testów OK; brak konfiguracji Supabase blokuje próbę live. `feat(auth): verify identities and load roles` |
-| P2-02 | Logowanie i sesja | blocked | SSR, 33 testy UI, build i HTTP OK; brak Supabase i zakaz przeglądarki blokują live/E2E. `feat(auth): add sign in and session handling` |
-| P2-03 | Pracownicy i przypisania | pending | — |
+| P2-01 | Tożsamość, role, weryfikacja JWT | done | Testy JWT i rzeczywiste tokeny Supabase dla ADMIN/MANAGER/HR, `/me` i izolacja API OK. `feat(auth): verify identities and load roles` |
+| P2-02 | Logowanie i sesja | done | Logowanie potwierdzone przez użytkownika; live HTTP: SSR cookie, proxy refresh i logout Server Action OK. E2E przeglądarkowe osobno w P8-01. `feat(auth): add sign in and session handling` |
+| P2-03 | Pracownicy i przypisania | done | Migracja 0004, API list/detail/search, fikcyjny seed, lista/profile/wyszukiwarka i ochrona HR; 120 testów backendu, 45 UI, build i live HTTP OK. |
 | P3-01 | Katalog kompetencji | done | Import i porównanie treści XLSX, 52 testy; `feat(catalog): add competency model` |
 | P3-02 | Reguły i testy domenowe | done | 99 testów, dokładne progi i kompletność; `feat(assessments): implement scoring rules` |
-| P4-01 | Utworzenie i wznowienie oceny C | pending | — |
+| P4-01 | Utworzenie i wznowienie oceny C | done | Migracja 0005, API create/list/detail, snapshoty, współbieżna idempotencja, historia i UI UUID; 144 testy backendu, 68 UI, build i live HTTP OK. |
 | P4-02 | Kryteria i terminy | pending | — |
 | P4-03 | Obserwacje i rozmowa | pending | — |
 | P4-04 | Wskaźniki i decyzje | pending | — |
@@ -68,7 +77,142 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 - Materiały w `docs/hacknation-materials/`, `.idea/` i `.opencode/` są obecnie
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
+## Konta środowiska testowego
+
+Stan na 2026-11-21. Logowanie: `http://localhost:3000/login`.
+Projekt Supabase: `hacknation-kompas-kompetencji`, ref `ghhpbotdloibsrfgusog`.
+Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
+
+| E-mail | Supabase Auth UID | Rola aplikacji |
+| --- | --- | --- |
+| `konto-admin@hacknation.pl` | `10ee8b21-a7ac-4af4-879d-d54cb9c8fe6c` | `ADMIN` |
+| `konto-przelozony@hacknation.pl` | `dfc5c072-34dd-4560-8c4d-46e3defa69a1` | `MANAGER` |
+| `konto-hr@hacknation.pl` | `49a8eb76-10cf-40e4-bbc9-c7dbe224e68c` | `HR` |
+| `konto-testowe@hacknation.pl` | `a9c982ec-8411-4ea0-8136-48fd89c5ae9b` | Brak lokalnego profilu i dostępu |
+| `nubet2137@gmail.com` | `1e8715a0-e028-4df6-bef9-e8d7a57e2728` | Brak lokalnego profilu i dostępu |
+
+- Wszystkie adresy potwierdzone; UID zweryfikowane odczytem Supabase Auth.
+- Użytkownik podał wspólne hasło dla powyższych kont. Lokalnie zapisano je jako
+  `KOMPAS_TEST_ACCOUNT_PASSWORD` w ignorowanym `.env.compose-check` w katalogu
+  głównym repozytorium. To notatka operatora, nie zmienna używana przez aplikację.
+  Nie kopiować hasła do dokumentacji śledzonej przez Git ani nie używać do realnych danych.
+- Hasło sprawdzono logowaniem kont ADMIN/MANAGER/HR w testach HTTP; nie zmieniano go.
+- Przełożonemu przypisano trzech fikcyjnych pracowników: Jana, Marię i Alicję.
+  Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
+
 ## Wykonane zadania
+
+### 2026-11-21 — P4-01, trwałe rozpoczęcie i wznowienie C
+
+- Migracja `0005`: osobne UUID ocen, FK do pracownika/oceniającego/katalogu,
+  snapshot profilu JSONB, formularz C, `draft`, rewizja 1, autor i czas UTC.
+  Nowy proces nie zastępuje poprzedniego; zmiana profilu lub katalogu nie zmienia historii.
+- Podział modułu: modele/kontrakt, serwis transakcyjny bez FastAPI i cienki router.
+  Reguły w `rules.py` pozostają niezależne. Wspólny transport serwerowy frontendu
+  obsługuje token, timeout i brak cache; feature loaders/actions obsługują rezultat.
+- `POST /api/v1/assessments` przyjmuje tylko employee UUID i `kind=periodic` oraz
+  wymagany `Idempotency-Key` UUID. Pierwszy zapis → 201, replay → 200 z tym samym
+  UUID, ten sam klucz z innymi danymi → 409. Blokada transakcyjna PostgreSQL
+  i unikalność `(assessor_id, idempotency_key)` chronią także równoległe retry.
+- Lista (także po employee UUID) i szczegół sprawdzają MANAGER, własne autorstwo
+  i aktualne przypisanie. HR/ADMIN ani drugi przypisany przełożony nie dostają
+  automatycznie dostępu do cudzej oceny. GET i `?step=` nie przesuwają statusu.
+  A/B i first → 422; brak katalogu → 503. Bez demo fallbacku i pól nadawanych przez klienta.
+- `assigned_only=true` w API pracowników zasila wybór także dla kont MANAGER+HR/ADMIN.
+  Nie wystarcza szeroka widoczność podstawowych profili do tworzenia oceny.
+- UI: `/assessments/new`, cztery kroki w stylu istniejącej konfiguracji; Server
+  Action i blokada formularza podczas zapisu, zachowany wybór i klucz po błędzie,
+  nowy klucz przy zmianie pracownika. Lista i profile pokazują pełną własną historię.
+- Trasa `/assessments/{assessmentId}` zastąpiła slug pracownika. Stare slugi → 404;
+  linki z demo pulpitu kierują do prawdziwej listy. Usunięto stały licznik ocen
+  i podłączenie demo nawigacji w sidebarze. Tworzenie w UI tylko dla MANAGER.
+  Asystent nie udaje kontekstu zapisanej oceny. Legacy komponenty kolejnych kroków
+  pozostają wzorcem UI, ale nowa trasa ich nie montuje i nie używa localStorage.
+- `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest` z oddzielnym
+  PostgreSQL i źródłowym XLSX — OK, 144 testy bez skipów. Testy obejmują upgrade
+  i `alembic check`, historię, snapshoty, izolację i cofnięte przypisanie, walidację,
+  retry/409 i rzeczywiste równoległe tworzenie na dwóch połączeniach.
+- `npm run api:types -- http://127.0.0.1:33081/openapi.json`, `npm run precommit`
+  i `npm run build` — OK; 68 testów, dynamiczne trasy list/new/UUID. Po zmianie
+  parametru trasy usunięto wyłącznie stare wygenerowane typy `.next/dev/types`;
+  ponowny typegen i build przeszły.
+- Compose: build i `up --detach --wait` API z migracją 0005 oraz frontend — OK.
+- Live HTTP bez przeglądarki: realna sesja MANAGER, GET formularza i POST Server
+  Action → 303 do UUID, ponowiony POST → ten sam UUID, nowy klucz → drugi proces;
+  lista i historia w profilu pokazują oba. Dwa odczyty z `?step=rating` nadal dają
+  ten sam szkic; odpowiedzi prywatne/no-store. Stary `/assessments/jan` → 404.
+  Usunięto wyłącznie dwa rekordy utworzone przez smoke (po autorze i własnych kluczach).
+- Końcowe SSR HTTP na ADMIN/HR/MANAGER: lista → 200, przycisk tworzenia na pulpicie
+  tylko u MANAGER, bezpośrednie `/assessments/new` → 404 dla ADMIN/HR i 200 dla MANAGER.
+- Nie wykonano przeglądarkowego E2E (P8-01 nadal blocked). Kryteria, terminy,
+  obserwacje, oceny i przejścia nie są jeszcze edytowane w nowym procesie;
+  UI pokazuje ten zakres jawnie. Następny krok: P4-02.
+
+### 2026-11-21 — P2-03 i domknięcie live P2-01/P2-02
+
+- Migracja `0004`: jednostki, pracownicy i przypisania z FK, PK, indeksem
+  oraz ograniczeniami nazw i typu stanowiska. Bez zmiany wcześniejszych migracji.
+- API list/detail i wyszukiwanie po nazwie; filtrowanie uprawnień w SQL,
+  identyczne 404 dla cudzego i brakującego UUID, prywatne odpowiedzi bez cache.
+  MANAGER tylko przypisani, HR/ADMIN podstawowe dane organizacji, bez ról pusta lista.
+- Jawny seed fikcyjnych pracowników wykonano dwukrotnie w Compose bez duplikatów;
+  trzy przypisania do testowego MANAGER, czwarta osoba bez przypisania.
+- Frontend: lista i `/employees/{UUID}`, wyszukiwarka z tych samych danych API,
+  odróżnione puste/błędne odpowiedzi, bez połączenia nowych profili z localStorage.
+  Link HR i bezpośrednia trasa wymagają HR (ADMIN sam nie wystarcza).
+- Typy OpenAPI: `npm run api:types -- http://127.0.0.1:33081/openapi.json`.
+- `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest` z testowym
+  PostgreSQL i źródłowym XLSX — OK, 120 testów, bez skipów; obejmują upgrade,
+  `alembic check`, manager A/B, HR/admin, wygasłe sesje, FK i powtarzalny seed.
+- `npm run precommit` — OK, 45 testów (włączono także pliki `.test.tsx`), format,
+  lint i TypeScript. `npm run build` — OK; profile pracowników są dynamiczne.
+- Compose `up --build --detach --wait`: migracja i usługi API/frontend — OK.
+- Live HTTP bez przeglądarki: realne logowanie ADMIN/MANAGER/HR, weryfikacja JWT
+  przez `/me`, list/detail i izolacja (4/3/4 osób, cudzy profil → 404), refresh
+  i local logout po stronie providera — OK; tokeny wyłącznie w pamięci.
+- Live SSR z cookies: lista na wszystkich rolach i brak cache, HR → 200 tylko
+  dla HR, pozostałym → 404; anonimowe `/employees` → 307 do logowania.
+  W osobnej sesji testowej celowo przeterminowano metadane `expires_at` cookie
+  (nie podpisany JWT): proxy odświeżyło sesję i zwróciło nowe cookies. POST formularza
+  wylogowania wykonał Server Action → 303 `/login`, usunął cookies; następny GET
+  chronionej strony → 307 `/login`. Nie wylogowywano sesji użytkownika.
+- Użytkownik osobno potwierdził działające logowanie w UI. P2-01/P2-02 domknięte;
+  przeglądarki ani E2E nie uruchamiano (P8-01 nadal blocked). Dashboard, procesy
+  ocen i monitoring nadal są demo; nowy profil nie tworzy pozornej oceny.
+- Testowy kontener PostgreSQL zatrzymano po kontrolach; środowisko Compose pozostaje uruchomione.
+- Następny krok: P4-01.
+
+### 2026-11-21 — pierwsze profile użytkowników
+
+- Odczyt Supabase Auth potwierdził pięć kont i potwierdzone adresy e-mail.
+- Istniejącym CLI `app.modules.users.bootstrap` utworzono pierwszego lokalnego
+  administratora; kontom przełożonego i HR dodano profile przez istniejące modele
+  ORM w jednej transakcji z kontrolą braku wcześniejszych profili.
+- Ponowny odczyt po zapisie: trzy aktywne profile, dokładnie role ADMIN, MANAGER, HR.
+  Konto testowe i prywatne pozostawiono bez lokalnego profilu i uprawnień.
+- Nie zmieniano haseł ani metadanych Supabase. Nie wprowadzano kodu ani migracji.
+  Logowanie rzeczywistym hasłem, refresh i logout pozostają do sprawdzenia przez
+  użytkownika; przeglądarki nie uruchamiano. P2-01/P2-02 nadal blocked.
+- Następny krok: użytkownik loguje się kontem administratora na porcie 3000;
+  następne zadanie implementacyjne pozostaje P2-03 (pracownicy i przypisania).
+
+### 2026-11-21 — konfiguracja projektu Supabase Auth
+
+- Uzupełniono ignorowany `.env.compose-check` o URL projektu i publishable key;
+  frontend i CORS zmieniono na `http://localhost:3000`. Bez zmiany bazy aplikacji.
+- Zatrzymano `next dev` tego projektu zajmujący port 3000 i uruchomiono frontend
+  Compose. Po konflikcie portu wymagane było ponowne utworzenie kontenera frontendu.
+- Compose `config --quiet`, `up --detach --wait` i ponowne utworzenie frontendu
+  — OK; HTTP `/login` na porcie 3000 → 200. Publiczny JWKS projektu → ES256.
+- Połączenie zarządzające Supabase aktywne; projekt i usługa Auth `ACTIVE_HEALTHY`.
+  Odczyt konfiguracji potwierdził Site URL `http://localhost:3000`, email provider
+  i rotację refresh tokenów włączone, anonymous/manual linking wyłączone.
+- Wyłączono publiczną rejestrację (`disable_signup=true`) i włączono potwierdzanie
+  e-maila (`mailer_autoconfirm=false`); ponowny odczyt potwierdził zapis.
+- Odczyt `auth.users` bez sekretów: brak nieusuniętych kont. Następny krok:
+  utworzyć uzgodnione konto Auth z potwierdzonym e-mailem i powiązać je z pierwszym
+  lokalnym administratorem. Hasło bazy Supabase nie jest do tego potrzebne.
+- Logowanie, refresh i logout nadal niezweryfikowane; P2-01/P2-02 pozostają blocked.
 
 ### 2026-11-21 — P2-01, obsługa pustego JWKS
 

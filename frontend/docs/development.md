@@ -33,10 +33,35 @@ uses that profile. Protected routes are dynamic and data fetches use `no-store`.
 Future endpoints and Server Actions must perform their own authorization; a
 layout or hidden link is not an authorization boundary.
 
-Business screens still contain clearly labelled demo assessment data until
-P2-03/P4. Do not enter real employee information into the legacy local workspace.
-There is no automatic migration of demo data. Live Auth and browser verification
-remain outstanding; see `docs/backend-progress.md` at the repo root.
+Employee list, UUID profiles (`/employees/{employeeId}`), and command search use
+authorized API data. The server fetches employees with the verified session and
+`no-store`, deduplicates within a request, and passes only basic employee fields
+to command search. Empty lists stay empty; failures do not fall back to demo data.
+Unauthorized and missing profiles render the same not-found page. The HR link
+and direct `/hr` route require the `HR` role; `ADMIN` alone does not grant it.
+
+Assessment creation, history and UUID detail routes now use API data:
+
+- `/assessments/new` is a four-step setup for an assigned MANAGER. Choices use
+  `assigned_only=true`, including for accounts with additional HR/ADMIN roles.
+- The Server Action posts only employee ID and periodic type. The API chooses C,
+  assessor, catalog, initial revision and status. A/B and first assessment are unavailable.
+- One request key stays with the form across retries; selecting another employee
+  starts a new key. Pending submission disables changes, and failures preserve input.
+- `/assessments/{assessmentId}` loads a saved draft, not an employee slug or local
+  workspace. Reload and `?step=` do not mutate it. History is also on employee profiles.
+- `src/lib/api/server.ts` shares private authenticated transport for business APIs;
+  feature loaders/actions own response handling. Redirects are not swallowed by catches.
+- Legacy dashboard links lead to the real assessment list. Demo assistant responses
+  are not used as context for persisted assessments.
+
+Criterion/timing editing is P4-02. Dashboard, deadlines and HR monitoring still
+contain labelled demo data until P7. Legacy flow components remain as the visual
+reference for the remaining P4 screens; the UUID route no longer mounts them.
+Do not enter real employee information into the legacy local workspace.
+There is no automatic migration of demo data.
+Live Auth/API/SSR HTTP checks passed; browser verification remains outstanding.
+See `docs/backend-progress.md` at the repo root.
 
 API types in `src/lib/api/schema.d.ts` are generated from FastAPI OpenAPI:
 
@@ -85,7 +110,7 @@ checks, and skips the remote score and dependency supply-chain services.
 - `src/features/workspace/`: React state coordination and validated local storage.
 - Other `src/features/` folders contain the dashboard, employees, deadlines, help,
   HR, search, and deterministic assistant.
-- Tests are colocated with the logic they verify as `*.test.ts`.
+- Tests are colocated with the logic they verify as `*.test.ts` or `*.test.tsx`.
 
 Assessment calculations have no React, Next.js, or browser dependency. Route
 parameters are checked before rendering, and saved browser data is validated

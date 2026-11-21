@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
 import { signOut } from "@/features/auth/actions";
 import type { WorkspaceUser } from "@/features/auth/session";
 import { Icon } from "@/components/ui/icon";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
-import { findEmployee } from "@/features/assessments/data/employees";
 import { navigation } from "./navigation";
-import { AssessmentNavigation } from "./assessment-navigation";
 
 export function Sidebar({
   user,
@@ -22,8 +19,6 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { state, toggleTheme } = useWorkspace();
-  const employee = findEmployee(pathname.split("/")[2] ?? "");
-  const assessment = employee ? state.assessments[employee.id] : null;
   const linkClass =
     "flex min-h-[2.5625rem] w-full items-center gap-3 rounded-[0.6875rem] border px-3 py-2.5 text-left text-[0.8125rem] font-medium transition-colors";
 
@@ -81,30 +76,24 @@ export function Sidebar({
                   className={active ? "shrink-0 text-primary" : "shrink-0"}
                 />
                 <span>{label}</span>
-                {href === "/assessments" ? (
-                  <span className="ml-auto text-caption text-subtle-foreground">03</span>
-                ) : null}
               </Link>
             );
           })}
         </nav>
       </div>
-      {employee && assessment && assessment.type === "periodic" ? (
-        <Suspense fallback={null}>
-          <AssessmentNavigation employee={employee} onNavigate={onNavigate} />
-        </Suspense>
-      ) : null}
       <div className="mt-auto px-4 pt-6 pb-4">
         <div className="border-t pt-4">
-          <Link
-            href="/hr"
-            onClick={onNavigate}
-            className={`${linkClass} ${pathname === "/hr" ? "border-border bg-surface" : "border-transparent text-muted-foreground"}`}
-          >
-            <Icon name="shield" size={17} />
-            <span>Widok HR</span>
-            <Icon name="chevron-right" size={14} className="ml-auto" />
-          </Link>
+          {user.roles.includes("HR") ? (
+            <Link
+              href="/hr"
+              onClick={onNavigate}
+              className={`${linkClass} ${pathname === "/hr" ? "border-border bg-surface" : "border-transparent text-muted-foreground"}`}
+            >
+              <Icon name="shield" size={17} />
+              <span>Widok HR</span>
+              <Icon name="chevron-right" size={14} className="ml-auto" />
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={toggleTheme}

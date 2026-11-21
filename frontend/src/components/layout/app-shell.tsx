@@ -10,10 +10,19 @@ import { AssistantDrawer } from "@/features/assistant/assistant-drawer";
 import { CommandSearch } from "@/features/search/command-search";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
 import type { WorkspaceUser } from "@/features/auth/session";
+import type { EmployeeRecord } from "@/features/employees/types";
 import { Sidebar } from "./sidebar";
 import { navigation } from "./navigation";
 
-export function AppShell({ children, user }: { children: ReactNode; user: WorkspaceUser }) {
+export function AppShell({
+  children,
+  user,
+  employees,
+}: {
+  children: ReactNode;
+  user: WorkspaceUser;
+  employees: EmployeeRecord[];
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -106,7 +115,9 @@ export function AppShell({ children, user }: { children: ReactNode; user: Worksp
           <Sidebar user={user} onNavigate={() => setMobileOpen(false)} onSearch={search} />
         </Dialog>
       ) : null}
-      {searchOpen ? <CommandSearch onClose={() => setSearchOpen(false)} /> : null}
+      {searchOpen ? (
+        <CommandSearch employees={employees} onClose={() => setSearchOpen(false)} />
+      ) : null}
       <Suspense fallback={null}>
         <AssistantDrawer />
       </Suspense>

@@ -19,14 +19,18 @@ export async function fetchProfile(accessToken: string): Promise<Response> {
   });
 }
 
-export const requireUser = cache(async (): Promise<WorkspaceUser> => {
+export const requireAccessToken = cache(async (): Promise<string> => {
   if (!authConfig()) redirect("/login");
   const client = await createAuthClient();
   const { data, error } = await client.auth.getClaims();
   if (error || !data?.claims.sub) redirect("/login");
   const { data: sessionData } = await client.auth.getSession();
   if (!sessionData.session) redirect("/login");
-  const response = await fetchProfile(sessionData.session.access_token);
+  return sessionData.session.access_token;
+});
+
+export const requireUser = cache(async (): Promise<WorkspaceUser> => {
+  const response = await fetchProfile(await requireAccessToken());
   if (response.status === 401 || response.status === 403) redirect("/login?error=account");
   if (!response.ok) throw new Error("Nie można pobrać profilu użytkownika.");
   return response.json() as Promise<WorkspaceUser>;

@@ -76,7 +76,38 @@ JWKS — 503. Tokenów nie umieszczaj w adresach URL, plikach ani historii powł
 
 Testy generują jednorazowe klucze w pamięci i zastępują tylko transport JWKS;
 testy `/me` wykonują prawdziwą weryfikację podpisu oraz odczyt PostgreSQL.
-Próba z rzeczywistym Supabase wymaga osobnej konfiguracji i nadal jest niewykonana.
+Próby z rzeczywistym Supabase i ich zakres zapisujemy w `docs/backend-progress.md`
+w katalogu głównym repozytorium.
+
+## Pracownicy i przypisania
+
+Migracja `0004` dodaje komórki organizacyjne, pracowników i przypisania przełożonych.
+Instalacja obejmuje jedną organizację. Typ stanowiska rozróżnia `OFFICE_HEAD`,
+`DIRECT_MANAGER` i `OTHER`; nie jest rolą konta użytkownika.
+
+- `GET /api/v1/employees` — lista podstawowych danych, opcjonalnie `?q=fragment`
+  wyszukujący po nazwie (maks. 100 znaków; `%` i `_` traktowane dosłownie).
+- `GET /api/v1/employees/{UUID}` — te same dane jednego pracownika.
+- `?assigned_only=true` zawęża listę do przypisań MANAGER także przy dodatkowej
+  roli HR/ADMIN; służy do wyboru pracownika do nowej oceny.
+- `MANAGER` widzi wyłącznie przypisanych; `HR` i `ADMIN` podstawowe dane całej
+  organizacji. Bez roli lista jest pusta. Cudze i nieistniejące ID zwracają 404.
+- Listę filtruje zapytanie SQL, nie frontend. Schemat nie zawiera notatek ani ocen;
+  dostęp do tych danych będzie wymagał osobnej autoryzacji w P4.
+
+Seed jest jawną operacją operatora, nigdy częścią startu aplikacji ani migracji:
+
+```sh
+uv run python -m app.modules.employees.seed --manager-subject SUPABASE_MANAGER_UUID
+```
+
+Wymaga aktywnego lokalnego użytkownika `MANAGER`. Tworzy cztery **fikcyjne** osoby
+w jednostce testowej: Jan Kowalski, Maria Wiśniewska, Alicja Zielińska i Piotr Nowak.
+Pierwsze trzy przypisuje wskazanemu przełożonemu, Piotra pozostawia bez przypisania.
+Ponowienie nie tworzy duplikatów ani nie nadpisuje istniejących danych pracowników.
+Nie importuje stanu demo z przeglądarki. W Compose poprzedź polecenie
+`docker compose --env-file .env.compose-check -f infra/compose.yaml -f infra/compose.dev.yaml exec -T backend`
+i użyj `python` bez `uv run` (polecenie uruchamiane z katalogu głównego repo).
 
 ## Katalog kompetencji
 
@@ -100,6 +131,38 @@ katalogu zwraca 404. Nie ma automatycznego pobierania materiałów ani danych de
 Ustaw `KOMPAS_TEST_CATALOG_XLSX` na ścieżkę do źródła, by test porównał każdy opis
 i każdy poziom z oryginałem. Bez pliku ta dodatkowa kontrola jest jawnie pomijana;
 testy parsera i API korzystają z generowanego, fikcyjnego workbooka.
+
+## Utworzenie i wznowienie oceny C
+
+Migracja `0005` dodaje `assessments`. Router odpowiada za kontrakt HTTP, serwis
+za transakcję i dostęp, a `rules.py` pozostaje niezależne od HTTP i bazy.
+
+```text
+POST /api/v1/assessments
+Idempotency-Key: UUID
+{"employee_id": "UUID", "kind": "periodic"}
+
+GET /api/v1/assessments
+GET /api/v1/assessments?employee_id=UUID
+GET /api/v1/assessments/{assessment_id}
+```
+
+- Tworzy wyłącznie aktywny MANAGER z przypisaniem do pracownika. Dane oceniającego,
+  formularz, status i rewizja pochodzą z API; dodatkowe pola żądania są odrzucane.
+- Stanowisko `OTHER` tworzy C; A/B oraz pierwsza ocena nie są jeszcze obsługiwane.
+  Bez katalogu tworzenie zwraca 503, bez zastępowania źródła danymi demo.
+- Zapis zawiera UUID procesu, autora, czas UTC, `draft`, rewizję 1, migawkę
+  podstawowych danych pracownika i FK do niezmiennej wersji katalogu. Zmiana profilu
+  lub import nowego katalogu nie zmienia wcześniejszej oceny.
+- Pierwsze żądanie zwraca 201 i `Location`, ponowienie z tym samym kluczem i danymi
+  200 oraz ten sam UUID. Ten sam klucz z innym pracownikiem zwraca 409.
+  Klucz jest unikalny w obrębie oceniającego; blokada transakcyjna PostgreSQL
+  serializuje równoległe ponowienia. Nowy klucz tworzy osobny proces i zachowuje historię.
+- Lista i szczegół wymagają roli MANAGER, własnego autorstwa i aktualnego przypisania.
+  Samo HR/ADMIN ani przypisanie drugiego przełożonego nie otwiera cudzej oceny.
+  Brak dostępu do szczegółu zwraca 404, lista bez dostępnych procesów jest pusta.
+- GET, odświeżenie i parametry nawigacji nie zmieniają statusu ani rewizji.
+  Nie ma jeszcze API edycji/przejść; kryteria, terminy i konflikty rewizji to P4-02.
 
 ## Reguły ocen
 

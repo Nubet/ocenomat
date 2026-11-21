@@ -1,5 +1,7 @@
 import { Dashboard } from "@/features/dashboard/dashboard";
+import { requireUser } from "@/features/auth/session";
 
-export default function HomePage() {
-  return <Dashboard />;
+export default async function HomePage() {
+  const user = await requireUser();
+  return <Dashboard canCreate={user.roles.includes("MANAGER")} />;
 }
