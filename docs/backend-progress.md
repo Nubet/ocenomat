@@ -6,15 +6,16 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 6 — kontrolowany RAG, źródła i analiza OSP.
-- **Aktywne zadanie:** P6-07 — zestaw ewaluacyjny i pomiary retrieval (`in_progress`).
-- **Następny krok:** referencyjne pytania z podstawą w oryginałach i oddzielne pomiary
-  wyszukiwania; po odblokowaniu providera rzeczywista jakość odpowiedzi i trzech OSP.
+- **Aktywne zadanie:** P6-07 — rzeczywista ewaluacja generowania (`blocked`: OpenRouter).
+- **Następny krok:** po odblokowaniu providera uruchomić istniejące narzędzie
+  z `--generate`, ocenić odpowiedzi i rekomendacje trzech OSP. Dopiero po zamknięciu
+  fazy 6 rozpocząć P7-01. Zestaw 30 pytań i pomiar retrieval są gotowe.
   P6-02 zakończono dla ograniczonego korpusu: 4 źródła, 64 fragmenty, 17 approval
   wierności; pozostałe 47 nadal `needs_review`. Ustawa, FAQ, formularze i poradniki
   nie są zatwierdzoną wiedzą. Backend Compose healthy, migracje do 0015. Obowiązuje
   [phase6-plan.md](hacknation-materials/phase6-plan.md), nie dawny skrót trzech zadań.
-- **Ostatnia zakończona praca:** P6-03 — retriever PostgreSQL i indeks GIN,
-  104 testy wiedzy/migracji, rzeczywisty smoke korpusu 9/9 pytań top-5.
+- **Ostatnia zakończona praca:** implementacja analizy OSP (`9f4311c`) i narzędzie
+  ewaluacji P6-07: 30 pytań, 23/23 trafienia źródeł top-5 bez generowania.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -83,7 +84,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P6-04 | Asystent formalny RAG i cytowania | done | Autoryzowane API, dosłowne cytaty i osobny review poparcia/kompletności; testy asystenta OK. Wynik przez silnik, brak mutacji; rzeczywiste generowanie zablokowane kontem OpenRouter. |
 | P6-05 | Integracja istniejącego draweru Next.js | done | Sesyjna Server Action, OpenAPI, jawne tryby/zakres, wynik silnika i chronione pobranie oryginału; precommit i 180 testów OK. Przeglądarka niewykonana. |
 | P6-06 | Analiza OSP i rekomendacje kryteriów | blocked | Kod/API/UI i testy gotowe; 58 testów OSP+asystenta OK, w tym ekstrakcja trzech oryginałów. Do kryterium jakości rekomendacji trzech OSP potrzebne działające generowanie. |
-| P6-07 | Ewaluacja jakości i demonstracja | in_progress | Przygotowanie zestawu i pomiarów, generowanie zablokowane. |
+| P6-07 | Ewaluacja jakości i demonstracja | blocked | Zestaw 30 pytań, narzędzie read-only i protokół przeglądu gotowe; retrieval 23/23 top-5. Jakość generowania i demonstracja wymagają odblokowania OpenRouter. |
 | P7-01 | Arkusz B | pending | — |
 | P7-02 | Pierwsza ocena | pending | — |
 | P7-03 | Monitoring HR | pending | — |
@@ -223,6 +224,24 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   sesji, input i timeout; helper kontekstu odrzuca demo ID i trasę nowej oceny.
 - Nie wykonywano przeglądarki ani rzeczywistego generowania; P6-07 nadal wymaga
   odblokowania providera i pomiarów jakości. UI nie udaje powodzenia przy awarii.
+
+## P6-07 — zestaw referencyjny i narzędzie ewaluacji
+
+- 30 pytań z oczekiwanymi odpowiedziami: 23 z locatorami oryginalnych paragrafów,
+  7 o brakach podstaw, niejednoznaczności, fikcyjnych źródłach i injection.
+- `uv run python -m app.modules.ai.evaluate`: publiczny korpus, transakcja read-only,
+  JSON z oddzielnym retrieval i generowaniem. Opcjonalne `--generate` korzysta
+  z obecnego adaptera, bez retry po awarii. Nie przesyła prywatnych ocen/OSP.
+- Jednorazowy pomiar na aplikacyjnym PostgreSQL: **23/23 top-5**, suma czasu
+  retrieval **0,1575 s**. Bez wywołań LLM; nie jest to pomiar jakości odpowiedzi.
+- Kontrole: Ruff lint/format dwóch nowych plików OK;
+  `uv run pytest -q tests/test_assistant_evaluation.py` — **1 passed, 0,67 s**.
+  Bez powtarzania pełnej regresji, smoke ani przeglądarki. Nowa dyrektywa użytkownika:
+  priorytet implementacji i clean code, tylko potrzebne celowane kontrole.
+- Protokół przeglądu, komendy i ograniczenia: [assistant-evaluation.md](assistant-evaluation.md).
+  P6-07 nadal **blocked** przez provider; nie oznaczamy fazy 6 jako ukończonej.
+  Następny krok: rzeczywiste odpowiedzi i trzy OSP po odblokowaniu OpenRouter,
+  następnie P7-01. Commit: `feat(ai): add reference corpus evaluation tool`.
 
 ## P6-06 — implementacja analizy prywatnego OSP
 
