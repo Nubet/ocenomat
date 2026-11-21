@@ -8,6 +8,7 @@ const roles = [
   {
     id: "MANAGER",
     title: "Przełożony",
+    icon: "file-check",
     description: "Prowadzisz własne oceny przypisanych Ci pracowników.",
     items: [
       "Widzisz profile przypisanych pracowników oraz oceny, które samodzielnie prowadzisz.",
@@ -20,6 +21,7 @@ const roles = [
   {
     id: "HR",
     title: "HR",
+    icon: "users",
     description: "Wspierasz organizację procesu ocen w urzędzie.",
     items: [
       "Widzisz podstawowe dane pracowników w organizacji.",
@@ -32,6 +34,7 @@ const roles = [
   {
     id: "ADMIN",
     title: "Administrator",
+    icon: "shield",
     description: "Odpowiadasz za dostęp do aplikacji i przypisanie osób.",
     items: [
       "Widzisz podstawowe profile pracowników w organizacji.",
@@ -92,14 +95,27 @@ export function Help({ userRoles }: { userRoles: WorkspaceUser["roles"] }) {
             key={role.id}
             className={`flex flex-col p-6 ${userRoles.includes(role.id) ? "border-primary-border" : ""}`}
           >
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold">{role.title}</h2>
-              {userRoles.includes(role.id) ? <Badge tone="primary">Twoja rola</Badge> : null}
+            <div className="flex items-start gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-muted text-primary">
+                <Icon name={role.icon} size={20} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold">{role.title}</h2>
+                  {userRoles.includes(role.id) ? <Badge tone="primary">Twoja rola</Badge> : null}
+                </div>
+                <p className="mt-2 text-body leading-5 text-muted-foreground">{role.description}</p>
+              </div>
             </div>
-            <p className="mb-5 text-body font-medium">{role.description}</p>
-            <ul className="mb-6 list-disc space-y-3 pl-5 text-body leading-6 text-muted-foreground">
+            <ul className="mt-5 mb-6 space-y-3 border-t pt-4 text-body leading-6 text-muted-foreground">
               {role.items.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item} className="flex items-start gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-2.5 size-1.5 shrink-0 rounded-full bg-primary"
+                  />
+                  <span>{item}</span>
+                </li>
               ))}
             </ul>
             {userRoles.includes(role.id) ? (
@@ -111,11 +127,14 @@ export function Help({ userRoles }: { userRoles: WorkspaceUser["roles"] }) {
           </Card>
         ))}
       </div>
-      <Note className="mb-6">
-        Jedno konto może mieć kilka ról. Do prowadzenia oceny zawsze potrzebujesz roli przełożonego
-        i przypisania pracownika. Jeśli brakuje Ci dostępu, podaj administratorowi swój adres
-        logowania oraz imię i nazwisko pracownika. Administrator zleci zmianę osobie obsługującej
-        wdrożenie.
+      <Note className="mb-6 flex items-start gap-3">
+        <Icon name="info" size={18} className="mt-0.5 shrink-0 text-primary" />
+        <p>
+          Jedno konto może mieć kilka ról. Do prowadzenia oceny zawsze potrzebujesz roli
+          przełożonego i przypisania pracownika. Jeśli brakuje Ci dostępu, podaj administratorowi
+          swój adres logowania oraz imię i nazwisko pracownika. Administrator zleci zmianę osobie
+          obsługującej wdrożenie.
+        </p>
       </Note>
       <Card className="p-6 sm:p-7">
         <h2 className="mb-3 text-sm font-semibold">Najczęstsze pytania</h2>
