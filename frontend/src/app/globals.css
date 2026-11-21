@@ -39,6 +39,16 @@
 }
 
 @layer components {
+  .report-paper table {
+    @apply w-full border-collapse;
+  }
+  .report-paper th,
+  .report-paper td {
+    @apply border border-document-border p-2 text-left text-label;
+  }
+  .report-paper th {
+    @apply bg-document-muted;
+  }
   .field {
     @apply min-h-11 w-full rounded-control border bg-surface px-3 py-2.5 text-body text-foreground transition-colors placeholder:text-subtle-foreground focus:border-primary;
   }
