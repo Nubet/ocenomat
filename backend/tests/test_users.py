@@ -1,45 +1,16 @@
-import os
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from alembic.config import Config
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
 from sqlalchemy.orm import Session
 from test_security import claims, sign
 
-from alembic import command
-from app.core.config import Settings
-from app.core.database import create_database_engine, get_session
+from app.core.database import get_session
 from app.main import create_app
 from app.modules.users.bootstrap import bootstrap_admin
 from app.modules.users.models import Role, User, UserRole
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.fixture
-def database(monkeypatch):
-    url = os.environ.get("KOMPAS_TEST_DATABASE_URL")
-    if not url:
-        pytest.skip("Requires a dedicated PostgreSQL test database")
-    monkeypatch.setenv("KOMPAS_DATABASE_URL", url)
-    command.upgrade(Config(str(Path(__file__).parents[1] / "alembic.ini")), "head")
-    settings = Settings(
-        database_url=SecretStr(url), supabase_url="https://auth.example.org"
-    )
-    engine = create_database_engine(settings)
-    with engine.connect() as connection:
-        transaction = connection.begin()
-        try:
-            with Session(
-                bind=connection, join_transaction_mode="create_savepoint"
-            ) as session:
-                yield settings, connection, session
-        finally:
-            transaction.rollback()
-    engine.dispose()
 
 
 @pytest.mark.parametrize(

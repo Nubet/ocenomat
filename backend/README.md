@@ -77,3 +77,26 @@ JWKS — 503. Tokenów nie umieszczaj w adresach URL, plikach ani historii powł
 Testy generują jednorazowe klucze w pamięci i zastępują tylko transport JWKS;
 testy `/me` wykonują prawdziwą weryfikację podpisu oraz odczyt PostgreSQL.
 Próba z rzeczywistym Supabase wymaga osobnej konfiguracji i nadal jest niewykonana.
+
+## Katalog kompetencji
+
+Po migracji `0003` operator importuje lokalny materiał (nie jest częścią repo):
+
+```sh
+uv run python -m app.modules.catalog.importer '../docs/hacknation-materials/Model_kompetencji.xlsx' --version model-2026-11-21
+```
+
+Importer weryfikuje tabelę źródłową, 14 kompetencji, 49 wskaźników i pięć opisów
+na wskaźnik. Zachowuje tekst bez usuwania polskich znaków i podziałów wierszy,
+odrzuca formuły i niepełne arkusze. UUID zależą od nazwy/opisu, nie kolejności.
+Wersja jest snapshotem JSONB z nazwą źródła i SHA-256. Ponowny import tego samego
+pliku i wersji niczego nie powiela; inna zawartość pod tą wersją jest odrzucana.
+Zmiana tekstu wskaźnika zmienia jego ID; historia pozostaje w poprzedniej wersji.
+
+`GET /api/v1/catalog/criteria` wymaga aktywnego użytkownika. Zwraca najnowszą
+zaimportowaną wersję, a `?version_id=UUID` wskazaną wersję historyczną; brak
+katalogu zwraca 404. Nie ma automatycznego pobierania materiałów ani danych demo.
+
+Ustaw `KOMPAS_TEST_CATALOG_XLSX` na ścieżkę do źródła, by test porównał każdy opis
+i każdy poziom z oryginałem. Bez pliku ta dodatkowa kontrola jest jawnie pomijana;
+testy parsera i API korzystają z generowanego, fikcyjnego workbooka.

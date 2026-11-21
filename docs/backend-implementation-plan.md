@@ -116,6 +116,13 @@ W obrębie istniejących modułów używaj tylko potrzebnych `models.py`, `schem
 `service.py`, `router.py` i czystych funkcji domenowych. Brak uniwersalnych
 repozytoriów, kolejek i warstw tworzonych na przyszłość.
 
+Uszczegółowienie DEC-009 (2026-11-21, P3-01): pełna wersja katalogu jest
+niezmiennym snapshotem JSONB w `catalog_versions`, z SHA-256 pliku źródłowego.
+Kryteria i wskaźniki mają UUIDv5 od znormalizowanej nazwy/opisu, niezależne od
+pozycji w arkuszu. Zachowujemy wszystkie oryginalne opisy i polskie znaki.
+Odczyt całego katalogu nie wymaga osobnych tabel wskaźników; relacyjne powiązania
+odpowiedzi w P4 muszą walidować ID wobec przypiętego snapshotu wersji.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

@@ -6,10 +6,10 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 2 — tożsamość; fundament techniczny zakończony.
-- **Aktywne zadanie:** brak; kod P2-01 sprawdzony, integracja live zablokowana.
-- **Następny krok:** niezależne P3-01/P3-02; do testu live P2-01 potrzebne
+- **Aktywne zadanie:** brak; P3-01 zakończone.
+- **Następny krok:** niezależne P3-02; do testu live P2-01 potrzebne
   skonfigurowane Supabase Cloud i rzeczywisty token użytkownika.
-- **Ostatnia zakończona praca:** lokalny kod użytkowników, ról i JWT.
+- **Ostatnia zakończona praca:** pełny import katalogu i chronione API.
 - **Stan aplikacji:** frontend to demo z lokalnym stanem; backend ma `/health`
   i `/api/v1/health`, połączenie PostgreSQL i historię migracji bez tabel domenowych.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
@@ -33,7 +33,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P2-01 | Tożsamość, role, weryfikacja JWT | blocked | Kod i 45 testów OK; brak konfiguracji Supabase blokuje próbę live. `feat(auth): verify identities and load roles` |
 | P2-02 | Logowanie i sesja | pending | — |
 | P2-03 | Pracownicy i przypisania | pending | — |
-| P3-01 | Katalog kompetencji | pending | — |
+| P3-01 | Katalog kompetencji | done | Import i porównanie treści XLSX, 52 testy; `feat(catalog): add competency model` |
 | P3-02 | Reguły i testy domenowe | pending | — |
 | P4-01 | Utworzenie i wznowienie oceny C | pending | — |
 | P4-02 | Kryteria i terminy | pending | — |
@@ -63,6 +63,23 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
   nieśledzone; nie dodawaj ich przypadkowo do commitów.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P3-01
+
+- Migracja `0003`, niezmienne wersje JSONB z SHA-256 i stabilnymi UUID kryteriów
+  i wskaźników; importer waliduje arkusze, ilości, kompletność, formuły i znaki.
+  Chroniony endpoint katalogu i jawny odczyt wersji historycznej.
+- `uv sync`, `uv run ruff check .`, `uv run ruff format --check .`,
+  `uv run pytest` z testową bazą i `KOMPAS_TEST_CATALOG_XLSX` — OK, 52 testy.
+  Porównano wszystkie nazwy, wskaźniki i opisy poziomów z oryginalnym XLSX.
+- Lokalna baza Compose: `uv run alembic upgrade head`, dwukrotne
+  `uv run python -m app.modules.catalog.importer
+  '../docs/hacknation-materials/Model_kompetencji.xlsx' --version model-2026-11-21`
+  z lokalnym `KOMPAS_DATABASE_URL` — OK; bez duplikatów i bez zmiany źródła.
+- Materiał XLSX nie został dodany do repo; po klonowaniu operator dostarcza plik.
+  Chronione API sprawdzono z podpisanym tokenem testowym, nie realnym Supabase.
+- Commit: `feat(catalog): add competency model`.
+- Następny krok: P3-02; P2-01 nadal blocked wyłącznie weryfikacją live.
 
 ### 2026-11-21 — P2-01 (kod gotowy, integracja live blocked)
 
