@@ -110,18 +110,18 @@ Preserve source colors and dimensions; do not redesign the application.
 Use CSS-first configuration with `@import "tailwindcss"` and `@theme`.
 Use `@theme inline` to map runtime semantic variables into utilities.
 
-| Family | Semantic names | Source values / intention |
-| --- | --- | --- |
-| Backgrounds | `canvas`, `sidebar`, `surface`, `surface-muted` | `#f8f9fb`, `#f5f6f8`, `#ffffff`, `#fbfbfc` |
-| Content | `foreground`, `muted-foreground`, `subtle-foreground` | `#242832`, `#656d7a`, `#757c88` |
-| Borders | `border`, `border-interactive` | `#e8eaee`, source interactive border |
-| Brand | `primary`, `primary-hover`, `primary-foreground`, `primary-muted`, `primary-border` | Source brand and button values, explicitly preserving their slight differences |
-| Status | `success`, `warning`, `danger`, `info` and their surface/border roles | Match rendered source status treatments |
-| Focus | `ring` | `#7c91ff` in light mode |
-| Radii | `control`, `card`, `choice`, `dialog`, `badge` | Source 10px, 18px, 15px, and pill treatments |
-| Shadows | `card`, `navigation`, `overlay`, `toast` | Source layered shadows |
-| Type | `font-sans`, `font-document`; `text-caption`, `text-label`, `text-body`, `text-title` | Reference system fallback, Arial document, reference sizes/line heights |
-| Layout | `spacing-sidebar`, `container-workspace`, navigation/compact breakpoints | 254px sidebar, 1250px content width, 800px/520px source transitions |
+| Family      | Semantic names                                                                        | Source values / intention                                                      |
+| ----------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Backgrounds | `canvas`, `sidebar`, `surface`, `surface-muted`                                       | `#f8f9fb`, `#f5f6f8`, `#ffffff`, `#fbfbfc`                                     |
+| Content     | `foreground`, `muted-foreground`, `subtle-foreground`                                 | `#242832`, `#656d7a`, `#757c88`                                                |
+| Borders     | `border`, `border-interactive`                                                        | `#e8eaee`, source interactive border                                           |
+| Brand       | `primary`, `primary-hover`, `primary-foreground`, `primary-muted`, `primary-border`   | Source brand and button values, explicitly preserving their slight differences |
+| Status      | `success`, `warning`, `danger`, `info` and their surface/border roles                 | Match rendered source status treatments                                        |
+| Focus       | `ring`                                                                                | `#7c91ff` in light mode                                                        |
+| Radii       | `control`, `card`, `choice`, `dialog`, `badge`                                        | Source 10px, 18px, 15px, and pill treatments                                   |
+| Shadows     | `card`, `navigation`, `overlay`, `toast`                                              | Source layered shadows                                                         |
+| Type        | `font-sans`, `font-document`; `text-caption`, `text-label`, `text-body`, `text-title` | Reference system fallback, Arial document, reference sizes/line heights        |
+| Layout      | `spacing-sidebar`, `container-workspace`, navigation/compact breakpoints              | 254px sidebar, 1250px content width, 800px/520px source transitions            |
 
 Runtime variables use role names such as `--surface` and `--foreground`;
 Tailwind mappings use namespaces such as `--color-surface` and
@@ -166,8 +166,8 @@ not every one-off illustration coordinate, into tokens. Prefer rem units.
 
 Each phase ends with one short English Conventional Commit with no body.
 The Git repository lives at the project root (`hacknation/`). Stage and commit
-only frontend paths for this task. Pause for approval after each phase, as
-required by the requested migration skill.
+only frontend paths for this task. Following the user's updated instructions,
+continue through all phases without approval gates and do not launch a browser.
 
 1. **Analysis and architecture** — this implementation plan, source inventory,
    architecture, tokens, fidelity risks, and acceptance criteria.
@@ -181,9 +181,10 @@ required by the requested migration skill.
    screens, typed demo fixtures, state, calculations, storage, and interactions.
    Add focused calculation/state tests alongside nontrivial logic.
    Commit: `feat: implement competency assessment interface`
-4. **Integration and verification** — desktop/mobile visual comparisons,
-   flow/browser tests, accessibility and print checks, fixes, and a verification
-   record with any remaining differences.
+4. **Integration and verification** — static source fidelity review,
+   calculation/state tests, type checks, lint, production build, and a verification
+   record. Browser-based visual, interaction, and print checks are excluded
+   at the user's request.
    Commit: `test: verify frontend flows and visual fidelity`
 
 ## Verification criteria

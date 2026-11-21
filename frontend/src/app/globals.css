@@ -1,0 +1,103 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@layer base {
+  body {
+    @apply m-0 bg-canvas font-sans text-sm text-foreground antialiased;
+  }
+  * {
+    border-color: var(--border);
+  }
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.43;
+  }
+  input,
+  textarea,
+  select {
+    accent-color: var(--primary);
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+  }
+  ::selection {
+    background: #c8d1ff;
+    color: #1b2f72;
+  }
+}
+
+@layer components {
+  .field {
+    @apply min-h-11 w-full rounded-control border bg-surface px-3 py-2.5 text-body text-foreground transition-colors placeholder:text-subtle-foreground focus:border-primary;
+  }
+  textarea.field {
+    @apply min-h-25 resize-y leading-relaxed;
+  }
+  .field-label {
+    @apply mb-2 block text-body font-semibold;
+  }
+  .eyebrow {
+    @apply text-label font-bold tracking-eyebrow text-subtle-foreground uppercase;
+  }
+  .clean-table {
+    @apply w-full border-collapse text-left;
+  }
+  .clean-table th {
+    @apply bg-surface-muted px-4 py-3 text-[0.5625rem] font-bold tracking-wider text-subtle-foreground uppercase;
+  }
+  .clean-table td {
+    @apply border-t px-4 py-4 align-middle text-body;
+  }
+  .clean-table tbody tr {
+    @apply hover:bg-surface-muted;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 17mm;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-layout {
+    display: block !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+  .report-paper {
+    max-width: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}

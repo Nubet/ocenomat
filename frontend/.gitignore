@@ -1,0 +1,32 @@
+# Dependencies and package manager caches
+/node_modules/
+/.pnp.*
+/.yarn/
+!/.yarn/patches/
+!/.yarn/plugins/
+!/.yarn/releases/
+
+# Generated output
+/.next/
+/out/
+/build/
+/dist/
+/coverage/
+/test-results/
+/playwright-report/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local configuration and credentials
+.env*
+!.env.example
+/.vercel/
+*.pem
+*.key
+
+# Logs and editor files
+*.log
+/.idea/
+/.vscode/
+.DS_Store
+*~
