@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_session
+from app.modules.assessments.evaluation import confirm_rating, save_answers
 from app.modules.assessments.models import Assessment
 from app.modules.assessments.schemas import (
+    AnswersUpdate,
     AssessmentCreate,
     AssessmentResponse,
     AssessmentTransition,
@@ -14,6 +16,7 @@ from app.modules.assessments.schemas import (
     CriteriaUpdate,
     DatesUpdate,
     ObservationCreate,
+    RatingConfirm,
 )
 from app.modules.assessments.service import (
     AssessmentError,
@@ -158,6 +161,45 @@ def update_conversation(
 ) -> Assessment:
     try:
         result = save_conversation(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.put(
+    "/{assessment_id}/criteria/{criterion_id}/answers",
+    response_model=AssessmentResponse,
+)
+def update_answers(
+    assessment_id: UUID,
+    criterion_id: UUID,
+    data: AnswersUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = save_answers(session, user, assessment_id, criterion_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.post(
+    "/{assessment_id}/criteria/{criterion_id}/rating", response_model=AssessmentResponse
+)
+def approve_rating(
+    assessment_id: UUID,
+    criterion_id: UUID,
+    data: RatingConfirm,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = confirm_rating(session, user, assessment_id, criterion_id, data)
     except AssessmentError as error:
         raise assessment_http_error(error) from None
     response.headers["Cache-Control"] = "private, no-store"

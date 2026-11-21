@@ -10,6 +10,7 @@ const draft: ConversationDraft = {
   occurred_on: "2026-03-12",
 };
 const assessment: AssessmentRecord = {
+  ratings: [],
   id: "assessment",
   employee_id: "employee",
   assessor_id: "manager",

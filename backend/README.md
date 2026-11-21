@@ -232,6 +232,37 @@ POST /api/v1/assessments/{id}/transitions
 - GET oceny odtwarza wpisy i rozmowę, nie zmieniając stanu. Identyczne zasady
   autorstwa/przypisania obejmują odczyt oraz każdą mutację; HR/ADMIN nie czytają notatek.
 
+## Wskaźniki i decyzje przełożonego
+
+Migracja `0008` dodaje `criterion_ratings` i `indicator_answers`. Operacje są
+dostępne wyłącznie w `evaluation`, dla prowadzącego MANAGER z aktualnym przypisaniem.
+
+```text
+PUT /api/v1/assessments/{id}/criteria/{criterion_id}/answers
+{"revision": 8, "answers": [{"indicator_id": "UUID", "level": 2, "note": "Przykład"}]}
+
+POST /api/v1/assessments/{id}/criteria/{criterion_id}/rating
+{"revision": 9, "score": 7}
+```
+
+- PUT zastępuje odpowiedzi jednego wybranego kryterium. Wymaga dokładnie wszystkich
+  jego wskaźników z przypiętego katalogu, każdy UUID raz. `level`: 0–4 albo `null`
+  (brak obserwacji); `note`: 0–4000 znaków. Inne kryterium, wskaźnik z nowego
+  katalogu, duplikaty i niepełny zestaw zwracają 422 bez częściowego zapisu.
+- Backend zapisuje sugestię 1/3/5/7/9 albo `null`, wersję polityki, autora i czas UTC.
+  Brak obserwacji jest pomijany, remis rozstrzyga niższa ocena. Bez odpowiedzi
+  nie ma domyślnej sugestii ani zatwierdzenia.
+- POST wymaga jawnego `score` 1/3/5/7/9; decyzja może różnić się od sugestii,
+  również przy braku obserwacji. Zapisuje osobne `confirmed_by` i `confirmed_at`.
+- Zmiana poziomu lub notatki czyści formalny wynik i potwierdzenie tylko tego
+  kryterium. Identyczny zestaw (niezależnie od kolejności, po przycięciu notatek)
+  zachowuje potwierdzenie. Każdy przyjęty zapis podnosi rewizję i tworzy zdarzenie.
+- FK i CHECK ograniczają powiązania oraz wartości w bazie; UUID wskaźników
+  sprawdza serwis wobec snapshotu JSONB. Wszystkie mutacje używają wspólnej
+  blokady oceny/przypisania i atomowej transakcji. Konflikt → 409, brak dostępu → 404.
+- GET odtwarza odpowiedzi, sugestie i decyzje w `ratings`. Nawigacja nie zapisuje
+  danych. Wynik zbiorczy i finalizacja pozostają zakresem P4-05.
+
 ## Reguły ocen
 
 `app/modules/assessments/rules.py` zawiera czyste funkcje bez API, ORM i AI:

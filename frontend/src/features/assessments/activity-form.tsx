@@ -112,8 +112,8 @@ export function ActivityForm({
       ) : null}
       {assessment.status === "evaluation" || assessment.status === "completed" ? (
         <Note className="mb-5">
-          Rozmowa jest potwierdzona. Obserwacje i notatki możesz przeglądać. Zatwierdzanie ocen
-          cząstkowych i wyniku będzie dostępne w kolejnym etapie aplikacji.
+          Rozmowa jest potwierdzona. Obserwacje i notatki możesz przeglądać. Odpowiedzi i oceny
+          cząstkowe zapisz w zakładce „Ocena zachowań”.
         </Note>
       ) : null}
       <div hidden={step !== "period"} className="grid gap-4 lg:grid-cols-[1.18fr_.82fr]">

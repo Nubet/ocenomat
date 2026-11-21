@@ -160,4 +160,69 @@ describe("persistent observations and conversation actions", () => {
     expect((await saveActivity("bad", previous, form())).error).toBeTruthy();
     expect(apiRequest).not.toHaveBeenCalled();
   });
+
+  it("sends answers with null for no observation, without accepting a client suggestion", async () => {
+    const data = form("answers");
+    data.append("indicator_id", id);
+    data.set(`level:${id}`, "");
+    data.set(`note:${id}`, "Przykład");
+    data.set("suggested_score", "9");
+    data.set("policy_version", "untrusted");
+    const result = await saveActivity(id, previous, data);
+    expect(result.error).toBe("");
+    expect(result.message).not.toContain("backend");
+    expect(apiRequest).toHaveBeenCalledExactlyOnceWith(
+      `/api/v1/assessments/${id}/criteria/${id}/answers`,
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({
+          revision: 5,
+          answers: [{ indicator_id: id, level: null, note: "Przykład" }],
+        }),
+      }),
+    );
+  });
+
+  it("sends an explicit manual decision independently of the suggested score", async () => {
+    const data = form("rating");
+    data.set("score", "3");
+    data.set("suggested_score", "9");
+    await saveActivity(id, previous, data);
+    expect(apiRequest).toHaveBeenCalledExactlyOnceWith(
+      `/api/v1/assessments/${id}/criteria/${id}/rating`,
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ revision: 5, score: 3 }) }),
+    );
+  });
+
+  it.each(["bad", "-1", "5", "null", " "])(
+    "does not turn invalid level %s into missing observations",
+    async (level) => {
+      const data = form("answers");
+      data.append("indicator_id", id);
+      data.set(`level:${id}`, level);
+      data.set(`note:${id}`, "Notatka");
+      expect((await saveActivity(id, previous, data)).error).toBeTruthy();
+      expect(apiRequest).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["", "2", "bad"])("does not approve missing or invalid score %s", async (score) => {
+    const data = form("rating");
+    data.set("score", score);
+    expect((await saveActivity(id, previous, data)).error).toBeTruthy();
+    expect(apiRequest).not.toHaveBeenCalled();
+  });
+
+  it.each([409, 422, 500])("preserves answers on evaluation failure %s", async (status) => {
+    vi.mocked(apiRequest).mockResolvedValue(new Response(null, { status }));
+    const data = form("answers");
+    data.append("indicator_id", id);
+    data.set(`level:${id}`, "0");
+    data.set(`note:${id}`, "Własny tekst");
+    const result = await saveActivity(id, previous, data);
+    expect(result.conflict).toBe(status === 409);
+    expect(result.assessment).toBeUndefined();
+    expect(data.get(`note:${id}`)).toBe("Własny tekst");
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
 });

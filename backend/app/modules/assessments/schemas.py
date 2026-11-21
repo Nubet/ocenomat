@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 from app.modules.assessments.models import AssessmentStatus
-from app.modules.assessments.rules import REQUIRED_CRITERIA
+from app.modules.assessments.rules import PERIODIC_SCORES, REQUIRED_CRITERIA
 from app.modules.employees.schemas import EmployeeResponse
 
 
@@ -40,6 +40,7 @@ class AssessmentResponse(BaseModel):
     arrangements_shared: bool
     observations: list["ObservationResponse"]
     conversation: "ConversationResponse | None"
+    ratings: list["RatingResponse"]
 
 
 class CriterionSelection(BaseModel):
@@ -128,3 +129,39 @@ class ConversationResponse(BaseModel):
     recorded_at: datetime
     confirmed_at: datetime | None
     confirmed_by: UUID | None
+
+
+class IndicatorAnswerInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    indicator_id: UUID
+    level: int | None = Field(strict=True, ge=0, le=4)
+    note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=4000)]
+
+
+class AnswersUpdate(RevisionCommand):
+    answers: list[IndicatorAnswerInput] = Field(min_length=1, max_length=49)
+
+
+class RatingConfirm(RevisionCommand):
+    score: int = Field(strict=True)
+
+    @model_validator(mode="after")
+    def valid_score(self):
+        if self.score not in PERIODIC_SCORES:
+            raise ValueError("Expected a periodic score: 1, 3, 5, 7 or 9")
+        return self
+
+
+class RatingResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    criterion_id: UUID
+    answers: list[IndicatorAnswerInput]
+    suggested_score: int | None
+    policy_version: str
+    author_id: UUID
+    recorded_at: datetime
+    score: int | None
+    confirmed_by: UUID | None
+    confirmed_at: datetime | None

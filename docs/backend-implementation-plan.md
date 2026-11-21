@@ -151,6 +151,16 @@ daty odbytej rozmowy i zmienia stan na `evaluation`; obserwacje i rozmowa są od
 tylko do odczytu. Obserwacje i teksty przygotowawcze są opcjonalne. Autor i czas
 zapisu pochodzą z serwera; potwierdzenie nie jest podpisem ani doręczeniem.
 
+Uszczegółowienie DEC-008/009 (2026-11-21, P4-04): w `evaluation` zapisujemy
+pełny zestaw odpowiedzi danego kryterium (UUID wskaźnika, poziom 0–4 albo brak
+obserwacji, opcjonalna notatka do 4000 znaków). Backend waliduje dokładny zestaw
+wobec przypiętego katalogu i utrwala sugestię z wersją polityki, autorem i czasem.
+Osobne polecenie zatwierdza jawnie wybraną ocenę 1/3/5/7/9; może ona różnić się
+od sugestii, również przy braku obserwacji. Zmiana poziomu lub notatki unieważnia
+decyzję tylko tego kryterium. Identyczny zapis nie unieważnia decyzji. Zapis
+decyzji nie finalizuje całej oceny. Wszystkie mutacje używają wspólnej blokady,
+rewizji i atomowego zdarzenia; nie zapisujemy treści notatek w zdarzeniach.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

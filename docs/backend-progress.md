@@ -5,12 +5,13 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 4 — trwały proces oceny C; P4-03 zakończone.
+- **Etap:** 4 — trwały proces oceny C; P4-04 zakończone.
 - **Aktywne zadanie:** brak.
-- **Następny krok:** P4-04 — pełne wskaźniki z przypiętego katalogu, zapis odpowiedzi,
-  wersjonowana sugestia i ręczne zatwierdzenie każdej oceny cząstkowej.
-- **Ostatnia zakończona praca:** P4-03 — datowane obserwacje, szkic rozmowy
-  i osobne potwierdzenie jej odbycia; autorzy/czasy, rewizje i integracja UI.
+- **Następny krok:** P4-05 — wynik zbiorczy z zatwierdzonych ocen, uzasadnienie
+  wyniku negatywnego, wnioski rozwojowe i jawne zakończenie procesu wraz z UI/testami.
+- **Ostatnia zakończona praca:** P4-04 — pełne opisy zachowań, trwałe odpowiedzi,
+  wersjonowane sugestie i osobne decyzje przełożonego; zmiana odpowiedzi unieważnia
+  potwierdzenie tylko danego kryterium.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
@@ -20,9 +21,12 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
     i zmienia status na `criteria_agreed`. Potwierdzone ustalenia są tylko do odczytu.
    `start_period` otwiera zapis obserwacji i rozmowy w `in_progress`; osobne
    potwierdzenie zapisanej daty rozmowy przechodzi do `evaluation` i zamyka edycję
-   tego etapu. Odczyt odtwarza wpisy, notatki, daty i autorów bez mutacji.
+    tego etapu. Odczyt odtwarza wpisy, notatki, daty i autorów bez mutacji.
+   W `evaluation` zapisujemy odpowiedzi wskaźników z przypiętego katalogu oraz
+   sugestię backendu; przełożony osobno wybiera i zatwierdza każdą ocenę cząstkową.
+   Zmiana poziomu lub notatki wymaga ponowienia decyzji dla tego kryterium.
   Frontend ma ekran logowania, cookie session i chroniony workspace; jego ekrany
-  dalszych etapów oceny i monitoringu pozostają do podłączenia w P4/P7. Bez Supabase
+   wyniku/finalizacji i monitoringu pozostają do podłączenia w P4/P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
   RustFS działa lokalnie; integracja plików z API jest w P5-01.
   Konfigurację Supabase Auth wpisano lokalnie; publiczny JWKS potwierdza ES256.
@@ -30,7 +34,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
   OpenRouter i VPS niezintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  123 testy Vitest. Backend: 206 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
+  143 testy Vitest. Backend: 243 testy z rzeczywistym PostgreSQL i źródłowym XLSX.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
   pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
@@ -57,7 +61,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P4-01 | Utworzenie i wznowienie oceny C | done | Migracja 0005, API create/list/detail, snapshoty, współbieżna idempotencja, historia i UI UUID; 144 testy backendu, 68 UI, build i live HTTP OK. |
 | P4-02 | Kryteria i terminy | done | Migracja 0006, kryteria/uzasadnienia, daty/czynności, potwierdzenie, zdarzenia i atomowa rewizja; 172 testy backendu, 94 UI, build i live HTTP/SSR OK. |
 | P4-03 | Obserwacje i rozmowa | done | Migracja 0007, datowane wpisy i szkic rozmowy, jawne przejścia, autorzy/czasy, rewizje i UI; 206 testów backendu, 123 UI, build i live HTTP/SSR OK. |
-| P4-04 | Wskaźniki i decyzje | pending | — |
+| P4-04 | Wskaźniki i decyzje | done | Migracja 0008, trwałe odpowiedzi/notatki, wersjonowana sugestia i ręczne zatwierdzenie; izolowane unieważnianie decyzji, rewizje i UI. 243 testy backendu, 143 UI, build i live HTTP/SSR OK. |
 | P4-05 | Wynik i zakończenie | pending | — |
 | P5-01 | Prywatny storage | pending | — |
 | P5-02 | OSP i PDF C | pending | — |
@@ -105,6 +109,63 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P4-04, wskaźniki i decyzje przełożonego
+
+- Migracja `0008` dodaje `criterion_ratings` oraz `indicator_answers`, FK do
+  wybranych kryteriów i CHECK poziomów/ocen/spójności potwierdzenia. Nie zmienia
+  wcześniejszych migracji ani danych istniejących ocen.
+- Cienkie endpointy PUT `/{id}/criteria/{criterion_id}/answers` oraz POST
+  `/{id}/criteria/{criterion_id}/rating` korzystają z serwisu `evaluation.py`,
+  wspólnego `edit_assessment` i czystej reguły `suggest_score`. Bez nowych zależności
+  i uniwersalnych repozytoriów. Dostęp tylko dla prowadzącego MANAGER z aktualnym
+  przypisaniem, zapis wyłącznie w `evaluation`.
+- Odpowiedzi obejmują dokładnie wskaźniki danego kryterium z przypiętego snapshotu:
+  UUID, poziom 0–4 lub `null` i notatkę do 4000 znaków. Sugestia ma utrwaloną wersję
+  polityki, autora i czas UTC. Formalna decyzja 1/3/5/7/9 ma osobny autor/czas;
+  nie jest automatycznie przyjmowana i może różnić się od sugestii.
+- Zmieniony poziom lub notatka czyści potwierdzenie tylko tego kryterium.
+  Identyczny zestaw po normalizacji, również w innej kolejności, zachowuje decyzję.
+  Brak obserwacji nie daje domyślnej oceny. Zatwierdzenie kryteriów nie finalizuje
+  procesu ani nie oblicza jeszcze wyniku zbiorczego (P4-05).
+- Trasa UUID ma zakładkę „Ocena zachowań” z pełnymi opisami katalogu, notatkami,
+  osobnym zapisem odpowiedzi i ręcznym wyborem oceny. Niezapisane odpowiedzi blokują
+  zatwierdzenie; formularze pozostają zamontowane podczas nawigacji i błędów.
+  Pending blokuje kolejne zapisy i nawigację, konflikt daje odnośnik do nowej karty.
+  Odtwarzanie nie używa localStorage ani demonstracyjnej punktacji.
+- Zgodnie z korektą użytkownika komunikaty mówią o „Proponowanej ocenie”,
+  „Zapisie odpowiedzi” i „Twoim zatwierdzeniu”. Nie pokazują określeń „backend”,
+  identyfikatora polityki ani UUID autora. Pomoc opisuje ponowienie zatwierdzenia
+  i wskazuje, co pozostaje w przygotowaniu.
+- Kontrole:
+  - `uv run ruff check app tests alembic` oraz format — OK.
+  - `KOMPAS_TEST_DATABASE_URL=… KOMPAS_TEST_CATALOG_XLSX=… uv run pytest -q` —
+    **243 passed**, bez skipów; znane ostrzeżenie Starlette o `httpx` pozostaje.
+  - Testy: remisy/braki, własna decyzja, zmiana notatki i izolowane unieważnianie,
+    obcy/nowszy katalog i wskaźnik innego kryterium, uprawnienia/odwołane przypisanie,
+    stany/rewizje, rollback po błędzie zdarzenia. Dwie rzeczywiste równoległe sesje
+    PostgreSQL (zapis odpowiedzi kontra decyzja): jeden sukces i jeden konflikt,
+    również po wcześniejszym załadowaniu danych do identity map.
+  - Alembic upgrade/downgrade `0008`/upgrade i `command.check` — OK w osobnym,
+    losowym schemacie testowym; istniejących danych operatora nie cofano.
+  - Typy odświeżone przez `npm run api:types -- http://127.0.0.1:33081/openapi.json`.
+  - `npm run precommit` — format, lint, typecheck i **143 testy / 21 plików** OK;
+    `npm run build` — OK.
+  - `npm run doctor` — 30 doradczych wskazań. Nowe dotyczy prostego inicjalizatora
+    wyboru zapisanej oceny; operacja jest trywialna, stan celowo zachowuje szkic.
+    Brak wyciszeń i zmian niepowiązanego kodu.
+  - Compose rebuild/up dla `frontend` — OK; API i web healthy, migracja `0008`
+    wdrożona. `node /tmp/opencode/p4-04-smoke.mjs` — pełny proces HTTP/SSR na
+    rzeczywistym katalogu: odpowiedzi/sugestia, inna decyzja, stale 409, identyczny
+    zapis, zmiana notatki, ponowne zatwierdzenie pięciu kryteriów, odświeżenie;
+    HR/ADMIN odczyt i obie mutacje → 404. Usunięto tylko własną ocenę smoke
+    i wylogowano utworzone sesje.
+- Compose pozostawiono działający pod `http://localhost:3000`; oddzielny
+  `kompas-postgres-test` zatrzymano po testach.
+- Ograniczenia: zgodnie z instrukcją nie uruchamiano przeglądarki ani E2E;
+  brak weryfikacji wizualnej. Następny dokładny krok: P4-05, wykorzystać wyłącznie
+  aktualnie zatwierdzone `ratings`, regułę `periodic_result` i wspólną kontrolę
+  rewizji do wyniku/finalizacji; nie traktować zapisanych sugestii jak decyzji.
 
 ### 2026-11-21 — P4-03, obserwacje i rozmowa
 

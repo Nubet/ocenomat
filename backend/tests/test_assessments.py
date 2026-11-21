@@ -13,14 +13,17 @@ from test_security import claims, sign
 
 from app.core.database import create_database_engine, get_session
 from app.main import create_app
+from app.modules.assessments.evaluation import confirm_rating, save_answers
 from app.modules.assessments.models import Assessment
 from app.modules.assessments.rules import REQUIRED_CRITERIA
 from app.modules.assessments.schemas import (
+    AnswersUpdate,
     AssessmentCreate,
     ConversationUpdate,
     CriteriaUpdate,
     DatesUpdate,
     ObservationCreate,
+    RatingConfirm,
 )
 from app.modules.assessments.service import (
     AssessmentError,
@@ -335,6 +338,7 @@ def test_concurrent_retries_create_exactly_one_record(database):
     user_id, employee_id, unit_id, catalog_id, subject, key = [
         uuid4() for _ in range(6)
     ]
+    indicator_id = uuid4()
     try:
         with Session(engine) as session, session.begin():
             session.add_all(
@@ -351,7 +355,10 @@ def test_concurrent_retries_create_exactly_one_record(database):
                         version=str(catalog_id),
                         source_name="Concurrent test",
                         source_sha256="0" * 64,
-                        criteria=[{"id": str(id)} for id in REQUIRED_CRITERIA["C"]],
+                        criteria=[
+                            {"id": str(id), "indicators": [{"id": str(indicator_id)}]}
+                            for id in REQUIRED_CRITERIA["C"]
+                        ],
                     ),
                 ]
             )
@@ -483,6 +490,66 @@ def test_concurrent_retries_create_exactly_one_record(database):
                 )
                 == 1
             )
+            user = session.get(User, user_id)
+            if saved.status.value == "in_progress":
+                saved = confirm_conversation(
+                    session, user, assessment_id, saved.revision
+                )
+            saved = confirm_rating(
+                session,
+                user,
+                assessment_id,
+                REQUIRED_CRITERIA["C"][0],
+                RatingConfirm(revision=saved.revision, score=3),
+            )
+            revision = saved.revision
+
+        barrier = Barrier(2)
+
+        def evaluation_worker(index):
+            with Session(engine) as session:
+                user = session.get(User, user_id)
+                stale = session.get(Assessment, assessment_id)
+                assert stale.ratings[0].score == 3
+                barrier.wait(timeout=5)
+                try:
+                    if index == 0:
+                        saved = save_answers(
+                            session,
+                            user,
+                            assessment_id,
+                            REQUIRED_CRITERIA["C"][0],
+                            AnswersUpdate(
+                                revision=revision,
+                                answers=[
+                                    {
+                                        "indicator_id": indicator_id,
+                                        "level": 4,
+                                        "note": "Concurrent",
+                                    }
+                                ],
+                            ),
+                        )
+                    else:
+                        saved = confirm_rating(
+                            session,
+                            user,
+                            assessment_id,
+                            REQUIRED_CRITERIA["C"][0],
+                            RatingConfirm(revision=revision, score=9),
+                        )
+                    return saved.revision
+                except AssessmentError as error:
+                    return error.code
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            assert set(pool.map(evaluation_worker, range(2))) == {
+                revision + 1,
+                "conflict",
+            }
+        with Session(engine) as session:
+            rating = session.get(Assessment, assessment_id).ratings[0]
+            assert (rating.suggested_score, rating.score) in {(9, None), (None, 9)}
     finally:
         with Session(engine) as session, session.begin():
             session.execute(delete(Assessment).where(Assessment.assessor_id == user_id))

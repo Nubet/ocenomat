@@ -32,6 +32,7 @@ const assessment: AssessmentRecord = {
   expectations_discussed: false,
   arrangements_shared: false,
   observations: [],
+  ratings: [],
   conversation: null,
 };
 const catalog: components["schemas"]["CatalogResponse"] = {

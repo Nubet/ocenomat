@@ -1,11 +1,13 @@
 import os
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from alembic.config import Config
 from fastapi.testclient import TestClient
 from pydantic import SecretStr, ValidationError
 from sqlalchemy import text
+from sqlalchemy.engine import make_url
 
 from alembic import command
 from app.core.config import Settings
@@ -62,4 +64,31 @@ def test_postgresql_readiness_and_migrations(monkeypatch):
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
     finally:
+        engine.dispose()
+
+
+@pytest.mark.integration
+def test_rating_migration_roundtrip_in_isolated_schema(monkeypatch):
+    url = os.environ.get("KOMPAS_TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Requires a dedicated PostgreSQL test database")
+    engine = create_database_engine(Settings(database_url=SecretStr(url)))
+    schema = f"migration_test_{uuid4().hex}"
+    config = Config(str(Path(__file__).parents[1] / "alembic.ini"))
+    try:
+        with engine.begin() as connection:
+            connection.execute(text(f'CREATE SCHEMA "{schema}"'))
+        isolated_url = make_url(url).update_query_dict(
+            {"options": f"-csearch_path={schema}"}
+        )
+        monkeypatch.setenv(
+            "KOMPAS_DATABASE_URL", isolated_url.render_as_string(hide_password=False)
+        )
+        command.upgrade(config, "head")
+        command.downgrade(config, "0007")
+        command.upgrade(config, "head")
+        command.check(config)
+    finally:
+        with engine.begin() as connection:
+            connection.execute(text(f'DROP SCHEMA IF EXISTS "{schema}" CASCADE'))
         engine.dispose()

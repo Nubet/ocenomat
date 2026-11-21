@@ -176,6 +176,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/criteria/{criterion_id}/answers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Answers */
+    put: operations["update_answers_api_v1_assessments__assessment_id__criteria__criterion_id__answers_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/criteria/{criterion_id}/rating": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Approve Rating */
+    post: operations["approve_rating_api_v1_assessments__assessment_id__criteria__criterion_id__rating_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -223,6 +257,13 @@ export interface components {
       criterion_id: string;
       /** Justification */
       justification: string;
+    };
+    /** AnswersUpdate */
+    AnswersUpdate: {
+      /** Revision */
+      revision: number;
+      /** Answers */
+      answers: components["schemas"]["IndicatorAnswerInput"][];
     };
     /** AssessmentCreate */
     AssessmentCreate: {
@@ -295,6 +336,8 @@ export interface components {
       /** Observations */
       observations: components["schemas"]["ObservationResponse"][];
       conversation: components["schemas"]["ConversationResponse"] | null;
+      /** Ratings */
+      ratings: components["schemas"]["RatingResponse"][];
     };
     /**
      * AssessmentStatus
@@ -458,6 +501,18 @@ export interface components {
       /** Levels */
       levels: components["schemas"]["Level"][];
     };
+    /** IndicatorAnswerInput */
+    IndicatorAnswerInput: {
+      /**
+       * Indicator Id
+       * Format: uuid
+       */
+      indicator_id: string;
+      /** Level */
+      level: number | null;
+      /** Note */
+      note: string;
+    };
     /** Level */
     Level: {
       /** Level */
@@ -519,6 +574,43 @@ export interface components {
      * @enum {string}
      */
     PositionKind: "OFFICE_HEAD" | "DIRECT_MANAGER" | "OTHER";
+    /** RatingConfirm */
+    RatingConfirm: {
+      /** Revision */
+      revision: number;
+      /** Score */
+      score: number;
+    };
+    /** RatingResponse */
+    RatingResponse: {
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Answers */
+      answers: components["schemas"]["IndicatorAnswerInput"][];
+      /** Suggested Score */
+      suggested_score: number | null;
+      /** Policy Version */
+      policy_version: string;
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
+      /** Score */
+      score: number | null;
+      /** Confirmed By */
+      confirmed_by: string | null;
+      /** Confirmed At */
+      confirmed_at: string | null;
+    };
     /**
      * Role
      * @enum {string}
@@ -921,6 +1013,78 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["ConversationUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_answers_api_v1_assessments__assessment_id__criteria__criterion_id__answers_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+        criterion_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AnswersUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  approve_rating_api_v1_assessments__assessment_id__criteria__criterion_id__rating_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+        criterion_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RatingConfirm"];
       };
     };
     responses: {

@@ -7,6 +7,7 @@ vi.mock("./activity-actions", () => ({ saveActivity: vi.fn<() => Promise<never>>
 import { ActivityForm } from "./activity-form";
 
 const assessment: AssessmentRecord = {
+  ratings: [],
   id: "test",
   employee_id: "employee",
   assessor_id: "manager",

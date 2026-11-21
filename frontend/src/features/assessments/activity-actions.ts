@@ -18,7 +18,7 @@ export async function saveActivity(
   if (!user.roles.includes("MANAGER"))
     return {
       error:
-        "Obserwacje i rozmowę zapisuje przełożony prowadzący ocenę. Poproś administratora o sprawdzenie roli i przypisania.",
+        "Dane i decyzje zapisuje przełożony prowadzący ocenę. Poproś administratora o sprawdzenie roli i przypisania.",
       conflict: false,
     };
 
@@ -67,9 +67,43 @@ export async function saveActivity(
       method = "POST";
       body = { revision, action: operation };
       break;
+    case "answers":
+    case "rating": {
+      const criterionId = form.get("criterion_id");
+      if (typeof criterionId !== "string" || !uuidPattern.test(criterionId))
+        return { error: "Wybierz kryterium tej oceny.", conflict: false };
+      suffix = `/criteria/${criterionId}/${operation}`;
+      method = operation === "answers" ? "PUT" : "POST";
+      if (operation === "rating") {
+        const score = form.get("score");
+        if (typeof score !== "string" || !/^[13579]$/.test(score))
+          return { error: "Wybierz ocenę 1, 3, 5, 7 lub 9 przed zatwierdzeniem.", conflict: false };
+        body = { revision, score: Number(score) };
+      } else {
+        const answers = [];
+        for (const id of form.getAll("indicator_id")) {
+          if (typeof id !== "string" || !uuidPattern.test(id))
+            return {
+              error:
+                "Nie możemy rozpoznać wybranego zachowania. Otwórz ocenę ponownie z listy ocen.",
+              conflict: false,
+            };
+          const level = form.get(`level:${id}`);
+          const note = form.get(`note:${id}`);
+          if (typeof level !== "string" || !/^([0-4])?$/.test(level) || typeof note !== "string")
+            return {
+              error: "Wybierz opis zachowania lub brak obserwacji i sprawdź notatkę.",
+              conflict: false,
+            };
+          answers.push({ indicator_id: id, level: level === "" ? null : Number(level), note });
+        }
+        body = { revision, answers };
+      }
+      break;
+    }
     default:
       return {
-        error: "Wybierz zapis obserwacji, notatek lub potwierdzenie czynności.",
+        error: "Wybierz zapis danych lub potwierdzenie czynności.",
         conflict: false,
       };
   }
@@ -87,9 +121,11 @@ export async function saveActivity(
         404: "Nie masz już dostępu do tej oceny. Zachowaj swoje notatki i poproś administratora o sprawdzenie przypisania pracownika.",
         409: "Ocena zmieniła się w innej karcie lub ten etap jest już zamknięty. Twoje wpisy pozostają w formularzu. Otwórz zapisaną wersję w nowej karcie i porównaj dane.",
         422:
-          operation === "observation"
-            ? "Wpisz konkretną obserwację (do 10 000 znaków), wybierz kryterium tej oceny i datę od rozmowy rozpoczynającej do dzisiaj."
-            : "Każda notatka może mieć do 10 000 znaków. Data odbytej rozmowy musi przypadać między rozmową rozpoczynającą a dzisiaj. Przed potwierdzeniem zapisz jej datę.",
+          operation === "answers" || operation === "rating"
+            ? "Sprawdź wybrane opisy zachowań i notatki (do 4000 znaków). Możesz też zaznaczyć brak obserwacji. Przed zatwierdzeniem zapisz odpowiedzi i wybierz ocenę 1, 3, 5, 7 lub 9."
+            : operation === "observation"
+              ? "Wpisz konkretną obserwację (do 10 000 znaków), wybierz kryterium tej oceny i datę od rozmowy rozpoczynającej do dzisiaj."
+              : "Każda notatka może mieć do 10 000 znaków. Data odbytej rozmowy musi przypadać między rozmową rozpoczynającą a dzisiaj. Przed potwierdzeniem zapisz jej datę.",
       };
       return {
         error:
@@ -115,6 +151,9 @@ export async function saveActivity(
     conversation: "Notatki z rozmowy zapisane. Potwierdź rozmowę dopiero po jej odbyciu.",
     start_period: "Okres obserwacji rozpoczęty. Możesz zbierać przykłady i przygotować rozmowę.",
     confirm_conversation: "Rozmowa potwierdzona. Obserwacje i notatki są teraz tylko do odczytu.",
+    answers:
+      "Odpowiedzi zapisane. Propozycja oceny została zaktualizowana. Jeśli zmieniono odpowiedzi, zatwierdź ocenę tego kryterium ponownie.",
+    rating: "Ocena kryterium została zatwierdzona. Cały proces oceny nie jest jeszcze zakończony.",
   };
   return { error: "", conflict: false, assessment, message: messages[operation] };
 }

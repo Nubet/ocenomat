@@ -69,8 +69,12 @@ const questions = [
     "Po potwierdzeniu kryteriów i terminów otwórz Obserwacje i wybierz Rozpocznij okres obserwacji. Każdy przykład powiąż z kryterium i datą zdarzenia. W zakładce Rozmowa oceniająca możesz osobno zapisać agendę, mocne strony i obszary rozwoju. Szkic nie wymaga daty. Po rozmowie zapisz jej rzeczywistą datę i dopiero wtedy potwierdź, że się odbyła. To zamknie edycję obserwacji i rozmowy. Ich teksty są opcjonalne; niewysłane wpisy nie zapisują się automatycznie.",
   ],
   [
+    "Jak zatwierdzić ocenę kryterium?",
+    "Po potwierdzeniu rozmowy otwórz zakładkę Ocena zachowań. Wybierz opisy pasujące do zaobserwowanych zachowań i zapisz odpowiedzi. Jeśli nie masz podstaw do oceny zachowania, zaznacz brak obserwacji. System przedstawi propozycję, ale decyzja należy do Ciebie: wybierz i zatwierdź ocenę każdego kryterium. Po zmianie odpowiedzi lub notatki zatwierdź to kryterium ponownie. Zatwierdzenie kryteriów nie kończy całego procesu oceny.",
+  ],
+  [
     "Skąd pochodzą kryteria i co jest jeszcze w przygotowaniu?",
-    "Kryteria pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. Zapisywanie ocen cząstkowych, wyniku i dokumentów oraz analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
+    "Kryteria i pełne opisy zachowań pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. Podsumowanie wyniku, zakończenie procesu, dokumenty, analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
   ],
 ];
 

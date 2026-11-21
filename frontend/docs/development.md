@@ -77,9 +77,25 @@ Observation and conversation editing also uses the API:
   mounted while reviewing arrangement screens; they never use the demo workspace.
 - Confirmation requires the saved date and no unsent changes, and is separate from saving.
   It advances to `evaluation`, where journal and conversation editing is locked.
-  Rating/result editing remains for P4-04/05; there is no simulated end-of-period button.
+  Criterion rating is available in `evaluation`; final result/completion remains for P4-05.
 - Pending saves block navigation and duplicate submits. Errors preserve text; an unresolved
   conflict blocks resubmission and links to the saved version in a separate tab.
+
+Behavioral evaluation and manual decisions use the same authorized Server Action transport:
+
+- `?step=evaluation` shows all selected criteria with full indicator and level descriptions
+  from the pinned catalog. UUIDs, not demo array indexes, identify answers.
+- Each criterion has controlled answer/note drafts and a separate explicit score choice.
+  No observation is `null`; suggestions are never computed in the browser or auto-approved.
+- Save answers first, then choose and approve a score. Unsaved answers block approval;
+  changing an answer clears the local score choice. The API invalidates that criterion's
+  prior approval on a changed level or note, leaving other approvals intact.
+- Drafts stay mounted when navigating steps and survive failed saves. Pending saves disable
+  the screen and navigation; a conflict stops resubmission and offers a separate saved view.
+- Interface text uses “Proponowana ocena” and explains the next step without displaying
+  policy identifiers, author UUIDs, or backend implementation terminology.
+- Reload restores saved answers, suggestions, decisions and dates. Completed records are
+  read-only; there is no simulated finalization action.
 
 Dashboard, deadlines and HR monitoring still
 contain labelled demo data until P7. Legacy flow components remain as the visual

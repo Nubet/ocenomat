@@ -81,6 +81,11 @@ class Assessment(Base):
         lazy="selectin",
         cascade="all, delete-orphan",
     )
+    ratings: Mapped[list["CriterionRating"]] = relationship(
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="CriterionRating.criterion_id",
+    )
 
 
 class AssessmentCriterion(Base):
@@ -160,3 +165,55 @@ class AssessmentConversation(Base):
     )
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     confirmed_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+
+
+class CriterionRating(Base):
+    __tablename__ = "criterion_ratings"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["assessment_id", "criterion_id"],
+            ["assessment_criteria.assessment_id", "assessment_criteria.criterion_id"],
+        ),
+        CheckConstraint("suggested_score IN (1, 3, 5, 7, 9)"),
+        CheckConstraint("score IN (1, 3, 5, 7, 9)"),
+        CheckConstraint(
+            "(score IS NULL AND confirmed_by IS NULL AND confirmed_at IS NULL) OR "
+            "(score IS NOT NULL AND confirmed_by IS NOT NULL "
+            "AND confirmed_at IS NOT NULL)"
+        ),
+    )
+
+    assessment_id: Mapped[UUID] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), primary_key=True
+    )
+    criterion_id: Mapped[UUID] = mapped_column(primary_key=True)
+    suggested_score: Mapped[int | None] = mapped_column()
+    policy_version: Mapped[str] = mapped_column(String(80))
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    score: Mapped[int | None] = mapped_column()
+    confirmed_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    answers: Mapped[list["IndicatorAnswer"]] = relationship(
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="IndicatorAnswer.indicator_id",
+    )
+
+
+class IndicatorAnswer(Base):
+    __tablename__ = "indicator_answers"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["assessment_id", "criterion_id"],
+            ["criterion_ratings.assessment_id", "criterion_ratings.criterion_id"],
+            ondelete="CASCADE",
+        ),
+        CheckConstraint("level BETWEEN 0 AND 4"),
+    )
+
+    assessment_id: Mapped[UUID] = mapped_column(primary_key=True)
+    criterion_id: Mapped[UUID] = mapped_column(primary_key=True)
+    indicator_id: Mapped[UUID] = mapped_column(primary_key=True)
+    level: Mapped[int | None] = mapped_column()
+    note: Mapped[str] = mapped_column(String(4000))

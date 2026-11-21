@@ -9,6 +9,7 @@ import { Icon } from "@/components/ui/icon";
 import type { components } from "@/lib/api/schema";
 import { saveArrangements } from "./actions";
 import { ActivityForm } from "./activity-form";
+import { EvaluationForm } from "./evaluation-form";
 import {
   assessmentHref,
   assessmentStatusLabels,
@@ -16,13 +17,14 @@ import {
   type AssessmentActionState,
 } from "./types";
 
-const steps = ["analysis", "criteria", "timing", "period", "conversation"] as const;
+const steps = ["analysis", "criteria", "timing", "period", "conversation", "evaluation"] as const;
 const labels = [
   "Stanowisko i kontekst",
   "Kryteria",
   "Terminy i rozmowa",
   "Obserwacje",
   "Rozmowa oceniająca",
+  "Ocena zachowań",
 ];
 const confirmations = [
   ["duties_discussed", "Omówiono obowiązki wynikające z opisu stanowiska"],
@@ -45,7 +47,7 @@ export function ArrangementForm({
       (assessment.status === "draft"
         ? "analysis"
         : assessment.status === "evaluation" || assessment.status === "completed"
-          ? "conversation"
+          ? "evaluation"
           : "period"),
   );
   const [activityPending, setActivityPending] = useState(false);
@@ -360,6 +362,13 @@ export function ArrangementForm({
         assessment={current}
         catalog={catalog}
         step={step}
+        onSaved={setCurrent}
+        onPendingChange={setActivityPending}
+      />
+      <EvaluationForm
+        assessment={current}
+        catalog={catalog}
+        visible={step === "evaluation"}
         onSaved={setCurrent}
         onPendingChange={setActivityPending}
       />
