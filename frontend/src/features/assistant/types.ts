@@ -2,6 +2,7 @@ import type { components } from "@/lib/api/schema";
 
 export type AssistantRequest = components["schemas"]["AssistantRequest"];
 export type AssistantAnswer = components["schemas"]["AssistantResponse"];
+export type AssistantCitation = components["schemas"]["Citation"];
 export type AssistantMode = AssistantRequest["mode"];
 export type AssistantActionResult = { answer: AssistantAnswer } | { error: string };
 

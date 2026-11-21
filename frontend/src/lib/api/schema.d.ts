@@ -746,6 +746,8 @@ export interface components {
       legal_checked_on: string;
       /** Original Path */
       original_path: string;
+      /** Official Url */
+      official_url?: string | null;
     };
     /** ConversationResponse */
     ConversationResponse: {

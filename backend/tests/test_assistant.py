@@ -113,6 +113,7 @@ def test_answer_requires_provenance_and_separate_support_review(evidence):
     citation = result.claims[0].citations[0]
     assert citation.quote == TEXT and citation.locator == "html:#para_5"
     assert citation.original_path == "/api/v1/knowledge/sources/synthetic-law/original"
+    assert citation.official_url == evidence.chunks[0].official_url
     assert citation.title == evidence.chunks[0].title and citation.page is None
     assert [model for _, model in provider.calls] == [GroundedAnswer, SupportReview]
     assert len(retriever.calls) == 2

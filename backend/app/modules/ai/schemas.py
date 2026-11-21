@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.assessments.schemas import ResultResponse
+from app.modules.knowledge.manifest import validate_official_url
 
 
 class StrictModel(BaseModel):
@@ -58,6 +59,8 @@ class Citation(StrictModel):
     content_sha256: str
     legal_checked_on: date
     original_path: str
+    official_url: str | None = None
+    _official_url = field_validator("official_url")(validate_official_url)
 
 
 class AssistantClaim(StrictModel):

@@ -10,6 +10,7 @@ import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { askAssistant } from "./actions";
 import { assistantSuggestions } from "./responses";
 import { assessmentContext, type AssistantAnswer, type AssistantMode } from "./types";
+import { CitationCard } from "./citation-card";
 
 export function AssistantDrawer() {
   const { assistantOpen, closeAssistant } = useWorkspace();
@@ -137,25 +138,7 @@ function AssistantSession({ assessmentId }: { assessmentId?: string }) {
                   <div key={claimIndex} className="mb-3">
                     <p className="text-body leading-6">{claim.text}</p>
                     {claim.citations.map((citation, citationIndex) => (
-                      <div
-                        key={citationIndex}
-                        className="mt-3 rounded-lg border bg-surface p-3 text-caption text-muted-foreground"
-                      >
-                        <a
-                          href={`/knowledge/sources/${encodeURIComponent(citation.source_id)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-semibold underline"
-                        >
-                          <Icon name="file" size={13} className="mr-1 inline" />
-                          {citation.title} · {citation.locator}
-                          {citation.page ? ` · str. ${citation.page}` : ""} · Pobierz oryginał
-                        </a>
-                        <blockquote className="mt-2 whitespace-pre-wrap">
-                          {citation.quote}
-                        </blockquote>
-                        <p className="mt-2">Aktualność sprawdzona: {citation.legal_checked_on}</p>
-                      </div>
+                      <CitationCard key={citationIndex} citation={citation} />
                     ))}
                   </div>
                 ))}

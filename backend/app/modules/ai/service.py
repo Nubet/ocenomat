@@ -111,6 +111,7 @@ def validate_citations(
                     quote=reference.quote,
                     content_sha256=part.content_sha256,
                     legal_checked_on=part.legal_checked_on,
+                    official_url=part.official_url,
                     original_path=(
                         f"/api/v1/knowledge/sources/{quote(part.source_id, safe='')}"
                         "/original"

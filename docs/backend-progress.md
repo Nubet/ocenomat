@@ -30,6 +30,19 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   z instrukcją użytkownika testów ani pełnego precommit nie uruchamiano.
   Nie uruchamiano builda ani przeglądarki. Następny krok UI: ocena widoku
   przez użytkownika.
+- **Asystent — linki do źródeł:** cytowania przekazują opcjonalne `official_url`
+  z istniejących, zweryfikowanych metadanych retrievera. Współdzielony walidator
+  dopuszcza wyłącznie HTTPS na oficjalnych hostach; adresów nie generuje LLM.
+  Karta źródła otwiera oficjalny adres w nowej karcie zamiast wymuszać pobieranie
+  lokalnej kopii; bez URL zachowuje dotychczasowe pobieranie oryginału.
+  Cytowany fragment i data sprawdzenia aktualności są rozwijane; lokatory ELI
+  `html:#para_N` wyświetlane jako `§ N`. Bez zmian retrievalu, promptów, korpusu
+  i statusów zatwierdzeń. Typy frontendu zregenerowano z działającego OpenAPI.
+  Kontrole: Ruff check/format dla 3 plików, celowane oxfmt/oxlint,
+  `tsc --noEmit` i `git diff --check` — OK. Dodano asercję mapowania URL oraz
+  testy karty źródła; testów nie uruchamiano zgodnie z instrukcją użytkownika.
+  Nie uruchamiano pełnego precommit, builda, przeglądarki ani nowego zapytania AI.
+  Następny krok UI: ocena prezentacji źródeł przez użytkownika.
 - **Weryfikacja:** pełny backend **622 passed / 9 skipped**;
   Ruff lint/format OK (124 pliki). Frontend: `npm run precommit` — OK,
   **214 testów**; `npm run build` — OK. Testy obejmują 60 procesów, obie ścieżki,
