@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useReducer, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  type ReactNode,
+} from "react";
 import { createAssessment, createWorkspace } from "@/features/assessments/model/defaults";
 import type { Assessment, EmployeeId, WorkspaceState } from "@/features/assessments/model/types";
 import { parseWorkspace, serializeWorkspace, storageKey } from "./storage";
@@ -118,28 +126,31 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [message]);
 
-  const value: WorkspaceContextValue = {
-    state: store.data,
-    ready: store.ready,
-    updateAssessment: (id, update) =>
-      dispatch({
-        type: "update",
-        id,
-        update:
-          typeof update === "function" ? update : (assessment) => ({ ...assessment, ...update }),
-      }),
-    startAssessment: (id) => dispatch({ type: "update", id, update: () => createAssessment() }),
-    toggleTheme: () => dispatch({ type: "theme" }),
-    reset: () => {
-      dispatch({ type: "reset" });
-      setAssistantOpen(false);
-      setMessage("Przywrócono dane demo.");
-    },
-    notify: setMessage,
-    assistantOpen,
-    openAssistant: () => setAssistantOpen(true),
-    closeAssistant: () => setAssistantOpen(false),
-  };
+  const value = useMemo<WorkspaceContextValue>(
+    () => ({
+      state: store.data,
+      ready: store.ready,
+      updateAssessment: (id, update) =>
+        dispatch({
+          type: "update",
+          id,
+          update:
+            typeof update === "function" ? update : (assessment) => ({ ...assessment, ...update }),
+        }),
+      startAssessment: (id) => dispatch({ type: "update", id, update: () => createAssessment() }),
+      toggleTheme: () => dispatch({ type: "theme" }),
+      reset: () => {
+        dispatch({ type: "reset" });
+        setAssistantOpen(false);
+        setMessage("Przywrócono dane demo.");
+      },
+      notify: setMessage,
+      assistantOpen,
+      openAssistant: () => setAssistantOpen(true),
+      closeAssistant: () => setAssistantOpen(false),
+    }),
+    [store.data, store.ready, assistantOpen],
+  );
 
   return (
     <WorkspaceContext.Provider value={value}>
