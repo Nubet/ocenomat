@@ -21,6 +21,7 @@ backend, AI account, or network-loaded fonts are needed at runtime.
 | `npm run format:check` | Check formatting without changing files                             |
 | `npm run lint`         | Run Oxlint; warnings also fail the command                          |
 | `npm run lint:fix`     | Apply safe Oxlint fixes                                             |
+| `npm run doctor`       | Run an advisory React Doctor scan                                   |
 | `npm run typecheck`    | Generate route types and run strict TypeScript checks               |
 | `npm test`             | Run unit tests with Vitest                                          |
 | `npm run test:watch`   | Run Vitest in watch mode                                            |
@@ -30,6 +31,10 @@ backend, AI account, or network-loaded fonts are needed at runtime.
 Run `npm run precommit` before each frontend commit. Run `npm run build` before
 finishing an implementation phase. The script is explicit; it does not modify
 the root repository's hook configuration.
+
+Run `npm run doctor` periodically and review its findings in context: diagnostics
+can include false positives. It is advisory, runs independently of the precommit
+checks, and skips the remote score and dependency supply-chain services.
 
 ## Code organization
 

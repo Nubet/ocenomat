@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "oxlint --deny-warnings",
     "lint:fix": "oxlint --fix --deny-warnings",
+    "doctor": "react-doctor --verbose --yes --no-score --no-supply-chain --blocking none",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -29,6 +30,7 @@
     "@types/react-dom": "^19.0.0",
     "oxfmt": "0.79.0",
     "oxlint": "1.94.0",
+    "react-doctor": "^0.9.23",
     "tailwindcss": "4.3.5",
     "typescript": "^5.0.0",
     "vitest": "5.1.1"
