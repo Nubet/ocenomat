@@ -86,26 +86,47 @@ export function Dashboard({ canCreate, displayName }: { canCreate: boolean; disp
         ))}
       </div>
       <div className="mb-7 grid gap-4 lg:grid-cols-[1.36fr_1fr]">
-        <section className="relative overflow-hidden rounded-card bg-linear-120 from-feature-start to-feature-end px-7 py-7 text-white sm:px-8 sm:py-8">
-          <div
-            aria-hidden="true"
-            className="absolute -top-[5.625rem] -right-[4.375rem] size-65 rounded-full border border-white/10"
-          />
-          <div className="relative">
-            <p className="text-caption font-semibold tracking-[0.12em] text-feature-accent uppercase">
-              Wymaga działania
-            </p>
-            <h2 className="mt-6 text-[1.4375rem] font-semibold tracking-[-0.05em]">Jan Kowalski</h2>
-            <p className="mt-2 text-body text-feature-foreground">Okres obserwacji · Arkusz C</p>
-            <p className="mt-5 max-w-[23.75rem] text-body leading-6 text-feature-foreground">
-              Zobacz zebrane przykłady zachowań, a następnie przejdź do rozmowy oceniającej.
-            </p>
-            <div className="mt-7">
-              <ButtonLink href="/assessments" variant="feature">
-                Przejdź do ocen
-                <Icon name="arrow-up-right" size={15} />
-              </ButtonLink>
+        <section className="rounded-card border bg-surface px-6 py-6 sm:px-7">
+          <p className="flex items-center gap-2 text-label font-semibold text-muted-foreground">
+            <span aria-hidden="true" className="size-2 rounded-full bg-warning" />
+            Wymaga działania
+          </p>
+          <div className="mt-5 flex items-center gap-4">
+            <span
+              aria-hidden="true"
+              className="grid size-11 shrink-0 place-items-center rounded-full bg-surface-muted text-sm font-semibold text-primary"
+            >
+              JK
+            </span>
+            <div>
+              <h2 className="text-xl font-semibold tracking-heading">Jan Kowalski</h2>
+              <p className="mt-1 text-body text-muted-foreground">Okres obserwacji · Arkusz C</p>
             </div>
+          </div>
+          <p className="mt-5 text-body leading-6 text-muted-foreground">
+            Przejrzyj zebrane przykłady zachowań i przygotuj się do rozmowy oceniającej.
+          </p>
+          <dl className="mt-5 grid gap-3 border-y py-4 min-[480px]:grid-cols-3 min-[480px]:gap-4">
+            <div>
+              <dt className="text-label text-muted-foreground">Etap</dt>
+              <dd className="mt-1 text-body font-semibold">Przegląd materiałów</dd>
+            </div>
+            <div>
+              <dt className="text-label text-muted-foreground">Termin</dt>
+              <dd className="mt-1 text-body font-semibold">
+                {state.assessments.jan?.dateAssessment || "Nie ustalono"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-label text-muted-foreground">Następny krok</dt>
+              <dd className="mt-1 text-body font-semibold">Rozmowa oceniająca</dd>
+            </div>
+          </dl>
+          <div className="mt-5">
+            <ButtonLink href="/assessments" variant="primary">
+              Przejdź do ocen
+              <Icon name="arrow-up-right" size={15} />
+            </ButtonLink>
           </div>
         </section>
         <Card className="p-6">
