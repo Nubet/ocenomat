@@ -86,8 +86,14 @@ export function AppShell({ children, user }: { children: ReactNode; user: Worksp
                   Dane demonstracyjne
                 </Badge>
               </span>
-              <Button onClick={openAssistant} aria-label="Otwórz asystenta OcenoMat">
-                <Icon name="sparkles" size={16} />
+              <Button
+                variant="primary"
+                className="px-4 shadow-md"
+                onClick={openAssistant}
+                aria-label="Otwórz asystenta OcenoMat"
+              >
+                <Icon name="sparkles" size={18} />
+                <span className="compact:hidden">Zapytaj</span>
                 <span className="hidden compact:inline">Zapytaj OcenoMat</span>
               </Button>
             </div>

@@ -43,6 +43,12 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   testy karty źródła; testów nie uruchamiano zgodnie z instrukcją użytkownika.
   Nie uruchamiano pełnego precommit, builda, przeglądarki ani nowego zapytania AI.
   Następny krok UI: ocena prezentacji źródeł przez użytkownika.
+- **Asystent — przycisk w nagłówku:** zastosowano istniejący wariant primary
+  (kontrastowe tło i tekst), mocniejszy cień i ikonę 18 px. Na małym ekranie
+  widoczny napis „Zapytaj”, na większym „Zapytaj OcenoMat”. Celowane
+  `oxfmt --check`, `oxlint --deny-warnings` i `git diff --check` — OK;
+  testów, pełnego precommit ani przeglądarki nie uruchamiano. Następny krok:
+  ocena widoczności przycisku przez użytkownika.
 - **Weryfikacja:** pełny backend **622 passed / 9 skipped**;
   Ruff lint/format OK (124 pliki). Frontend: `npm run precommit` — OK,
   **214 testów**; `npm run build` — OK. Testy obejmują 60 procesów, obie ścieżki,
