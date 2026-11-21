@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { requireUser } from "@/features/auth/session";
 import { apiRequest } from "@/lib/api/server";
-import { assessmentHref, type AssessmentRecord, type ArrangementActionState } from "./types";
+import { assessmentHref, type AssessmentRecord, type AssessmentActionState } from "./types";
 
 const uuidPattern = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
@@ -58,9 +58,9 @@ export async function createAssessment(_previous: { error: string }, form: FormD
 
 export async function saveArrangements(
   assessmentId: string,
-  _previous: ArrangementActionState,
+  _previous: AssessmentActionState,
   form: FormData,
-): Promise<ArrangementActionState> {
+): Promise<AssessmentActionState> {
   const user = await requireUser();
   if (!user.roles.includes("MANAGER"))
     return {

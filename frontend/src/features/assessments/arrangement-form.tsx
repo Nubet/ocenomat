@@ -8,15 +8,22 @@ import { Card, Note, PageHeading } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import type { components } from "@/lib/api/schema";
 import { saveArrangements } from "./actions";
+import { ActivityForm } from "./activity-form";
 import {
   assessmentHref,
   assessmentStatusLabels,
   type AssessmentRecord,
-  type ArrangementActionState,
+  type AssessmentActionState,
 } from "./types";
 
-const steps = ["analysis", "criteria", "timing"] as const;
-const labels = ["Stanowisko i kontekst", "Kryteria", "Terminy i rozmowa"];
+const steps = ["analysis", "criteria", "timing", "period", "conversation"] as const;
+const labels = [
+  "Stanowisko i kontekst",
+  "Kryteria",
+  "Terminy i rozmowa",
+  "Obserwacje",
+  "Rozmowa oceniająca",
+];
 const confirmations = [
   ["duties_discussed", "Omówiono obowiązki wynikające z opisu stanowiska"],
   ["expectations_discussed", "Przedstawiono kryteria i oczekiwania"],
@@ -33,7 +40,15 @@ export function ArrangementForm({
   requestedStep?: string;
 }) {
   const [current, setCurrent] = useState(assessment);
-  const [step, setStep] = useState(steps.find((value) => value === requestedStep) ?? "analysis");
+  const [step, setStep] = useState(
+    steps.find((value) => value === requestedStep) ??
+      (assessment.status === "draft"
+        ? "analysis"
+        : assessment.status === "evaluation" || assessment.status === "completed"
+          ? "conversation"
+          : "period"),
+  );
+  const [activityPending, setActivityPending] = useState(false);
   const [additional, setAdditional] = useState(
     assessment.criteria.filter((item) => !item.required).map((item) => item.criterion_id),
   );
@@ -52,12 +67,13 @@ export function ArrangementForm({
     arrangements_shared: assessment.arrangements_shared,
   });
   const [state, action, pending] = useActionState(
-    async (previous: ArrangementActionState, data: FormData) => {
+    async (previous: AssessmentActionState, data: FormData) => {
       if (previous.conflict) return previous;
       const result = await saveArrangements(assessment.id, previous, data);
       if (result.assessment) {
         setCurrent(result.assessment);
         if (data.get("operation") === "criteria") setStep("timing");
+        if (data.get("operation") === "agree") setStep("period");
       }
       return result;
     },
@@ -90,7 +106,7 @@ export function ArrangementForm({
       <PageHeading
         eyebrow="Ocena okresowa · Arkusz C"
         title={employee.name}
-        description="Wybierz kryteria, zapisz terminy i odnotuj wykonane czynności z rozmowy. Możesz wrócić do zapisanej oceny później."
+        description="Zapisuj ustalenia, konkretne obserwacje i notatki z rozmowy. Możesz wrócić do zapisanej oceny później."
       />
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <Avatar employee={employee} size={40} />
@@ -104,17 +120,17 @@ export function ArrangementForm({
       {readonly ? (
         <Note className="mb-5">
           Ustalenia zostały potwierdzone. Możesz je przeglądać, ale nie zmienisz już kryteriów ani
-          terminów na tym etapie. Zapis obserwacji będzie dostępny w kolejnym etapie aplikacji.
+          terminów na tym etapie. Obserwacje i notatki znajdziesz w kolejnych zakładkach.
         </Note>
       ) : null}
-      <nav aria-label="Przygotowanie oceny" className="mb-6 flex flex-wrap gap-2">
+      <nav aria-label="Etapy oceny" className="mb-6 flex flex-wrap gap-2">
         {steps.map((value, index) => (
           <Button
             key={value}
             variant={step === value ? "primary" : "secondary"}
             aria-current={step === value ? "step" : undefined}
             onClick={() => setStep(value)}
-            disabled={pending}
+            disabled={pending || activityPending}
           >
             {index + 1}. {labels[index]}
           </Button>
@@ -340,6 +356,13 @@ export function ArrangementForm({
           ) : null}
         </fieldset>
       </form>
+      <ActivityForm
+        assessment={current}
+        catalog={catalog}
+        step={step}
+        onSaved={setCurrent}
+        onPendingChange={setActivityPending}
+      />
       <div className="mt-6 flex flex-wrap justify-between gap-3">
         <ButtonLink href="/assessments">Wróć do ocen</ButtonLink>
         <p className="text-caption text-subtle-foreground">

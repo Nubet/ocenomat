@@ -4,6 +4,7 @@ import type { AssessmentRecord } from "./types";
 import type { components } from "@/lib/api/schema";
 
 vi.mock("./actions", () => ({ saveArrangements: vi.fn<() => Promise<never>>() }));
+vi.mock("./activity-actions", () => ({ saveActivity: vi.fn<() => Promise<never>>() }));
 import { ArrangementForm } from "./arrangement-form";
 
 const assessment: AssessmentRecord = {
@@ -30,6 +31,8 @@ const assessment: AssessmentRecord = {
   duties_discussed: false,
   expectations_discussed: false,
   arrangements_shared: false,
+  observations: [],
+  conversation: null,
 };
 const catalog: components["schemas"]["CatalogResponse"] = {
   id: "catalog",

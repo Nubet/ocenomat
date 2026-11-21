@@ -38,6 +38,8 @@ class AssessmentResponse(BaseModel):
     duties_discussed: bool
     expectations_discussed: bool
     arrangements_shared: bool
+    observations: list["ObservationResponse"]
+    conversation: "ConversationResponse | None"
 
 
 class CriterionSelection(BaseModel):
@@ -83,5 +85,46 @@ class DatesUpdate(RevisionCommand):
         return self
 
 
-class AgreeCriteria(RevisionCommand):
-    action: Literal["agree_criteria"]
+class AssessmentTransition(RevisionCommand):
+    action: Literal["agree_criteria", "start_period", "confirm_conversation"]
+
+
+class ObservationCreate(RevisionCommand):
+    criterion_id: UUID
+    text: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10000)
+    ]
+    occurred_on: date
+
+
+class ObservationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    criterion_id: UUID
+    text: str
+    occurred_on: date
+    author_id: UUID
+    recorded_at: datetime
+
+
+class ConversationUpdate(RevisionCommand):
+    agenda: Annotated[str, StringConstraints(strip_whitespace=True, max_length=10000)]
+    strengths: Annotated[
+        str, StringConstraints(strip_whitespace=True, max_length=10000)
+    ]
+    growth: Annotated[str, StringConstraints(strip_whitespace=True, max_length=10000)]
+    occurred_on: date | None
+
+
+class ConversationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    agenda: str
+    strengths: str
+    growth: str
+    occurred_on: date | None
+    author_id: UUID
+    recorded_at: datetime
+    confirmed_at: datetime | None
+    confirmed_by: UUID | None

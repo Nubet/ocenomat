@@ -11,7 +11,7 @@ const roles = [
     description: "Prowadzisz własne oceny przypisanych Ci pracowników.",
     items: [
       "Widzisz profile przypisanych pracowników oraz oceny, które samodzielnie prowadzisz.",
-      "Możesz rozpocząć ocenę okresową C, wybrać kryteria, zapisać terminy i potwierdzić ustalenia z rozmowy.",
+      "Możesz rozpocząć ocenę okresową C, wybrać kryteria, zapisać terminy, zbierać obserwacje i potwierdzić odbytą rozmowę oceniającą.",
       "Nie widzisz ocen prowadzonych przez innego przełożonego, nawet jeśli ten sam pracownik jest również Tobie przypisany.",
     ],
     action: "Przejdź do swoich ocen",
@@ -65,8 +65,12 @@ const questions = [
     "Rejestrujesz, że rozmowa i wskazane czynności się odbyły. Najpierw zapisz kryteria, obie daty i trzy potwierdzenia. Po potwierdzeniu ustaleń kryteria i terminy są na tym etapie tylko do odczytu. To nie jest podpis pracownika ani potwierdzenie doręczenia dokumentu.",
   ],
   [
+    "Jak zapisywać obserwacje i rozmowę oceniającą?",
+    "Po potwierdzeniu kryteriów i terminów otwórz Obserwacje i wybierz Rozpocznij okres obserwacji. Każdy przykład powiąż z kryterium i datą zdarzenia. W zakładce Rozmowa oceniająca możesz osobno zapisać agendę, mocne strony i obszary rozwoju. Szkic nie wymaga daty. Po rozmowie zapisz jej rzeczywistą datę i dopiero wtedy potwierdź, że się odbyła. To zamknie edycję obserwacji i rozmowy. Ich teksty są opcjonalne; niewysłane wpisy nie zapisują się automatycznie.",
+  ],
+  [
     "Skąd pochodzą kryteria i co jest jeszcze w przygotowaniu?",
-    "Kryteria pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. Zapisywanie obserwacji, ocen cząstkowych, wyniku i dokumentów oraz analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
+    "Kryteria pochodzą z wgranego modelu kompetencji. Każda ocena zachowuje swoją wersję katalogu. Zapisywanie ocen cząstkowych, wyniku i dokumentów oraz analiza OSP i asystent AI są w przygotowaniu. Pulpit, Terminy i widok HR zawierają jeszcze dane demonstracyjne. W sprawie właściwych terminów i procedury skonsultuj się z HR.",
   ],
 ];
 

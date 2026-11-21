@@ -140,6 +140,17 @@ także datę rozmowy jako datę czynności. Kontrolujemy kolejność dat i nie p
 potwierdzać przyszłej rozmowy jako wykonanej (dzień w Europe/Warsaw); nie obliczamy
 terminów ustawowych ani wyjątków bez zweryfikowanych źródeł.
 
+Uszczegółowienie DEC-006/007 (2026-11-21, P4-03): jawne `start_period` zmienia
+`criteria_agreed` na `in_progress`. W tym stanie można dodawać datowane obserwacje
+do wybranych kryteriów oraz zapisywać szkic rozmowy (agenda, mocne strony,
+obszary rozwoju i opcjonalna data odbytej rozmowy). Obserwacje są dopisywane,
+nie zastępują wcześniejszych wpisów. Data czynności nie może poprzedzać rozmowy
+rozpoczynającej ani być w przyszłości. Nie wymuszamy zakończenia zaplanowanego
+okresu bez zweryfikowanych zasad terminów. `confirm_conversation` wymaga zapisanej
+daty odbytej rozmowy i zmienia stan na `evaluation`; obserwacje i rozmowa są odtąd
+tylko do odczytu. Obserwacje i teksty przygotowawcze są opcjonalne. Autor i czas
+zapisu pochodzą z serwera; potwierdzenie nie jest podpisem ani doręczeniem.
+
 ## 4. Bezpieczeństwo i autoryzacja
 
 ### Sesja i JWT

@@ -142,6 +142,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/assessments/{assessment_id}/observations": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Observation */
+    post: operations["create_observation_api_v1_assessments__assessment_id__observations_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/assessments/{assessment_id}/conversation": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Update Conversation */
+    put: operations["update_conversation_api_v1_assessments__assessment_id__conversation_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/health": {
     parameters: {
       query?: never;
@@ -189,16 +223,6 @@ export interface components {
       criterion_id: string;
       /** Justification */
       justification: string;
-    };
-    /** AgreeCriteria */
-    AgreeCriteria: {
-      /** Revision */
-      revision: number;
-      /**
-       * Action
-       * @constant
-       */
-      action: "agree_criteria";
     };
     /** AssessmentCreate */
     AssessmentCreate: {
@@ -268,12 +292,25 @@ export interface components {
       expectations_discussed: boolean;
       /** Arrangements Shared */
       arrangements_shared: boolean;
+      /** Observations */
+      observations: components["schemas"]["ObservationResponse"][];
+      conversation: components["schemas"]["ConversationResponse"] | null;
     };
     /**
      * AssessmentStatus
      * @enum {string}
      */
     AssessmentStatus: "draft" | "criteria_agreed" | "in_progress" | "evaluation" | "completed";
+    /** AssessmentTransition */
+    AssessmentTransition: {
+      /** Revision */
+      revision: number;
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "agree_criteria" | "start_period" | "confirm_conversation";
+    };
     /** CatalogResponse */
     CatalogResponse: {
       /**
@@ -289,6 +326,44 @@ export interface components {
       source_sha256: string;
       /** Criteria */
       criteria: components["schemas"]["Criterion"][];
+    };
+    /** ConversationResponse */
+    ConversationResponse: {
+      /** Agenda */
+      agenda: string;
+      /** Strengths */
+      strengths: string;
+      /** Growth */
+      growth: string;
+      /** Occurred On */
+      occurred_on: string | null;
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
+      /** Confirmed At */
+      confirmed_at: string | null;
+      /** Confirmed By */
+      confirmed_by: string | null;
+    };
+    /** ConversationUpdate */
+    ConversationUpdate: {
+      /** Revision */
+      revision: number;
+      /** Agenda */
+      agenda: string;
+      /** Strengths */
+      strengths: string;
+      /** Growth */
+      growth: string;
+      /** Occurred On */
+      occurred_on: string | null;
     };
     /** CriteriaUpdate */
     CriteriaUpdate: {
@@ -391,6 +466,53 @@ export interface components {
       name: string;
       /** Description */
       description: string;
+    };
+    /** ObservationCreate */
+    ObservationCreate: {
+      /** Revision */
+      revision: number;
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Text */
+      text: string;
+      /**
+       * Occurred On
+       * Format: date
+       */
+      occurred_on: string;
+    };
+    /** ObservationResponse */
+    ObservationResponse: {
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Criterion Id
+       * Format: uuid
+       */
+      criterion_id: string;
+      /** Text */
+      text: string;
+      /**
+       * Occurred On
+       * Format: date
+       */
+      occurred_on: string;
+      /**
+       * Author Id
+       * Format: uuid
+       */
+      author_id: string;
+      /**
+       * Recorded At
+       * Format: date-time
+       */
+      recorded_at: string;
     };
     /**
      * PositionKind
@@ -728,7 +850,77 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AgreeCriteria"];
+        "application/json": components["schemas"]["AssessmentTransition"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  create_observation_api_v1_assessments__assessment_id__observations_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ObservationCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssessmentResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_conversation_api_v1_assessments__assessment_id__conversation_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        assessment_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ConversationUpdate"];
       };
     };
     responses: {

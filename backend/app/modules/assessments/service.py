@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, date, datetime
 from typing import Literal
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -10,15 +10,19 @@ from sqlalchemy.orm import Session
 
 from app.modules.assessments.models import (
     Assessment,
+    AssessmentConversation,
     AssessmentCriterion,
     AssessmentEvent,
+    AssessmentObservation,
     AssessmentStatus,
 )
 from app.modules.assessments.rules import periodic_criteria
 from app.modules.assessments.schemas import (
     AssessmentCreate,
+    ConversationUpdate,
     CriteriaUpdate,
     DatesUpdate,
+    ObservationCreate,
 )
 from app.modules.catalog.models import CatalogVersion
 from app.modules.employees.models import (
@@ -147,7 +151,10 @@ def edit_assessment(
     user: User,
     assessment_id: UUID,
     revision: int,
-    event: Literal["criteria_updated", "dates_updated", "criteria_agreed"],
+    event: str,
+    *,
+    allowed_status: AssessmentStatus = AssessmentStatus.DRAFT,
+    occurred_on: date | None = None,
 ) -> Iterator[Assessment]:
     try:
         assessment = session.scalar(
@@ -163,14 +170,16 @@ def edit_assessment(
         )
         if assessment is None:
             raise AssessmentError("not_found", "Assessment not found")
-        if (
-            assessment.revision != revision
-            or assessment.status != AssessmentStatus.DRAFT
-        ):
+        if assessment.revision != revision or assessment.status != allowed_status:
             raise AssessmentError(
-                "conflict", "Assessment changed or arrangements are already confirmed"
+                "conflict",
+                "Assessment changed or this action is unavailable in its current state",
             )
         yield assessment
+        if event == "criteria_agreed":
+            occurred_on = assessment.date_talk
+        elif event == "conversation_confirmed":
+            occurred_on = assessment.conversation.occurred_on
         assessment.revision += 1
         session.add(
             AssessmentEvent(
@@ -178,9 +187,7 @@ def edit_assessment(
                 actor_id=user.id,
                 revision=assessment.revision,
                 kind=event,
-                occurred_on=assessment.date_talk
-                if event == "criteria_agreed"
-                else None,
+                occurred_on=occurred_on,
             )
         )
         session.flush()
@@ -276,4 +283,102 @@ def agree_criteria(
                 "before confirming arrangements",
             )
         assessment.status = AssessmentStatus.CRITERIA_AGREED
+    return assessment
+
+
+def start_period(
+    session: Session, user: User, assessment_id: UUID, revision: int
+) -> Assessment:
+    with edit_assessment(
+        session,
+        user,
+        assessment_id,
+        revision,
+        "period_started",
+        allowed_status=AssessmentStatus.CRITERIA_AGREED,
+    ) as assessment:
+        assessment.status = AssessmentStatus.IN_PROGRESS
+    return assessment
+
+
+def validate_activity_date(assessment: Assessment, occurred_on: date) -> None:
+    if (
+        occurred_on < assessment.date_talk
+        or occurred_on > datetime.now(ZoneInfo("Europe/Warsaw")).date()
+    ):
+        raise AssessmentError(
+            "invalid",
+            "Activity date must be between the opening conversation and today",
+        )
+
+
+def add_observation(
+    session: Session, user: User, assessment_id: UUID, data: ObservationCreate
+) -> Assessment:
+    with edit_assessment(
+        session,
+        user,
+        assessment_id,
+        data.revision,
+        "observation_added",
+        allowed_status=AssessmentStatus.IN_PROGRESS,
+        occurred_on=data.occurred_on,
+    ) as assessment:
+        validate_activity_date(assessment, data.occurred_on)
+        if data.criterion_id not in {item.criterion_id for item in assessment.criteria}:
+            raise AssessmentError(
+                "invalid", "Choose a criterion selected in this assessment"
+            )
+        assessment.observations.append(
+            AssessmentObservation(
+                **data.model_dump(exclude={"revision"}),
+                author_id=user.id,
+            )
+        )
+    return assessment
+
+
+def save_conversation(
+    session: Session, user: User, assessment_id: UUID, data: ConversationUpdate
+) -> Assessment:
+    with edit_assessment(
+        session,
+        user,
+        assessment_id,
+        data.revision,
+        "conversation_updated",
+        allowed_status=AssessmentStatus.IN_PROGRESS,
+        occurred_on=data.occurred_on,
+    ) as assessment:
+        if data.occurred_on is not None:
+            validate_activity_date(assessment, data.occurred_on)
+        if assessment.conversation is None:
+            assessment.conversation = AssessmentConversation()
+        for name, value in data.model_dump(exclude={"revision"}).items():
+            setattr(assessment.conversation, name, value)
+        assessment.conversation.author_id = user.id
+        assessment.conversation.recorded_at = datetime.now(UTC)
+    return assessment
+
+
+def confirm_conversation(
+    session: Session, user: User, assessment_id: UUID, revision: int
+) -> Assessment:
+    with edit_assessment(
+        session,
+        user,
+        assessment_id,
+        revision,
+        "conversation_confirmed",
+        allowed_status=AssessmentStatus.IN_PROGRESS,
+    ) as assessment:
+        conversation = assessment.conversation
+        if conversation is None or conversation.occurred_on is None:
+            raise AssessmentError(
+                "invalid", "Save the completed conversation date before confirmation"
+            )
+        validate_activity_date(assessment, conversation.occurred_on)
+        conversation.confirmed_at = datetime.now(UTC)
+        conversation.confirmed_by = user.id
+        assessment.status = AssessmentStatus.EVALUATION
     return assessment

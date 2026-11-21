@@ -5,20 +5,22 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
-- **Etap:** 4 — trwały proces oceny C; P4-02 zakończone.
+- **Etap:** 4 — trwały proces oceny C; P4-03 zakończone.
 - **Aktywne zadanie:** brak.
-- **Następny krok:** P4-03 — autoryzowany zapis obserwacji i rozmowy, daty czynności
-  i autorzy, wznowienie oraz podłączenie ekranów do API.
-- **Ostatnia zakończona praca:** P4-02 — zapis kryteriów, uzasadnień, terminów
-  i czynności z rozmowy; jawne potwierdzenie ustaleń, zdarzenia i konflikty rewizji.
-  Pomoc i komunikaty pustych list wyjaśniają role oraz dostępne następne kroki.
+- **Następny krok:** P4-04 — pełne wskaźniki z przypiętego katalogu, zapis odpowiedzi,
+  wersjonowana sugestia i ręczne zatwierdzenie każdej oceny cząstkowej.
+- **Ostatnia zakończona praca:** P4-03 — datowane obserwacje, szkic rozmowy
+  i osobne potwierdzenie jej odbycia; autorzy/czasy, rewizje i integracja UI.
 - **Stan aplikacji:** frontend łączy autoryzowane dane API z pozostałymi ekranami demo;
   backend ma `/health`
   i `/api/v1/health`, PostgreSQL, użytkowników/role, pracowników/przypisania
   i wersjonowany katalog. Lista pracowników, profile, wyszukiwarka oraz utworzenie,
    historia i szczegół ocen korzystają z API. Rewizja nowej oceny to 1, status `draft`.
    Dobór kryteriów i terminy są zapisywane w API; osobna czynność potwierdza komplet
-   i zmienia status na `criteria_agreed`. Potwierdzone ustalenia są tylko do odczytu.
+    i zmienia status na `criteria_agreed`. Potwierdzone ustalenia są tylko do odczytu.
+   `start_period` otwiera zapis obserwacji i rozmowy w `in_progress`; osobne
+   potwierdzenie zapisanej daty rozmowy przechodzi do `evaluation` i zamyka edycję
+   tego etapu. Odczyt odtwarza wpisy, notatki, daty i autorów bez mutacji.
   Frontend ma ekran logowania, cookie session i chroniony workspace; jego ekrany
   dalszych etapów oceny i monitoringu pozostają do podłączenia w P4/P7. Bez Supabase
   dostępny jest ekran logowania z jawną informacją o braku konfiguracji.
@@ -28,7 +30,7 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
   SSR, odświeżenie cookie przez proxy i wylogowanie Server Action.
   OpenRouter i VPS niezintegrowane.
 - **Kontrole frontendu:** `npm run precommit` i `npm run build` — OK,
-  94 testy Vitest. Backend: 172 testy z rzeczywistym PostgreSQL i źródłowym XLSX.
+  123 testy Vitest. Backend: 206 testów z rzeczywistym PostgreSQL i źródłowym XLSX.
 - **Środowisko lokalne:** Compose korzysta z ignorowanego `.env.compose-check`;
   frontend na życzenie użytkownika przeniesiono na `http://localhost:3000`,
   pozostałe porty testowe jak w P1-03. Oddzielny `kompas-postgres-test` został
@@ -54,7 +56,7 @@ chwili jedno aktywne zadanie. Nie oznaczaj wyników planowanych jako wykonane.
 | P3-02 | Reguły i testy domenowe | done | 99 testów, dokładne progi i kompletność; `feat(assessments): implement scoring rules` |
 | P4-01 | Utworzenie i wznowienie oceny C | done | Migracja 0005, API create/list/detail, snapshoty, współbieżna idempotencja, historia i UI UUID; 144 testy backendu, 68 UI, build i live HTTP OK. |
 | P4-02 | Kryteria i terminy | done | Migracja 0006, kryteria/uzasadnienia, daty/czynności, potwierdzenie, zdarzenia i atomowa rewizja; 172 testy backendu, 94 UI, build i live HTTP/SSR OK. |
-| P4-03 | Obserwacje i rozmowa | pending | — |
+| P4-03 | Obserwacje i rozmowa | done | Migracja 0007, datowane wpisy i szkic rozmowy, jawne przejścia, autorzy/czasy, rewizje i UI; 206 testów backendu, 123 UI, build i live HTTP/SSR OK. |
 | P4-04 | Wskaźniki i decyzje | pending | — |
 | P4-05 | Wynik i zakończenie | pending | — |
 | P5-01 | Prywatny storage | pending | — |
@@ -103,6 +105,56 @@ Role zapisane są w lokalnej bazie aplikacji, nie w metadanych Supabase.
   Piotr pozostaje nieprzypisany; HR i ADMIN widzą wszystkich czterech.
 
 ## Wykonane zadania
+
+### 2026-11-21 — P4-03, obserwacje i rozmowa
+
+- Migracja `0007`: obserwacje z UUID, datą zdarzenia, tekstem i kryterium wybranym
+  w tej ocenie (złożony FK); rozmowa z agendą, mocnymi stronami, obszarami rozwoju
+  i opcjonalną datą czynności. Autor/czas zapisu i potwierdzenia pochodzą z serwera.
+  Dotychczasowe oceny nie otrzymują fikcyjnych obserwacji, notatek ani potwierdzeń.
+- API: `POST /assessments/{id}/observations`, `PUT /assessments/{id}/conversation`
+  i polecenia `start_period`, `confirm_conversation` w dotychczasowych `transitions`.
+  Cienkie routery delegują transakcje do serwisu; współdzielona blokada oceny
+  i przypisania, świeży odczyt ORM, rewizja i zdarzenie zabezpieczają każdy zapis.
+- Jawne przejścia: `criteria_agreed` → `in_progress` → `evaluation`. Szkic rozmowy
+  bez daty można zapisać; potwierdzenie wymaga zapisanej daty odbytej rozmowy.
+  Teksty i obserwacje są opcjonalne. Po potwierdzeniu edycja tego etapu zablokowana.
+  Potwierdzenie nie zmienia czasu wcześniejszego zapisu notatek i nie jest podpisem.
+- Daty czynności: od rozmowy rozpoczynającej do dzisiaj w `Europe/Warsaw`; tekst
+  obserwacji 1–10 000 znaków, notatki 0–10 000. Nie narzucamy upływu planowanego
+  okresu ani nowych terminów prawnych bez zweryfikowanej podstawy.
+- UI: zakładki Obserwacje/Rozmowa oceniająca w trasie UUID, kryteria z przypiętego
+  katalogu, daty i metadane zapisu, trzy zakładki notatek. Osobny komponent rozmowy
+  odpowiada za pola i dostępność; Server Action wysyła wyłącznie dozwolone pola.
+  Bez symulacji upływu okresu i bez localStorage/demo. Pomoc opisuje nowy przebieg.
+- Kontrolowane wpisy pozostają zamontowane przy zmianie zakładek i po błędzie.
+  Zapis blokuje nawigację i ponowną wysyłkę; konflikt zachowuje wpisy i daje nową
+  kartę z zapisaną wersją. Potwierdzenie blokowane przy niewysłanych zmianach
+  rozmowy lub obserwacji. Ponowienie starej rewizji nie dopisuje duplikatu.
+- `uv run ruff check .`, `uv run ruff format --check .` i `uv run pytest` z
+  `KOMPAS_TEST_DATABASE_URL` oraz `KOMPAS_TEST_CATALOG_XLSX` — OK, 206 testów
+  bez skipów. Testy obejmują walidację, wznowienie, cudze ID, drugi przypisany
+  przełożony, cofnięcie przypisania, zamknięcie etapu, rollback wpisów i potwierdzenia.
+  Rzeczywiste równoległe sesje: dopisanie obserwacji kontra potwierdzenie z rewizją 6
+  — jeden sukces i jeden konflikt, bez wpisu po zamknięciu etapu.
+- `npm run api:types -- http://127.0.0.1:33081/openapi.json`, `npm run precommit`
+  i `npm run build` — OK, 123 testy w 20 plikach. Server Actions: dozwolone pola,
+  błąd sieci, sesja, walidacja, 409 bez retry/inwalidacji. UI: zapisane dane,
+  niepuste szkice, blokady potwierdzenia, puste daty, tryb odczytu i escaping tekstu.
+- `npm run doctor` — wykonano, 29 wskazań doradczych. Nowy formularz rozmowy
+  wydzielono, formatter dat współdzielony w module. Pozostałe rozgałęzienia
+  formularza obsługują jawne stany/komunikaty; inicjalizacja z props celowo zachowuje
+  lokalny szkic, zamiast nadpisywać go po rewalidacji. Brak wyciszania reguł.
+- Compose `up --build --detach --wait --wait-timeout 180 backend`, następnie
+  `frontend` — OK; migracja `0007` wdrożona bez resetu danych.
+- Live HTTP/SSR bez przeglądarki: rzeczywisty MANAGER, utworzenie i ustalenia →
+  start → obserwacja/data/autor → retry 409 → szkic bez daty → odmowa potwierdzenia
+  422 → zapis daty → potwierdzenie `evaluation`/rewizja 9 → reload i tryb odczytu.
+  HR/ADMIN: GET/POST/PUT i trasa SSR cudzej oceny 404. Smoke usunął wyłącznie swój
+  rekord filtrowany autorem i losowym kluczem żądania; sesje testowe wylogowano.
+- Nie wykonywano przeglądarkowego E2E ani wizualnego sprawdzenia. P8-01 pozostaje
+  blocked. P4-04/05 nadal do wdrożenia; następny krok: P4-04.
+- Commit: `feat(assessments): persist observations and conversation`.
 
 ### 2026-11-21 — pomoc i komunikaty według uprawnień
 

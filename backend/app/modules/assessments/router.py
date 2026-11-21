@@ -7,19 +7,25 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.modules.assessments.models import Assessment
 from app.modules.assessments.schemas import (
-    AgreeCriteria,
     AssessmentCreate,
     AssessmentResponse,
+    AssessmentTransition,
+    ConversationUpdate,
     CriteriaUpdate,
     DatesUpdate,
+    ObservationCreate,
 )
 from app.modules.assessments.service import (
     AssessmentError,
     accessible_assessments,
+    add_observation,
     agree_criteria,
+    confirm_conversation,
     create_assessment,
+    save_conversation,
     save_criteria,
     save_dates,
+    start_period,
 )
 from app.modules.users.models import User
 from app.modules.users.router import get_current_user
@@ -108,13 +114,50 @@ def update_dates(
 @router.post("/{assessment_id}/transitions", response_model=AssessmentResponse)
 def transition(
     assessment_id: UUID,
-    data: AgreeCriteria,
+    data: AssessmentTransition,
     user: Annotated[User, Depends(get_current_user)],
     session: Annotated[Session, Depends(get_session)],
     response: Response,
 ) -> Assessment:
     try:
-        result = agree_criteria(session, user, assessment_id, data.revision)
+        operation = {
+            "agree_criteria": agree_criteria,
+            "start_period": start_period,
+            "confirm_conversation": confirm_conversation,
+        }[data.action]
+        result = operation(session, user, assessment_id, data.revision)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.post("/{assessment_id}/observations", response_model=AssessmentResponse)
+def create_observation(
+    assessment_id: UUID,
+    data: ObservationCreate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = add_observation(session, user, assessment_id, data)
+    except AssessmentError as error:
+        raise assessment_http_error(error) from None
+    response.headers["Cache-Control"] = "private, no-store"
+    return result
+
+
+@router.put("/{assessment_id}/conversation", response_model=AssessmentResponse)
+def update_conversation(
+    assessment_id: UUID,
+    data: ConversationUpdate,
+    user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+    response: Response,
+) -> Assessment:
+    try:
+        result = save_conversation(session, user, assessment_id, data)
     except AssessmentError as error:
         raise assessment_http_error(error) from None
     response.headers["Cache-Control"] = "private, no-store"

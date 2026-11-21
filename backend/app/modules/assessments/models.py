@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    ForeignKeyConstraint,
     String,
     UniqueConstraint,
     func,
@@ -70,6 +71,16 @@ class Assessment(Base):
         cascade="all, delete-orphan",
         order_by="AssessmentCriterion.criterion_id",
     )
+    observations: Mapped[list["AssessmentObservation"]] = relationship(
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="(AssessmentObservation.occurred_on, "
+        "AssessmentObservation.recorded_at, AssessmentObservation.id)",
+    )
+    conversation: Mapped["AssessmentConversation | None"] = relationship(
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
 
 
 class AssessmentCriterion(Base):
@@ -108,3 +119,44 @@ class AssessmentEvent(Base):
     recorded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class AssessmentObservation(Base):
+    __tablename__ = "assessment_observations"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["assessment_id", "criterion_id"],
+            ["assessment_criteria.assessment_id", "assessment_criteria.criterion_id"],
+        ),
+        CheckConstraint("length(trim(text)) > 0"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    assessment_id: Mapped[UUID] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), index=True
+    )
+    criterion_id: Mapped[UUID] = mapped_column()
+    text: Mapped[str] = mapped_column(String(10000))
+    occurred_on: Mapped[date] = mapped_column(Date)
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class AssessmentConversation(Base):
+    __tablename__ = "assessment_conversations"
+
+    assessment_id: Mapped[UUID] = mapped_column(
+        ForeignKey("assessments.id", ondelete="CASCADE"), primary_key=True
+    )
+    agenda: Mapped[str] = mapped_column(String(10000))
+    strengths: Mapped[str] = mapped_column(String(10000))
+    growth: Mapped[str] = mapped_column(String(10000))
+    occurred_on: Mapped[date | None] = mapped_column(Date)
+    author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    confirmed_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))

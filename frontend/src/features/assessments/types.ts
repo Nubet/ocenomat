@@ -2,7 +2,7 @@ import type { components } from "@/lib/api/schema";
 
 export type AssessmentRecord = components["schemas"]["AssessmentResponse"];
 
-export type ArrangementActionState = {
+export type AssessmentActionState = {
   error: string;
   conflict: boolean;
   assessment?: AssessmentRecord;

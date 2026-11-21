@@ -64,8 +64,22 @@ Criterion/timing editing now uses the API with the assessment's pinned catalog:
 - Controlled inputs survive API errors and conflicts. A conflict blocks further
   saves and offers the saved version in a separate tab so text can be compared
   and copied without overwriting the newer record. No localStorage persistence.
-- Confirmed arrangements are read-only; observation/rating/result editing comes
-  in the remaining P4 tasks. Navigating `?step=` never mutates the assessment.
+- Confirmed arrangements are read-only. Navigating `?step=` never mutates the assessment.
+
+Observation and conversation editing also uses the API:
+
+- `period` and `conversation` select screens; only `start_period` starts collection.
+  Journal entries use selected criteria from the pinned catalog and an explicit event date.
+- `activity-actions.ts` sends purpose-specific commands; the backend supplies authors,
+  UTC recording times and revisions. Dates describe the activity, not the time of entry.
+- Conversation drafts have three text fields and an optional completed-conversation date.
+  Each tab stays mounted, so every field is saved together. Controlled drafts also stay
+  mounted while reviewing arrangement screens; they never use the demo workspace.
+- Confirmation requires the saved date and no unsent changes, and is separate from saving.
+  It advances to `evaluation`, where journal and conversation editing is locked.
+  Rating/result editing remains for P4-04/05; there is no simulated end-of-period button.
+- Pending saves block navigation and duplicate submits. Errors preserve text; an unresolved
+  conflict blocks resubmission and links to the saved version in a separate tab.
 
 Dashboard, deadlines and HR monitoring still
 contain labelled demo data until P7. Legacy flow components remain as the visual
@@ -153,7 +167,7 @@ colors in components; add a semantic token when an additional color role is need
   prompts before removing existing progress, including unfinished setup.
 - Browser storage failures are shown to the user; current in-memory editing
   remains available.
-- Reset is available in Help and requires confirmation.
+- Help no longer offers the legacy demo reset.
 - Assistant replies are deterministic demo content. The transcript lasts for
   the current app session; no model or external API is called.
 - Print/PDF uses the browser print dialog and the selected document part.

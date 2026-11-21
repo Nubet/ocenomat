@@ -15,11 +15,23 @@ from app.core.database import create_database_engine, get_session
 from app.main import create_app
 from app.modules.assessments.models import Assessment
 from app.modules.assessments.rules import REQUIRED_CRITERIA
-from app.modules.assessments.schemas import AssessmentCreate, CriteriaUpdate
+from app.modules.assessments.schemas import (
+    AssessmentCreate,
+    ConversationUpdate,
+    CriteriaUpdate,
+    DatesUpdate,
+    ObservationCreate,
+)
 from app.modules.assessments.service import (
     AssessmentError,
+    add_observation,
+    agree_criteria,
+    confirm_conversation,
     create_assessment,
+    save_conversation,
     save_criteria,
+    save_dates,
+    start_period,
 )
 from app.modules.catalog.models import CatalogVersion
 from app.modules.employees.models import (
@@ -397,6 +409,72 @@ def test_concurrent_retries_create_exactly_one_record(database):
             edits = list(pool.map(edit_worker, range(2)))
         assert set(edits) == {2, "conflict"}
         with Session(engine) as session:
+            user = session.get(User, user_id)
+            today = datetime.now(UTC).date() - timedelta(days=1)
+            save_dates(
+                session,
+                user,
+                assessment_id,
+                DatesUpdate(
+                    revision=2,
+                    date_talk=today,
+                    date_assessment=today,
+                    duties_discussed=True,
+                    expectations_discussed=True,
+                    arrangements_shared=True,
+                ),
+            )
+            agree_criteria(session, user, assessment_id, 3)
+            start_period(session, user, assessment_id, 4)
+            save_conversation(
+                session,
+                user,
+                assessment_id,
+                ConversationUpdate(
+                    revision=5,
+                    agenda="",
+                    strengths="",
+                    growth="",
+                    occurred_on=today,
+                ),
+            )
+
+        barrier = Barrier(2)
+
+        def activity_worker(index):
+            with Session(engine) as session:
+                user = session.get(User, user_id)
+                stale = session.get(Assessment, assessment_id)
+                assert stale.revision == 6
+                barrier.wait(timeout=5)
+                try:
+                    if index == 0:
+                        saved = add_observation(
+                            session,
+                            user,
+                            assessment_id,
+                            ObservationCreate(
+                                revision=6,
+                                criterion_id=REQUIRED_CRITERIA["C"][0],
+                                text="Concurrent observation",
+                                occurred_on=today,
+                            ),
+                        )
+                    else:
+                        saved = confirm_conversation(session, user, assessment_id, 6)
+                    return saved.revision
+                except AssessmentError as error:
+                    return error.code
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            activities = list(pool.map(activity_worker, range(2)))
+        assert set(activities) == {7, "conflict"}
+        with Session(engine) as session:
+            saved = session.get(Assessment, assessment_id)
+            assert (saved.status.value, len(saved.observations)) in {
+                ("in_progress", 1),
+                ("evaluation", 0),
+            }
             assert (
                 session.scalar(
                     select(func.count())

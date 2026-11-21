@@ -196,6 +196,42 @@ POST  /api/v1/assessments/{id}/transitions
 - GET zwraca zapisane kryteria/daty/czynności i obowiązkowe ID; nie przesuwa stanu.
   Frontend pobiera katalog wyłącznie przez `version_id` zapisany w ocenie.
 
+## Obserwacje i rozmowa oceniająca
+
+Migracja `0007` dodaje `assessment_observations` i `assessment_conversations`.
+Obserwacja ma własne UUID, kryterium (FK do wyboru w tej ocenie), tekst,
+datę zdarzenia, autora i czas zapisu UTC. Rozmowa ma agendę, mocne strony,
+obszary rozwoju, opcjonalną datę czynności oraz osobny autor/czas potwierdzenia.
+
+```text
+POST /api/v1/assessments/{id}/transitions
+{"revision": 4, "action": "start_period"}
+
+POST /api/v1/assessments/{id}/observations
+{"revision": 5, "criterion_id": "UUID", "text": "Sytuacja — działanie — rezultat",
+ "occurred_on": "2026-02-12"}
+
+PUT /api/v1/assessments/{id}/conversation
+{"revision": 6, "agenda": "", "strengths": "", "growth": "", "occurred_on": null}
+
+POST /api/v1/assessments/{id}/transitions
+{"revision": 7, "action": "confirm_conversation"}
+```
+
+- `start_period`: `criteria_agreed` → `in_progress`. Tylko w tym stanie zapisujemy
+  obserwacje i rozmowę. Obserwacje są dopisywane, a PUT zastępuje szkic rozmowy.
+- Daty czynności od rozmowy rozpoczynającej do dzisiaj w `Europe/Warsaw`.
+  Tekst obserwacji 1–10 000 znaków; każda z trzech notatek 0–10 000 znaków.
+  Nie wymuszamy upływu planowanego terminu oceny bez zweryfikowanych reguł prawnych.
+- Szkic rozmowy można zapisać bez daty. Potwierdzenie wymaga zapisanej daty;
+  obserwacje i notatki są opcjonalne. Zmiana `in_progress` → `evaluation` blokuje
+  ich dalszą edycję. Potwierdzenie nie oznacza podpisania/doręczenia.
+- Autorzy i czasy są wyłącznie serwerowe. Wszystkie operacje korzystają z tej
+  samej blokady oceny/przypisania, rewizji i atomowego zdarzenia co P4-02.
+  Stara rewizja chroni również przed podwójnym dopisaniem obserwacji po timeout.
+- GET oceny odtwarza wpisy i rozmowę, nie zmieniając stanu. Identyczne zasady
+  autorstwa/przypisania obejmują odczyt oraz każdą mutację; HR/ADMIN nie czytają notatek.
+
 ## Reguły ocen
 
 `app/modules/assessments/rules.py` zawiera czyste funkcje bez API, ORM i AI:
