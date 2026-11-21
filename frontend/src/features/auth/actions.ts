@@ -29,8 +29,8 @@ export async function signIn(_previous: { error: string }, form: FormData) {
       return {
         error:
           profile.status === 401 || profile.status === 403
-            ? "Konto nie ma aktywnego dostępu do Kompasu. Skontaktuj się z administratorem."
-            : "Serwer Kompasu jest niedostępny. Spróbuj ponownie.",
+            ? "Konto nie ma aktywnego dostępu do OcenoMat. Skontaktuj się z administratorem."
+            : "Serwer OcenoMat jest niedostępny. Spróbuj ponownie.",
       };
     }
   } catch {

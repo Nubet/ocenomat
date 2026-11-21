@@ -24,7 +24,7 @@ export function DocumentPaper({
   return (
     <article className="report-paper mx-auto max-w-[43.125rem] border border-document-border bg-document p-[1.875rem] font-document text-body text-document-foreground shadow-card max-compact:p-3">
       <p className="text-center text-[0.5625rem] font-bold tracking-wider uppercase opacity-65">
-        KOMPAS · PODGLĄD UKŁADU DOKUMENTU — NIE OFICJALNY WZÓR
+        OCENOMAT · PODGLĄD UKŁADU DOKUMENTU — NIE OFICJALNY WZÓR
       </p>
       <div className="mb-5 border-b-2 border-document-foreground py-5">
         <h2 className="text-center text-[1.0625rem] font-bold">

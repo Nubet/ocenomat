@@ -42,7 +42,7 @@ export function AssistantDrawer() {
   if (!assistantOpen) return null;
   if (pathname.startsWith("/assessments/"))
     return (
-      <Dialog title="Zapytaj Kompas" onClose={closeAssistant} drawer="right">
+      <Dialog title="Zapytaj OcenoMat" onClose={closeAssistant} drawer="right">
         <Note className="m-5">
           Asystent dla zapisanych ocen jest w przygotowaniu. Na razie skorzystaj z sekcji Pomoc —
           znajdziesz tam instrukcję rozpoczęcia oceny, zapisu ustaleń i sprawdzania dostępu.
@@ -50,7 +50,7 @@ export function AssistantDrawer() {
       </Dialog>
     );
   return (
-    <Dialog title="Zapytaj Kompas" onClose={closeAssistant} drawer="right">
+    <Dialog title="Zapytaj OcenoMat" onClose={closeAssistant} drawer="right">
       <div className="flex h-full flex-col">
         <div className="border-b bg-surface-muted p-4">
           <p className="mb-3 text-caption text-subtle-foreground">

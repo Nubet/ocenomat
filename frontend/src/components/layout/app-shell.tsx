@@ -32,7 +32,7 @@ export function AppShell({
       ? "Panel HR"
       : (navigation.find(({ href }) =>
           href === "/" ? pathname === href : pathname.startsWith(href),
-        )?.label ?? "Kompas");
+        )?.label ?? "OcenoMat");
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
@@ -79,7 +79,7 @@ export function AppShell({
                 <Icon name="menu" />
               </Button>
               <span className="hidden text-body text-subtle-foreground navigation:inline">
-                Kompas
+                OcenoMat
               </span>
               <Icon
                 name="chevron-right"
@@ -95,9 +95,9 @@ export function AppShell({
                   Dane demonstracyjne
                 </Badge>
               </span>
-              <Button onClick={openAssistant} aria-label="Otwórz asystenta Kompas">
+              <Button onClick={openAssistant} aria-label="Otwórz asystenta OcenoMat">
                 <Icon name="sparkles" size={16} />
-                <span className="hidden compact:inline">Zapytaj Kompas</span>
+                <span className="hidden compact:inline">Zapytaj OcenoMat</span>
               </Button>
             </div>
           </header>

@@ -133,7 +133,7 @@ export function Conversation() {
           <Card className="p-6">
             <h2 className="mb-4 flex items-center gap-2 text-body font-semibold text-primary">
               <Icon name="sparkles" size={17} />
-              Podpowiedzi Kompasu
+              Podpowiedzi OcenoMat
             </h2>
             <ol className="space-y-3">
               {tab.prompts.map((prompt, index) => (
@@ -149,7 +149,7 @@ export function Conversation() {
           <Button className="w-full justify-start gap-3 p-5! text-primary" onClick={openAssistant}>
             <Icon name="message" size={19} />
             <span className="flex-1 text-left">
-              <span className="block text-body font-semibold">Zapytaj Kompas</span>
+              <span className="block text-body font-semibold">Zapytaj OcenoMat</span>
               <span className="mt-1 block text-label font-normal text-muted-foreground">
                 Pytania przed rozmową
               </span>

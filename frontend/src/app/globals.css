@@ -39,6 +39,15 @@
 }
 
 @layer components {
+  .brand-logo-dark {
+    display: none;
+  }
+  [data-theme="dark"] .brand-logo-light {
+    display: none;
+  }
+  [data-theme="dark"] .brand-logo-dark {
+    display: block;
+  }
   .report-paper table {
     @apply w-full border-collapse;
   }

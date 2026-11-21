@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "@/features/auth/actions";
 import type { WorkspaceUser } from "@/features/auth/session";
 import { Icon } from "@/components/ui/icon";
+import { Brand } from "@/components/ui/brand";
 import { useWorkspace } from "@/features/workspace/workspace-provider";
 import { navigation } from "./navigation";
 
@@ -28,20 +29,10 @@ export function Sidebar({
         <Link
           href="/"
           onClick={onNavigate}
-          aria-label="Kompas — przejdź do pulpitu"
+          aria-label="OcenoMat — przejdź do pulpitu"
           className="flex items-center gap-3"
         >
-          <span className="flex size-[2.125rem] items-center justify-center rounded-[0.6875rem] bg-primary-action text-white shadow-sm">
-            <Icon name="compass" size={21} />
-          </span>
-          <span>
-            <strong className="block text-[0.9375rem] leading-4 tracking-tight">
-              kompas<span className="text-primary">.</span>
-            </strong>
-            <span className="text-[0.5625rem] font-bold tracking-[0.18em] text-subtle-foreground uppercase">
-              kompetencji
-            </span>
-          </span>
+          <Brand />
         </Link>
       </div>
       <div className="px-4 pb-6">
@@ -51,7 +42,7 @@ export function Sidebar({
           className="flex h-10 w-full items-center gap-2.5 rounded-control border bg-surface px-3 text-body text-muted-foreground"
         >
           <Icon name="search" size={16} />
-          <span className="flex-1 text-left">Szukaj w Kompasie</span>
+          <span className="flex-1 text-left">Szukaj w OcenoMat</span>
           <kbd className="rounded-md border px-1.5 py-0.5 text-caption text-subtle-foreground">
             Ctrl K
           </kbd>

@@ -24,7 +24,7 @@ export function CommandSearch({
     })),
   ].filter(({ label }) => label.toLocaleLowerCase("pl").includes(query.toLocaleLowerCase("pl")));
   return (
-    <Dialog title="Szukaj w Kompasie" onClose={onClose}>
+    <Dialog title="Szukaj w OcenoMat" onClose={onClose}>
       <div className="flex items-center gap-3 border-b p-5">
         <Icon name="search" />
         <label className="min-w-0 flex-1">

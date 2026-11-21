@@ -86,7 +86,7 @@ export function BehavioralRating() {
           <Card className="p-5">
             <h2 className="mb-3 flex items-center gap-2 text-label font-semibold text-primary">
               <Icon name="sparkles" size={17} />
-              Kompas podpowiada
+              OcenoMat podpowiada
             </h2>
             <p className="text-label leading-6 text-muted-foreground">
               Odnieś odpowiedź do konkretnego zdarzenia, nie do ogólnego wrażenia. Brak obserwacji

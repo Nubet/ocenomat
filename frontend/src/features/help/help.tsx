@@ -75,7 +75,7 @@ export function Help({ userRoles }: { userRoles: WorkspaceUser["roles"] }) {
     <>
       <PageHeading
         eyebrow="Centrum pomocy"
-        title="Jak pracować z Kompasem?"
+        title="Jak pracować z OcenoMat?"
         description="Sprawdź, co możesz zrobić na swoim koncie i jak przejść do kolejnego kroku."
       />
       <div className="mb-6 grid gap-4 lg:grid-cols-3">

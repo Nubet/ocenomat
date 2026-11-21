@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Icon } from "@/components/ui/icon";
+import { Brand } from "@/components/ui/brand";
 import { authConfig } from "@/features/auth/config";
 import { LoginForm } from "@/features/auth/login-form";
 
@@ -19,14 +19,9 @@ export default async function LoginPage({
         aria-labelledby="login-heading"
       >
         <div className="mb-10 flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-control bg-primary-action text-white">
-            <Icon name="compass" size={25} />
-          </span>
-          <span className="text-xl font-bold tracking-tight">
-            kompas<span className="text-primary">.</span>
-          </span>
+          <Brand />
         </div>
-        <p className="eyebrow text-primary">Kompas Kompetencji</p>
+        <p className="eyebrow text-primary">Oceny i rozwój kompetencji</p>
         <h1 id="login-heading" className="mt-3 text-3xl font-semibold tracking-tight">
           Twoja przestrzeń
           <br />
@@ -37,7 +32,7 @@ export default async function LoginPage({
         </p>
         <LoginForm
           configured={Boolean(authConfig())}
-          initialError={error === "account" ? "Konto nie ma aktywnego dostępu do Kompasu." : ""}
+          initialError={error === "account" ? "Konto nie ma aktywnego dostępu do OcenoMat." : ""}
         />
         <p className="mt-7 border-t pt-5 text-caption leading-relaxed text-subtle-foreground">
           Nie masz dostępu? Skontaktuj się z administratorem. Samodzielna rejestracja jest

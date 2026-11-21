@@ -212,7 +212,7 @@ export function Setup() {
           <p className="mt-6 border-t pt-5 text-body leading-6 text-muted-foreground">
             {assessment.type === "first"
               ? "Pierwsza ocena przebiega według innej procedury niż okresowa i korzysta z odrębnego arkusza. W prototypie dostępna jest interaktywna symulacja wyniku."
-              : "Kompas proponuje formularz na podstawie danych stanowiska. W rzeczywistym wdrożeniu jego dobór będzie weryfikowany względem aktualnych przepisów i typu stanowiska."}
+              : "OcenoMat proponuje formularz na podstawie danych stanowiska. W rzeczywistym wdrożeniu jego dobór będzie weryfikowany względem aktualnych przepisów i typu stanowiska."}
           </p>
         </Card>
       ) : null}
