@@ -3,6 +3,7 @@
 # OcenoMat — Kompas Kompetencji
 
 ## [Otwórz aplikację demo → https://2.29.111.76](https://2.29.111.76)
+## Hackathon się zakończył, dlatego też demo nie jest już hostowane publicznie, chętnych zapraszam do buildowania konteneru lokalnie.
 
 ### Logowanie do demo
 
