@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Badge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
 import { AssistantDrawer } from "@/features/assistant/assistant-drawer";
 import { CommandSearch } from "@/features/search/command-search";
@@ -17,7 +16,7 @@ export function AppShell({ children, user }: { children: ReactNode; user: Worksp
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { openAssistant, assistantOpen } = useWorkspace();
+  const { openAssistant, closeAssistant, assistantOpen } = useWorkspace();
   const label =
     pathname === "/hr"
       ? "Panel HR"
@@ -59,46 +58,60 @@ export function AppShell({ children, user }: { children: ReactNode; user: Worksp
         >
           <Sidebar user={user} onSearch={search} />
         </aside>
-        <div className="print-layout min-w-0">
-          <header className="no-print flex h-[3.9375rem] items-center justify-between gap-3 border-b bg-surface px-[1.1875rem] navigation:h-18 navigation:px-[2.375rem]">
-            <div className="flex min-w-0 items-center gap-3">
-              <Button
-                aria-label="Otwórz menu"
-                className="size-10 p-0! navigation:hidden"
-                onClick={() => setMobileOpen(true)}
-              >
-                <Icon name="menu" />
-              </Button>
-              <span className="hidden text-body text-subtle-foreground navigation:inline">
-                OcenoMat
-              </span>
-              <Icon
-                name="chevron-right"
-                size={14}
-                className="hidden text-subtle-foreground navigation:block"
-              />
-              <span className="truncate text-body font-semibold">{label}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="primary"
-                className="px-4 shadow-md"
-                onClick={openAssistant}
-                aria-label="Otwórz asystenta OcenoMat"
-              >
-                <Icon name="sparkles" size={18} />
-                <span className="compact:hidden">Zapytaj</span>
-                <span className="hidden compact:inline">Zapytaj OcenoMat</span>
-              </Button>
-            </div>
-          </header>
-          <main
-            id="main-content"
-            tabIndex={-1}
-            className="print-layout mx-auto w-full max-w-workspace px-[0.8125rem] pt-6 pb-24 outline-none min-[1101px]:px-[2.6875rem] min-[1101px]:pt-[2.375rem] compact:px-[1.1875rem] compact:pt-7 navigation:px-[1.6875rem] navigation:pt-[1.875rem]"
-          >
-            {children}
-          </main>
+        <div
+          className={
+            assistantOpen
+              ? "print-layout min-w-0 min-[1200px]:grid min-[1200px]:grid-cols-[minmax(0,1fr)_26.5625rem]"
+              : "print-layout min-w-0"
+          }
+        >
+          <div className="min-w-0">
+            <header className="no-print flex h-[3.9375rem] items-center justify-between gap-3 border-b bg-surface px-[1.1875rem] navigation:h-18 navigation:px-[2.375rem]">
+              <div className="flex min-w-0 items-center gap-3">
+                <Button
+                  aria-label="Otwórz menu"
+                  className="size-10 p-0! navigation:hidden"
+                  onClick={() => setMobileOpen(true)}
+                >
+                  <Icon name="menu" />
+                </Button>
+                <span className="hidden text-body text-subtle-foreground navigation:inline">
+                  OcenoMat
+                </span>
+                <Icon
+                  name="chevron-right"
+                  size={14}
+                  className="hidden text-subtle-foreground navigation:block"
+                />
+                <span className="truncate text-body font-semibold">{label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="primary"
+                  className="px-4 shadow-md"
+                  onClick={assistantOpen ? closeAssistant : openAssistant}
+                  aria-label={
+                    assistantOpen ? "Zamknij asystenta OcenoMat" : "Otwórz asystenta OcenoMat"
+                  }
+                  aria-expanded={assistantOpen}
+                >
+                  <Icon name="sparkles" size={18} />
+                  <span className="compact:hidden">Zapytaj</span>
+                  <span className="hidden compact:inline">Zapytaj OcenoMat</span>
+                </Button>
+              </div>
+            </header>
+            <main
+              id="main-content"
+              tabIndex={-1}
+              className="print-layout mx-auto w-full max-w-workspace px-[0.8125rem] pt-6 pb-24 outline-none min-[1101px]:px-[2.6875rem] min-[1101px]:pt-[2.375rem] compact:px-[1.1875rem] compact:pt-7 navigation:px-[1.6875rem] navigation:pt-[1.875rem]"
+            >
+              {children}
+            </main>
+          </div>
+          <Suspense fallback={null}>
+            <AssistantDrawer />
+          </Suspense>
         </div>
       </div>
       {mobileOpen ? (
@@ -107,9 +120,6 @@ export function AppShell({ children, user }: { children: ReactNode; user: Worksp
         </Dialog>
       ) : null}
       {searchOpen ? <CommandSearch onClose={() => setSearchOpen(false)} /> : null}
-      <Suspense fallback={null}>
-        <AssistantDrawer />
-      </Suspense>
     </>
   );
 }

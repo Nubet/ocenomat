@@ -41,6 +41,7 @@ it("sends only explicit context and allows time for both model passes", async ()
     assessment_kind: "first",
     assessment_id: null,
     task: "question",
+    history: [],
   });
   expect(options!.signal).toBeInstanceOf(AbortSignal);
 });

@@ -8,7 +8,7 @@ class Message(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
 
     role: Literal["system", "user", "assistant"]
-    content: str = Field(min_length=1, max_length=48_000)
+    content: str = Field(min_length=1, max_length=120_000)
 
 
 class LLMError(Exception):

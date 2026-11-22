@@ -658,6 +658,8 @@ export interface components {
       text: string;
       /** Citations */
       citations: components["schemas"]["Citation"][];
+      /** Context References */
+      context_references?: components["schemas"]["ContextReference"][];
     };
     /** AssistantRequest */
     AssistantRequest: {
@@ -683,6 +685,8 @@ export interface components {
        * @enum {string}
        */
       task: "question" | "assessment_result";
+      /** History */
+      history?: components["schemas"]["ConversationTurn"][];
     };
     /** AssistantResponse */
     AssistantResponse: {
@@ -749,6 +753,13 @@ export interface components {
       /** Official Url */
       official_url?: string | null;
     };
+    /** ContextReference */
+    ContextReference: {
+      /** Label */
+      label: string;
+      /** Quote */
+      quote: string;
+    };
     /** ConversationResponse */
     ConversationResponse: {
       /** Agenda */
@@ -773,6 +784,13 @@ export interface components {
       confirmed_at: string | null;
       /** Confirmed By */
       confirmed_by: string | null;
+    };
+    /** ConversationTurn */
+    ConversationTurn: {
+      /** Question */
+      question: string;
+      /** Answer */
+      answer: string;
     };
     /** ConversationUpdate */
     ConversationUpdate: {

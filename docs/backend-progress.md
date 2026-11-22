@@ -6,8 +6,45 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 ## Bieżący stan
 
 - **Etap:** 7 zakończony; przygotowanie etapu 8.
-- **Aktywne zadanie:** brak; zakończono import scenariuszy oraz rozbudowę ekranu
-  pracowników o serwerowe wyszukiwanie, paginację, filtrowanie i sortowanie.
+- **Aktywne zadanie — in_progress:** kontekstowy asystent przygotowania rozmowy
+  z pracownikiem i dostępny podczas pracy panel obok oceny. Konieczne zachowanie
+  autoryzacji, minimalizacji danych, rozróżnienia źródeł i decyzji przełożonego.
+  Panel na szerokim ekranie działa obok treści, na węższym jako niemodalny panel;
+  przycisk w nagłówku otwiera i zamyka panel. Tryb rozmowy w otwartej ocenie
+  pobiera po autoryzacji zapisane obserwacje, wybrane zachowania, sugestie i decyzje,
+  notatki oraz wnioski; pierwsza ocena również dane sprawozdania. Nie wysyła
+  migawki tożsamości, lecz teksty mogą zawierać dane osobowe. Kontekst trafia do
+  zewnętrznego providera, o czym informuje panel. Odpowiedź odsyła do cytowanych
+  zapisów oceny, nie przepisów; dosłowność cytatu sprawdza backend, poparcie
+  semantyczne sprawdza drugi prompt modelu. Maksymalnie cztery poprzednie wymiany
+  służą kontynuacji, nie stanowią źródła faktów. Po generowaniu ponownie sprawdzany
+  jest dostęp i rewizja; przy zbyt dużym kontekście lub braku podstaw jest odmowa.
+  Odpowiedzi formalne zachowują osobny RAG. Zregenerowano typy OpenAPI; celowane
+  Ruff, oxfmt, oxlint, tsc i kontrola schematu OpenAPI — OK. W sesji przeglądarki
+  2026-11-22 sprawdzono jedną rozmowę kontekstową i odpowiedź formalną z live AI;
+  wyniki i zrzuty są w [galerii](galeria/README.md). Następny krok: uruchomić
+  pominięte testy integracyjne z osobną testową bazą PostgreSQL.
+- **Asystent — czytelność trybów:** usunięto przycisk „Sprawdź zapisany wynik”.
+  Dwa wyraźnie oznaczone tryby opisują źródło odpowiedzi i zakres danych; przy
+  otwartej ocenie tryb rozmowy wskazuje pracownika z tej oceny, a poza oceną
+  wyjaśnia, jak włączyć kontekst. Zapisane dane oceny są pobierane dopiero po
+  wysłaniu pytania; istniejące ograniczenia weryfikacji pozostają aktualne.
+- **Asystent — wybór kontekstu i niezawodność (`in_progress`):** panel pozwala
+  wyszukać pracownika i wybrać konkretną dostępną ocenę z datą oraz statusem;
+  pokazuje liczbę obserwacji i zatwierdzonych ocen z chwili otwarcia panelu.
+  Brak oceny, brak wyników wyszukiwania i błędy są komunikowane. Rozmowy w obu
+  trybach i dla różnych ocen pozostają osobne w pamięci panelu; przy utracie
+  dostępu usuwa się odpowiednią rozmowę. Cytaty z zapisów można rozwinąć,
+  odpowiedź skopiować, historię jawnie wyczyścić. Kontekst zwiększono z 35 tys.
+  do 100 tys. znaków, a limit adaptera do 120 tys.; nadmiar zgłaszany jest
+  bez cichego obcięcia. Przechwytywanie pytań o wynik ograniczono do trybu
+  formalnego i pytań wprost o wynik. Zmianę jakości i rzeczywiste możliwości
+  dostawcy trzeba potwierdzić testami i live AI; nie zakłada się 100% zgodności.
+  Kontrole: `npm run precommit` — 220 testów OK; `uv run ruff check .` oraz
+  `uv run ruff format --check .` — OK; `uv run pytest tests/test_assistant.py -rs`
+  — 27 testów OK, 19 pominiętych z braku osobnej testowej bazy PostgreSQL.
+  Następny krok: uruchomić pominięte testy integracyjne oraz sprawdzić wynik
+  modelu i zachowanie przy dużym kontekście.
 - **Terminy — porządkowanie UI:** commit `029dee2` rozróżnia odcienie pigułek
   „Po terminie” i „Bliski termin” tylko w Terminy; kategoria na pulpicie bez zmian.
   Następnie dodano zakładki statusów z licznikami, wyszukiwanie osoby/działania,

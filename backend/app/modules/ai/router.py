@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.integrations.llm.protocol import LLMError
 from app.integrations.storage import StorageUnavailable
+from app.modules.ai.conversation import conversation_answer
 from app.modules.ai.osp import OspAnalysis, analyze_osp
 from app.modules.ai.schemas import AssistantRequest, AssistantResponse
 from app.modules.ai.service import answer_question, refusal
@@ -78,13 +79,15 @@ def assistant(
             if data.assessment_kind not in ("unspecified", assessment.kind):
                 raise HTTPException(422, "Assessment kind does not match context")
             data = data.model_copy(update={"assessment_kind": assessment.kind})
-        result_question = data.task == "assessment_result" or bool(
-            re.search(
-                r"\b(oblicz\w*|policz\w*|średni\w*|sredni\w*)\b|"
-                r"\b(mój|moj|mojej|tej|tego|bieżąc\w*)\b.*\bwynik\w*\b|"
-                r"\bwynik\w*\b.*\b(mój|moj|mojej|tej|tego|oceny)\b",
-                data.question,
-                re.IGNORECASE,
+        result_question = data.task == "assessment_result" or (
+            data.mode == "formal"
+            and bool(
+                re.search(
+                    r"\b(mój|moj|mojej|tej|tego|bieżąc\w*)\b.*\bwynik\w*\b|"
+                    r"\bwynik\w*\b.*\b(mój|moj|mojej|tej|tego|oceny)\b",
+                    data.question,
+                    re.IGNORECASE,
+                )
             )
         )
         if result_question:
@@ -96,17 +99,24 @@ def assistant(
                 result=ResultResponse.model_validate(
                     assessment.result, from_attributes=True
                 ),
-                limitations=[
-                    "Wynik pochodzi z silnika reguł i zapisanych decyzji "
-                    "przełożonego, nie z LLM."
-                ],
+                limitations=["Wynik uwzględnia zatwierdzone oceny przełożonego."],
             )
-        answer = answer_question(
-            data, PostgresKnowledgeRetriever(session), request.app.state.llm_provider
-        )
+        if data.mode == "conversation" and assessment is not None:
+            context_revision = assessment.revision
+            answer = conversation_answer(
+                data, assessment, session, request.app.state.llm_provider
+            )
+        else:
+            answer = answer_question(
+                data,
+                PostgresKnowledgeRetriever(session),
+                request.app.state.llm_provider,
+            )
         if assessment is not None:
             session.expire_all()
-            assessment_detail(data.assessment_id, user, session, response)
+            current = assessment_detail(data.assessment_id, user, session, response)
+            if data.mode == "conversation" and current.revision != context_revision:
+                raise HTTPException(409, "Assessment changed during generation")
         return answer
     except LLMError as error:
         raise llm_http_error(error) from None

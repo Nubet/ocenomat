@@ -18,6 +18,7 @@ class AssistantRequest(StrictModel):
     assessment_id: UUID | None = None
     assessment_kind: Literal["first", "periodic", "unspecified"] = "unspecified"
     task: Literal["question", "assessment_result"] = "question"
+    history: list["ConversationTurn"] = Field(default_factory=list, max_length=4)
 
     @field_validator("question")
     @classmethod
@@ -25,6 +26,11 @@ class AssistantRequest(StrictModel):
         if not value.strip():
             raise ValueError("Question cannot be blank")
         return value.strip()
+
+
+class ConversationTurn(StrictModel):
+    question: str = Field(min_length=1, max_length=1000)
+    answer: str = Field(min_length=1, max_length=4000)
 
 
 class EvidenceReference(StrictModel):
@@ -66,6 +72,12 @@ class Citation(StrictModel):
 class AssistantClaim(StrictModel):
     text: str
     citations: list[Citation]
+    context_references: list["ContextReference"] = Field(default_factory=list)
+
+
+class ContextReference(StrictModel):
+    label: str
+    quote: str
 
 
 class AssistantResponse(StrictModel):

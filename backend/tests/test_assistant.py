@@ -12,6 +12,7 @@ from test_documents import MemoryStorage
 from test_knowledge_retriever import corpus as corpus
 
 from app.integrations.llm.protocol import LLMError
+from app.modules.ai.conversation import assessment_context, conversation_answer
 from app.modules.ai.schemas import (
     AssistantRequest,
     GroundedAnswer,
@@ -203,6 +204,96 @@ def test_no_evidence_does_not_require_provider_or_send_question():
     )
 
 
+def test_conversation_uses_saved_context_and_rejects_fabricated_reference(monkeypatch):
+    parts = {
+        "observation:1": {
+            "label": "Obserwacja · Współpraca",
+            "text": "Pomógł zespołowi ukończyć zadanie.",
+        }
+    }
+    monkeypatch.setattr(
+        "app.modules.ai.conversation.assessment_context", lambda *_: parts
+    )
+    request = AssistantRequest(question="O co zapytać?", mode="conversation")
+    assessment = SimpleNamespace(kind="periodic")
+    draft = {
+        "claims": [
+            {
+                "text": "Zapytaj o współpracę przy zadaniu.",
+                "references": [{"id": "observation:1", "quote": "Pomógł zespołowi"}],
+            }
+        ]
+    }
+    provider = StubProvider(draft, review())
+    result = conversation_answer(request, assessment, None, provider)
+    assert result.status == "answered"
+    assert result.claims[0].context_references[0].quote == "Pomógł zespołowi"
+    assert not result.claims[0].citations
+    assert json.loads(provider.calls[0][0][1].content)["saved_data"] == parts
+    draft["claims"][0]["references"][0]["quote"] = "Wymyślony fragment"
+    rejected = conversation_answer(request, assessment, None, StubProvider(draft))
+    assert rejected.status == "insufficient_evidence" and not rejected.claims
+
+
+def test_conversation_context_excludes_employee_identity():
+    criterion_id = uuid4()
+    assessment = SimpleNamespace(
+        catalog_version_id=uuid4(),
+        employee_snapshot={"name": "Nie wysyłaj nazwiska"},
+        observations=[
+            SimpleNamespace(
+                id=uuid4(), criterion_id=criterion_id, text="Pomógł zespołowi"
+            )
+        ],
+        ratings=[],
+        conversation=None,
+        summary=None,
+        first=None,
+    )
+    catalog = SimpleNamespace(
+        criteria=[{"id": str(criterion_id), "name": "Współpraca", "indicators": []}]
+    )
+    parts = assessment_context(SimpleNamespace(get=lambda *_: catalog), assessment)
+    assert "Pomógł zespołowi" in json.dumps(parts, ensure_ascii=False)
+    assert "Nie wysyłaj nazwiska" not in json.dumps(parts, ensure_ascii=False)
+
+
+def test_conversation_rejects_unsupported_review(monkeypatch):
+    monkeypatch.setattr(
+        "app.modules.ai.conversation.assessment_context",
+        lambda *_: {"x": {"label": "Notatka", "text": "Przykładowa obserwacja"}},
+    )
+    draft = {
+        "claims": [
+            {"text": "Propozycja", "references": [{"id": "x", "quote": "Przykładowa"}]}
+        ]
+    }
+    result = conversation_answer(
+        AssistantRequest(question="Pomóż", mode="conversation"),
+        SimpleNamespace(kind="periodic"),
+        None,
+        StubProvider(draft, review(supported_claims=[])),
+    )
+    assert result.status == "insufficient_evidence" and not result.claims
+
+
+def test_conversation_context_limit_is_reported_without_sending(monkeypatch):
+    monkeypatch.setattr(
+        "app.modules.ai.conversation.assessment_context",
+        lambda *_: {"x": {"label": "Notatka", "text": "a" * 101_000}},
+    )
+    provider = StubProvider()
+    result = conversation_answer(
+        AssistantRequest(question="Pomóż", mode="conversation"),
+        SimpleNamespace(kind="periodic"),
+        None,
+        provider,
+    )
+    assert result.status == "insufficient_evidence"
+    assert "100 000" in result.limitations[0]
+    assert not provider.calls
+
+
 @pytest.mark.parametrize("status", ["insufficient_evidence", "conflicting_sources"])
 def test_refusal_does_not_echo_untrusted_model_claims(evidence, status):
     provider = StubProvider(generated(evidence, status=status))
@@ -301,10 +392,13 @@ def test_api_generates_real_citations_and_downloads_immutable_original(assistant
 
 @pytest.mark.integration
 @pytest.mark.parametrize("name", ["b", "hr", "admin", "none"])
-def test_unauthorized_assessment_never_reaches_llm_or_storage(assistant_api, name):
+@pytest.mark.parametrize("mode", ["formal", "conversation"])
+def test_unauthorized_assessment_never_reaches_llm_or_storage(
+    assistant_api, name, mode
+):
     api = assistant_api
     assessment_id = create(api.access).json()["id"]
-    response = ask(api, name, assessment_id=assessment_id)
+    response = ask(api, name, assessment_id=assessment_id, mode=mode)
     assert response.status_code == 404
     assert (
         not api.access.client.app.state.llm_provider.calls

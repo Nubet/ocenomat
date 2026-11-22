@@ -124,7 +124,7 @@ class OpenRouterProvider:
             raise ValueError("Invalid output token limit")
         if (
             not 1 <= len(messages) <= 32
-            or sum(len(message.content) for message in messages) > 48_000
+            or sum(len(message.content) for message in messages) > 120_000
         ):
             raise ValueError("Message context exceeds limits")
         self._check_model(structured=response_model is not None, max_tokens=tokens)
