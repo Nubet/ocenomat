@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AccessibilitySettings } from "@/components/accessibility-settings";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +13,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pl">
-      <body>{children}</body>
+      <body>
+        {children}
+        <AccessibilitySettings />
+      </body>
     </html>
   );
 }

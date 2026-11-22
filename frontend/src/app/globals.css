@@ -84,6 +84,158 @@
   }
 }
 
+/* Contrast overrides also cover fixed colors and inline styles outside the theme tokens. */
+@media screen {
+  html[data-contrast] {
+    --contrast-background: #fff;
+    --contrast-foreground: #000;
+    color-scheme: light;
+  }
+  html[data-contrast="dark"] {
+    --contrast-background: #000;
+    --contrast-foreground: #fff;
+    color-scheme: dark;
+  }
+  html[data-contrast] body,
+  html[data-contrast]
+    :is(
+      [class*="bg-"],
+      [style*="background"],
+      .accessibility-panel,
+      input,
+      textarea,
+      select,
+      option,
+      button,
+      dialog
+    ) {
+    background: var(--contrast-background) !important;
+    background-image: none !important;
+  }
+  html[data-contrast] :is(body, body *) {
+    color: var(--contrast-foreground) !important;
+    border-color: var(--contrast-foreground) !important;
+    text-shadow: none !important;
+  }
+  html[data-contrast] :is(button, input, select, textarea) {
+    border: 1px solid var(--contrast-foreground) !important;
+  }
+  html[data-contrast] :is(a, button[aria-pressed="true"]) {
+    text-decoration: underline;
+  }
+  html[data-contrast] :focus-visible {
+    outline: 3px solid var(--contrast-foreground) !important;
+    outline-offset: 3px;
+  }
+  html[data-contrast] input::placeholder,
+  html[data-contrast] textarea::placeholder {
+    color: var(--contrast-foreground) !important;
+    opacity: 1;
+  }
+  html[data-contrast] :disabled {
+    opacity: 0.7;
+  }
+  html[data-contrast="dark"] img.brand-logo-light,
+  html[data-contrast="light"] img.brand-logo-dark {
+    filter: invert(1);
+  }
+}
+
+.accessibility-widget {
+  position: fixed;
+  z-index: 100;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.accessibility-widget[data-position^="top"] {
+  top: 1rem;
+  bottom: auto;
+  flex-direction: column-reverse;
+}
+.accessibility-widget[data-position$="left"] {
+  right: auto;
+  left: 1rem;
+  align-items: flex-start;
+}
+.accessibility-trigger {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #263e9b;
+  color: white;
+  box-shadow: 0 4px 18px #0004;
+}
+.accessibility-trigger svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+.accessibility-panel {
+  width: min(20rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  padding: 1.25rem;
+  border: 1px solid var(--border-interactive);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 8px 30px #0003;
+}
+.accessibility-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.accessibility-heading h2 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.accessibility-heading button {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  font-size: 1.5rem;
+}
+.accessibility-panel legend,
+.accessibility-panel label {
+  display: block;
+  font-weight: 700;
+}
+.accessibility-options {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1.25rem;
+}
+.accessibility-options button,
+.accessibility-panel select,
+.accessibility-reset {
+  min-height: 2.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-interactive);
+  border-radius: 0.5rem;
+  text-align: left;
+}
+.accessibility-options button[aria-pressed="true"] {
+  border: 2px solid var(--primary);
+  font-weight: 700;
+}
+.accessibility-panel select {
+  margin-top: 0.5rem;
+  background: var(--surface);
+}
+.accessibility-reset {
+  margin-top: 1rem;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
