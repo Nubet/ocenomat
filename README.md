@@ -4,6 +4,19 @@
 
 ## [Otwórz aplikację demo → https://2.29.111.76](https://2.29.111.76)
 
+### Logowanie do demo
+
+Rejestracja nie jest potrzebna — wybierz jedno z przygotowanych kont i zaloguj się
+hasłem przekazanym przez zespół. Przed zmianą roli wyloguj się z bieżącego konta.
+
+| Rola | E-mail | Hasło | Co można sprawdzić? |
+| --- | --- | --- | --- |
+| Przełożony | `konto-przelozony@hacknation.pl` | Podane na hacktribe | Prowadzenie ocen, dokumenty i asystent AI. |
+| HR | `konto-hr@hacknation.pl` | Podane na hacktribe | Monitoring procesów, terminy i przypomnienia. |
+| Administrator | `konto-admin@hacknation.pl` | Podane na hacktribe | Przegląd profili pracowników. |
+
+Konta korzystają ze wspólnego środowiska demonstracyjnego z fikcyjnymi danymi.
+
 OcenoMat to prototyp aplikacji wspierającej ocenianie pracowników służby cywilnej.
 Prowadzi przełożonego przez ocenę okresową lub pierwszą ocenę, pomaga przygotować
 rozmowę i uporządkować dokumenty, a HR pozwala monitorować przebieg procesów.
@@ -38,8 +51,7 @@ uprawnionego przełożonego, a wynik formalny oblicza backend.
 
 Galeria pokazuje pełną ścieżkę jednej oceny okresowej aż do PDF. Przykłady pierwszej
 oceny pochodzą z kilku wcześniej przygotowanych procesów. Dane w demo są fikcyjne.
-Dane dostępu do środowiska demonstracyjnego przekazuje operator; lokalne
-logowanie jest dostępne pod adresem `http://localhost:3000/login` po konfiguracji.
+Lokalne logowanie jest dostępne pod adresem `http://localhost:3000/login` po konfiguracji.
 
 ## Architektura i dokumentacja
 
