@@ -1,0 +1,15 @@
+@startuml
+title Przygotowanie bazy wiedzy
+skinparam shadowing false
+actor Operator as operator
+participant "Import i ekstrakcja" as importer
+database "PostgreSQL" as db
+participant "RustFS" as fs
+operator -> importer: Materiał i metadane z manifestu
+importer -> importer: Sprawdź plik i wyodrębnij fragmenty
+importer -> fs: Zapisz oryginał
+importer -> db: Fragmenty, lokalizatory, hashe i statusy
+operator -> importer: Przegląd fragmentów i decyzje
+importer -> db: Zapisz statusy przeglądu
+note over db: Status przeglądu i aktualność prawna\nsą sprawdzane niezależnie.
+@enduml

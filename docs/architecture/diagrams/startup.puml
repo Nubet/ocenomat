@@ -1,0 +1,20 @@
+@startuml
+title Compose — uproszczona kolejność startu
+skinparam shadowing false
+participant "Docker Compose" as compose
+database PostgreSQL as db
+participant RustFS as fs
+participant "migrate" as migration
+participant "storage-init" as init
+participant "FastAPI" as api
+participant "Next.js" as ui
+compose -> db: Uruchom i sprawdź stan
+compose -> fs: Uruchom i sprawdź stan
+compose -> migration: Uruchom po gotowości bazy
+migration -> db: Migracje Alembic
+compose -> init: Uruchom po gotowości RustFS
+init -> fs: Przygotuj / sprawdź bucket
+compose -> api: Po zakończeniu obu zadań
+compose -> ui: Po sprawdzeniu stanu API
+note over db,fs: Dane pozostają w osobnych wolumenach.
+@enduml

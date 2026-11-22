@@ -1,0 +1,24 @@
+@startuml
+title OcenoMat — główne komponenty
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+actor Użytkownik as user
+participant "Next.js\nfrontend" as ui
+participant "FastAPI\nbackend" as api
+database "PostgreSQL" as db
+participant "RustFS\nprywatne pliki" as files
+participant "Supabase Auth" as auth
+participant "OpenRouter\nmodel AI" as llm
+user -> ui: Korzysta z aplikacji
+ui -> auth: Logowanie / sesja
+ui -> api: Autoryzowane żądanie
+api -> auth: Weryfikacja tokenu / kluczy
+api -> db: Dane, role i wiedza
+api -> files: Autoryzowany odczyt / zapis plików
+opt Funkcja AI
+  api -> llm: Pytanie i kontekst funkcji
+  llm --> api: Odpowiedź modelu
+end
+api --> ui: Dane lub błąd
+ui --> user: Ekran i wynik
+@enduml

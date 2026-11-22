@@ -1,0 +1,24 @@
+@startuml
+title Ocena okresowa — uproszczony przepływ
+skinparam shadowing false
+actor Przełożony as manager
+participant "Interfejs" as ui
+participant "Backend\ni reguły" as api
+database "PostgreSQL" as db
+manager -> ui: Rozpocznij ocenę
+ui -> api: Utwórz proces
+api -> db: Zapisz ocenę i wersję katalogu
+manager -> ui: Ustal kryteria i terminy
+ui -> api: Zapisz i potwierdź ustalenia
+manager -> ui: Zapisz obserwacje i wybierz zachowania
+ui -> api: Zapisz odpowiedzi
+api --> ui: Pokaż sugestię poziomu
+manager -> ui: Wybierz i zatwierdź ocenę
+ui -> api: Zapisz decyzję
+api -> db: Zatwierdzone oceny
+api --> ui: Wynik z reguł backendu
+manager -> ui: Uzupełnij podsumowanie i zakończ
+ui -> api: Zakończ proces
+api -> db: Zapisz zakończenie
+api --> ui: Umożliw przygotowanie PDF
+@enduml

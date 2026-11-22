@@ -1,0 +1,27 @@
+@startuml
+title Tożsamość i dostęp do oceny
+skinparam shadowing false
+actor Użytkownik as user
+participant "Next.js" as ui
+participant "Supabase Auth" as auth
+participant "FastAPI" as api
+database "PostgreSQL" as db
+participant "RustFS" as fs
+user -> ui: Logowanie
+ui -> auth: Dane logowania
+auth --> ui: Sesja i token
+ui -> api: Żądanie z tokenem
+api -> auth: Weryfikacja tokenu / kluczy
+api -> db: Profil, role i przypisania
+api -> api: Sprawdź dostęp do zasobu
+alt Dostęp przyznany
+  api -> db: Odczytaj metadane
+  opt Żądanie pliku
+    api -> fs: Odczytaj prywatny obiekt
+    api -> api: Sprawdź rozmiar i sumę kontrolną
+  end
+  api --> ui: Dozwolone dane
+else Brak dostępu
+  api --> ui: Odmowa
+end
+@enduml

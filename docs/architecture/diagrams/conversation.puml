@@ -1,0 +1,22 @@
+@startuml
+title Rozmowa z kontekstem oceny
+skinparam shadowing false
+actor Przełożony as user
+participant "Backend" as api
+database "PostgreSQL" as db
+participant "Model AI" as llm
+user -> api: Pytanie i wybór oceny
+api -> db: Sprawdź dostęp i odczytaj zapisy
+api -> api: Zbuduj kontekst i sprawdź limit
+alt Brak danych lub za duży kontekst
+  api --> user: Wyjaśnij ograniczenie
+else Kontekst jest dostępny
+  api -> llm: Pytanie, historia i zapisy oceny
+  llm --> api: Propozycje i cytaty zapisów
+  api -> api: Sprawdź cytaty
+  api -> llm: Sprawdź poparcie propozycji
+  llm --> api: Wynik przeglądu
+  api -> db: Ponownie sprawdź dostęp i rewizję
+  api --> user: Propozycje lub informacja o braku podstaw
+end
+@enduml

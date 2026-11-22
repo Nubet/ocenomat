@@ -1,0 +1,22 @@
+@startuml
+title RAG — pytanie formalne
+skinparam shadowing false
+actor Użytkownik as user
+participant "Backend" as api
+database "Baza wiedzy\nPostgreSQL" as db
+participant "Model AI" as llm
+user -> api: Pytanie o procedurę
+api -> db: Wyszukaj dopuszczone fragmenty
+db --> api: Fragmenty i metadane
+alt Brak podstaw
+  api --> user: Informacja o braku podstaw
+else Znaleziono kontekst
+  api -> llm: Pytanie i fragmenty
+  llm --> api: Propozycja i cytaty
+  api -> api: Sprawdź ID i dosłowność cytatów
+  api -> llm: Sprawdź poparcie odpowiedzi
+  llm --> api: Wynik przeglądu
+  api -> db: Sprawdź ponownie źródła
+  api --> user: Odpowiedź ze źródłami lub odmowa
+end
+@enduml

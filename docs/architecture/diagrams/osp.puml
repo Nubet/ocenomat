@@ -1,0 +1,25 @@
+@startuml
+title OSP — od dokumentu do wyboru kryteriów
+skinparam shadowing false
+actor Przełożony as manager
+participant "Backend" as api
+database "PostgreSQL" as db
+participant "RustFS" as fs
+participant "Model AI" as llm
+manager -> api: Dodaj lub wybierz OSP w szkicu
+opt Dodanie nowego pliku
+  api -> fs: Zapisz plik
+end
+api -> db: Zapisz wersję / wybór
+manager -> api: Przeanalizuj wybrane OSP
+api -> db: Sprawdź dostęp i wersję
+api -> fs: Pobierz wybrany plik
+api -> api: Odczytaj tekst i sprawdź limit
+api -> llm: Fragmenty OSP i katalog kryteriów
+llm --> api: Propozycje i cytaty
+api -> api: Sprawdź kryteria i cytaty
+api -> llm: Sprawdź związek z obowiązkami
+llm --> api: Wynik przeglądu
+api --> manager: Propozycje lub brak podstaw
+manager -> api: Samodzielny wybór i uzasadnienie
+@enduml
