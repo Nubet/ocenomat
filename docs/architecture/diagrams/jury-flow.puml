@@ -1,0 +1,13 @@
+@startuml
+title OcenoMat — trzy perspektywy jury
+skinparam shadowing false
+actor "Jury" as jury
+participant "Przełożony" as manager
+participant "HR" as hr
+participant "Administrator" as admin
+jury -> manager: Ocena, obserwacje i decyzja
+jury -> manager: OSP, asystent i PDF
+jury -> hr: Etapy, terminy i przypomnienie
+jury -> admin: Profile i granice dostępu
+note over manager,admin: Konta mają różne uprawnienia.\nDostęp do treści oceny nie wynika z samej roli HR ani ADMIN.
+@enduml

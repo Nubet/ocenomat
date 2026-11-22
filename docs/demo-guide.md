@@ -12,7 +12,7 @@ hasła opisuje [rejestr kont](backend-progress.md#konta-środowiska-testowego).
 - **Administrator** (`konto-admin@hacknation.pl`): 64 profile; sama rola ADMIN
   nie daje prawa prowadzenia oceny ani projekcji HR.
 
-W bazie jest 64 pracowników i 61 ocen. Nowy zestaw obejmuje 60 osób w sześciu
+Po sesji galerii w bazie było 64 pracowników i 62 oceny. Zestaw obejmuje 60 osób w sześciu
 obszarach: cyberbezpieczeństwo, AI, usługi cyfrowe, dane, współpraca międzynarodowa
 i HR. Wszystkie nowe osoby przypisano do istniejącego konta przełożonego.
 Profile mają realistyczne nazwy stanowisk i komórek. Osoby i zdarzenia są
@@ -44,10 +44,10 @@ wyników. Wyszukiwanie i stronicowanie korzystają z backendu.
 | Natalia Zawadzka | Pierwsza ocena na etapie ustaleń wstępnych. |
 | Igor Błaszczyk | Negatywna pierwsza ocena z niezdanym egzaminem. |
 | Ewa Rutkowska | Zaległy termin w monitoringu i zapisane przypomnienie HR. |
-| Tomasz Jaworski | Osoba bez rozpoczętej oceny, z OSP gotowym do wybrania: przeprowadzenie własnego procesu od początku. |
+| Tomasz Jaworski | Zakończona podczas sesji galerii ocena okresowa C z OSP, obserwacją i wygenerowanym PDF. |
 
-Nowy zestaw zawiera 60 ocen: 48 okresowych i 12 pierwszych; 21 zakończonych,
-w tym dwie negatywne. Prywatny storage zawiera 60 opisów stanowisk i 24 notatki
+Pierwotny import zawierał 60 ocen: 48 okresowych i 12 pierwszych. Po sesji
+galerii łącznie było 22 zakończonych ocen. Prywatny storage zawiera 60 opisów stanowisk i 24 notatki
 do rozmów. PDF generuje się z zakończonej oceny przez standardowy formularz.
 
 ## Ponowienie importu
@@ -65,6 +65,6 @@ trzeba podać UID jego konta Auth. Import zachowuje istniejące osoby, oceny,
 edycje i pliki. Uzupełnia brakujące OSP sześciu osób przygotowanych do rozpoczęcia
 nowej oceny. Nie resetuje bazy ani kont.
 
-Przeglądarka/E2E nadal nieuruchomione. Większy zestaw pracowników nie rozszerza
+Sesję w przeglądarce opisuje [galeria](galeria/README.md). Większy zestaw pracowników nie rozszerza
 zatwierdzonej wiedzy prawnej asystenta; ograniczenia jakości RAG pozostają
 w [rejestrze postępu](backend-progress.md#ograniczenia-i-zależności-zewnętrzne).
