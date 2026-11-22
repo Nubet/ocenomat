@@ -80,12 +80,6 @@ export function AppShell({ children, user }: { children: ReactNode; user: Worksp
               <span className="truncate text-body font-semibold">{label}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden navigation:inline">
-                <Badge>
-                  <Icon name="info" size={12} />
-                  Dane demonstracyjne
-                </Badge>
-              </span>
               <Button
                 variant="primary"
                 className="px-4 shadow-md"
