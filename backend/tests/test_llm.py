@@ -284,8 +284,8 @@ def test_token_limit_checked_before_network(provider, limit):
         [],
         MESSAGES * 33,
         [
-            Message(role="user", content="x" * 30_000),
-            Message(role="user", content="x" * 30_000),
+            Message(role="user", content="x" * 60_000),
+            Message(role="user", content="x" * 60_001),
         ],
     ],
 )

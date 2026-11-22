@@ -50,3 +50,50 @@ Nie podłączaj prawdziwych danych pracowników. Ustaw `KOMPAS_SUPABASE_URL`,
 wyłącz publiczną rejestrację i utwórz lokalny profil zgodnie z `backend/README.md`.
 Bez konfiguracji frontend pokazuje ekran logowania z informacją o braku usługi;
 API nie ma trybu bypass. Supabase i OpenRouter nie są lokalnymi serwisami Compose.
+
+## Serwer demonstracyjny
+
+Na VPS użyto `compose.yaml` z `compose.deploy.yaml` i plikiem `.env` na serwerze:
+
+```sh
+docker compose --env-file .env -f infra/compose.yaml -f infra/compose.deploy.yaml up -d --build
+```
+
+Frontend buduje `frontend/Dockerfile.deploy` i nasłuchuje wyłącznie na loopbacku.
+Nginx na hoście obsługuje HTTPS według `nginx-deploy.conf`; konfiguracja zawiera
+adres IP i ścieżkę certyfikatu konkretnego serwera. Baza i RustFS nie mają
+publikowanych portów. Firewall dostawcy dopuszcza SSH, HTTP, HTTPS i ICMP.
+
+Certyfikat IP ma krótki okres ważności. Certbot używa webroot
+`/var/www/letsencrypt` oraz deploy hooka przeładowującego nginx. Sprawdzenie:
+
+```sh
+certbot renew --dry-run --run-deploy-hooks
+```
+
+Środowisko zawiera kopię fikcyjnych danych i korzysta z tego samego Supabase Auth
+oraz konfiguracji AI co lokalne demo. Kopie zapasowe i ich odtwarzanie wymagają
+osobnej konfiguracji; nie usuwaj wolumenów podczas aktualizacji.
+
+### Wdrożenie z GitHub Actions
+
+Workflow `.github/workflows/deploy.yml` uruchamia kontrole frontendu i backendu,
+a po ich powodzeniu wysyła dokładny commit z `main` na VPS. Serwer buduje obrazy,
+zatrzymuje aplikację, zapisuje kopię PostgreSQL w `/opt/ocenomat/backups/`,
+wykonuje migrację Alembic i uruchamia backend oraz frontend. Wolumeny PostgreSQL
+i RustFS pozostają na miejscu. Wdrożenia są kolejkowane, a dodatkowa blokada na
+serwerze zapobiega równoczesnemu wykonaniu skryptu.
+
+Wymagane sekrety GitHub Actions: `DEPLOY_SSH_KEY` (osobny klucz SSH mający
+dostęp do serwera) i `DEPLOY_KNOWN_HOSTS` (zweryfikowany klucz hosta w formacie
+`known_hosts`). Workflow łączy się jako root z adresem wpisanym w workflow;
+dostęp do sekretu daje uprawnienia administratora serwera. Klucz hosta należy
+zweryfikować niezależnie przed skonfigurowaniem sekretu. Repozytorium musi
+zawierać pliki wdrożenia, a `/opt/ocenomat/.env` musi pozostać na serwerze.
+
+Po błędzie migracji lub uruchamiania wdrożenie kończy się błędem i aplikacja może
+pozostać zatrzymana; sprawdź logi Actions i stan Compose przed ręczną naprawą.
+Nie uruchamiaj automatycznego rollbacku migracji. Kopia przed wdrożeniem jest
+lokalna, obejmuje tylko PostgreSQL i nie zastępuje niezależnych, regularnych kopii
+PostgreSQL i RustFS ani przetestowania ich odtwarzania. Pliki kopii i katalogi
+wydań nie są automatycznie usuwane — kontroluj wolne miejsce na VPS.

@@ -1,0 +1,13 @@
+services:
+  frontend:
+    build:
+      dockerfile: Dockerfile.deploy
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+  backend:
+    restart: unless-stopped
+  db:
+    restart: unless-stopped
+  rustfs:
+    restart: unless-stopped

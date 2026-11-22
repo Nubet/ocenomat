@@ -5,6 +5,28 @@ Ten plik opisuje faktyczny stan, nie planowane rezultaty. Aktualizacja: 2026-11-
 
 ## Bieżący stan
 
+- **CI/CD — in_progress:** przygotowano workflow `main` z kontrolami,
+  budowaniem na VPS, kopią PostgreSQL przed migracją i zachowaniem wolumenów.
+  Sekrety GitHub Actions skonfigurowano, a osobny klucz SSH sprawdzono. Klucz hosta
+  pochodzi z lokalnego `known_hosts`, bez niezależnej weryfikacji. Uruchomienie
+  wymaga opublikowania workflow i sprawdzenia pierwszego wdrożenia; kopia
+  dokumentów RustFS oraz niezależny backup nadal wymagają osobnej konfiguracji.
+  `npm run check`: 220 testów OK; `uv run ruff check .`: OK; `uv run pytest`
+  z osobną bazą PostgreSQL i czcionką DejaVu: 630 OK, 9 pominiętych (brak
+  materiałów źródłowych). Poprawiono nieaktualny test limitu kontekstu AI.
+  `bash -n infra/deploy.sh`, `docker compose ... config --quiet` i
+  `git diff --check`: OK. Trzy testy skryptu wdrożenia na atrapach: OK.
+  Workflow i odtwarzanie kopii nie były jeszcze uruchomione.
+- **Demo na VPS — in_progress:** na serwerze Hetzner uruchomiono kopię demo
+  pod `https://2.29.111.76`. Bazę przeniesiono przez `pg_dump`/`pg_restore`,
+  osobno skopiowano prywatny wolumen RustFS; lokalnych danych nie usuwano.
+  PostgreSQL, RustFS i backend są healthy, frontend działa za nginx. Sprawdzono
+  HTTPS z zaufanym certyfikatem, 64 pracowników i 62 oceny, uwierzytelnione API
+  pracowników oraz pobranie jednego prywatnego dokumentu. Certbot używa webroot
+  i przeładowuje nginx; `certbot renew --dry-run --run-deploy-hooks` przeszedł.
+  Supabase Auth i konfiguracja AI są współdzielone z lokalnym demo. Kopie zapasowe
+  VPS i pełna weryfikacja w przeglądarce nie są jeszcze wykonane. Następny krok:
+  sprawdzić publiczne scenariusze jury oraz ustalić kopie zapasowe i odtwarzanie.
 - **Etap:** 7 zakończony; przygotowanie etapu 8.
 - **Aktywne zadanie — in_progress:** kontekstowy asystent przygotowania rozmowy
   z pracownikiem i dostępny podczas pracy panel obok oceny. Konieczne zachowanie

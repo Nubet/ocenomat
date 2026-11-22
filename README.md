@@ -2,6 +2,8 @@
 
 # OcenoMat — Kompas Kompetencji
 
+## [Otwórz aplikację demo → https://2.29.111.76](https://2.29.111.76)
+
 OcenoMat to prototyp aplikacji wspierającej ocenianie pracowników służby cywilnej.
 Prowadzi przełożonego przez ocenę okresową lub pierwszą ocenę, pomaga przygotować
 rozmowę i uporządkować dokumenty, a HR pozwala monitorować przebieg procesów.
@@ -36,7 +38,7 @@ uprawnionego przełożonego, a wynik formalny oblicza backend.
 
 Galeria pokazuje pełną ścieżkę jednej oceny okresowej aż do PDF. Przykłady pierwszej
 oceny pochodzą z kilku wcześniej przygotowanych procesów. Dane w demo są fikcyjne.
-Adres i dane dostępu do środowiska demonstracyjnego przekazuje operator; lokalne
+Dane dostępu do środowiska demonstracyjnego przekazuje operator; lokalne
 logowanie jest dostępne pod adresem `http://localhost:3000/login` po konfiguracji.
 
 ## Architektura i dokumentacja
