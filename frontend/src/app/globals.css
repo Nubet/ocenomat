@@ -161,7 +161,7 @@
   left: 1rem;
   align-items: flex-start;
 }
-.accessibility-trigger {
+button.accessibility-trigger:not(:disabled) {
   display: grid;
   width: 3.5rem;
   height: 3.5rem;
@@ -171,6 +171,11 @@
   background: #263e9b;
   color: white;
   box-shadow: 0 4px 18px #0004;
+  cursor: grab;
+  touch-action: none;
+}
+button.accessibility-trigger:not(:disabled):active {
+  cursor: grabbing;
 }
 .accessibility-trigger svg {
   width: 1.8rem;
