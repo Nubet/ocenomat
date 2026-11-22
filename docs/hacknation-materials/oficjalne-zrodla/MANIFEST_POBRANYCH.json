@@ -1,0 +1,204 @@
+{
+  "entries": [
+    {
+      "filename": "ustawa_sluzba_cywilna_tekst_jednolity_2026_DU590.pdf",
+      "url": "https://eli.gov.pl/api/acts/DU/2026/590/text/T/D20260590L.pdf",
+      "category": "law",
+      "sha256": "153e60d6fa8c196c4e022c006e363bccec816f30584c9634a3d2d9b24c8b0f3c",
+      "bytes": 537457,
+      "status": "downloaded"
+    },
+    {
+      "filename": "rozporzadzenie_oceny_okresowe_2016_DU470.pdf",
+      "url": "https://eli.gov.pl/api/acts/DU/2016/470/text/O/D20160470.pdf",
+      "category": "law",
+      "sha256": "036fe77d5dc4b87301496b72f6f468fd9a1c3e1c884eacbd7f1e8079a3314730",
+      "bytes": 1073688,
+      "status": "downloaded"
+    },
+    {
+      "filename": "rozporzadzenie_pierwsza_ocena_2015_DU1144.pdf",
+      "url": "https://eli.gov.pl/api/acts/DU/2015/1144/text/O/D20151144.pdf",
+      "category": "law",
+      "sha256": "0e8a0cf5c9c390edfc5a8868f57fcec2c539f37738c1775f9bed06e98389f217",
+      "bytes": 916741,
+      "status": "downloaded"
+    },
+    {
+      "filename": "rozporzadzenie_oceny_okresowe_2016_eli.html",
+      "url": "https://eli.gov.pl/api/acts/DU/2016/470/text.html",
+      "category": "html",
+      "sha256": "e32ee6692ea3d4f4ddccc7abf16c0a600eaeee97b471f9512b9599b582cd6ba2",
+      "bytes": 107307,
+      "status": "downloaded"
+    },
+    {
+      "filename": "rozporzadzenie_pierwsza_ocena_2015_eli.html",
+      "url": "https://eli.gov.pl/api/acts/DU/2015/1144/text.html",
+      "category": "html",
+      "sha256": "06515d7192f7d9501decf9013f0cde9d8313d8046eb2e4d1f1f341d64f1a2f5c",
+      "bytes": 55727,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_oceny_pracownicze_FAQ.html",
+      "url": "https://www.gov.pl/web/sluzbacywilna/oceny-pracownicze",
+      "category": "html",
+      "sha256": "e725c3ae1984f897998cb94f476c05f99b77a67ceec662049175ab60f6cd8da8",
+      "bytes": 51649,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_01_rozporzadzenie_o_ocenach_okresowych_z_2016_r_rozporzadzenie_o_ocenach_okres.pdf",
+      "url": "https://www.gov.pl/attachment/b47273f4-6a0e-49bd-b4e8-18450cc8c991",
+      "category": "kprm_okresowa",
+      "sha256": "ea034d17073d1731304158787fe44ae356b33780562248892bf19f2b0452350e",
+      "bytes": 1087491,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_02_arkusz_oceny_a_arkusz_oceny_a_docx_0_04mb.docx",
+      "url": "https://www.gov.pl/attachment/f30edd6d-9a69-4533-9db4-359d03c327b7",
+      "category": "kprm_okresowa",
+      "sha256": "aec1922ee2717f578ca4ca2ce8c1c96ffab83719ac67185c183ab7721e684e17",
+      "bytes": 40724,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_03_arkusz_oceny_b_arkusz_oceny_b_docx_0_04mb.docx",
+      "url": "https://www.gov.pl/attachment/ddcb1649-673d-497d-9fcb-18ff91f70be2",
+      "category": "kprm_okresowa",
+      "sha256": "47c2b62b81c49c62f03218dc7a1b5bacc0e21ab7d0c9c1437f56f4e52e1245c3",
+      "bytes": 40923,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_04_arkusz_oceny_c_arkusz_oceny_c_docx_0_04mb.docx",
+      "url": "https://www.gov.pl/attachment/5d938197-f62e-4b60-a52c-59f29e07a4e3",
+      "category": "kprm_okresowa",
+      "sha256": "4845015f886a56c8715006a5b803e77c6d628eab9aa4989763214c170ba662f0",
+      "bytes": 39720,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_05_arkusz_oceny_a_excel_arkusz_oceny_a_excel_xlsx_0_09mb.xlsx",
+      "url": "https://www.gov.pl/attachment/54b7153e-2c1e-4c06-aed0-9e52a6f949c4",
+      "category": "kprm_okresowa",
+      "sha256": "d2db71bf29f2d2eb92f2cc9eee39427f8ac1003b61b9b0989ef7b4a841d4bf27",
+      "bytes": 93402,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_06_arkusz_oceny_b_excel_arkusz_oceny_b_excel_xlsx_0_09mb.xlsx",
+      "url": "https://www.gov.pl/attachment/82b20881-de5a-40de-b21c-863018ce77b8",
+      "category": "kprm_okresowa",
+      "sha256": "5a86649c26e7591c438c10b017ae9b0672214f9a296b307e3bffa36cb466eba7",
+      "bytes": 92192,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_07_arkusz_oceny_c_excel_arkusz_oceny_c_excel_xlsx_0_08mb.xlsx",
+      "url": "https://www.gov.pl/attachment/b9329f78-2abc-46bd-a822-7be207c6b939",
+      "category": "kprm_okresowa",
+      "sha256": "01d0498a746c5b59d3c0d3b18435045bd561f37cf7d27469733bf3747b38e633",
+      "bytes": 87584,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_08_poradnik_oceny_okresowe_w_sluzbie_cywilnej_poradnik_oceny_okresowe_w_sluzbi.pdf",
+      "url": "https://www.gov.pl/attachment/e3168619-472f-4d79-a123-229348110666",
+      "category": "kprm_okresowa",
+      "sha256": "62f91996b7d99e4177c5c559b88773112b31ce7c4f5cfb8e5ddb99f8d54476ac",
+      "bytes": 4949725,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_09_rozporzadzenie_o_ocenach_okresowych_z_2015_r_rozporzadzenie_o_ocenach_okres.pdf",
+      "url": "https://www.gov.pl/attachment/1633e8a5-4a01-4605-98ae-2d2d7f600228",
+      "category": "kprm_okresowa",
+      "sha256": "d95c922b7fae04e3c7e6769687d809cc154d861396d12d44828d2f349146d75e",
+      "bytes": 1085530,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_10_rozporzadzenie_o_ocenach_okresowych_z_2009_r_rozporzadzenie_o_ocenach_okres.pdf",
+      "url": "https://www.gov.pl/attachment/9729f41f-ab5e-48c3-aadc-702cf8a3fb88",
+      "category": "kprm_okresowa",
+      "sha256": "598230cfafe8a917c3d86ef2cddf99d9e888445e93fdc146aae43940f9d89f83",
+      "bytes": 1039345,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_okresowa_11_poradnik_oceny_okresowe_w_sluzbie_cywilnej_2009_r_poradnik_oceny_okresowe_w.pdf",
+      "url": "https://www.gov.pl/attachment/12ea3b22-4511-4e1b-bda4-a205db96f98b",
+      "category": "kprm_okresowa",
+      "sha256": "c38833d5e0c0f7f788a758c0af7531394ecc9b56bd8c3d04c11a61770ad42547",
+      "bytes": 8147208,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_01_rozporzadzenie_o_pierwszej_ocenie_z_2015_r_rozporzadzenie_o_pierwszej_oceni.pdf",
+      "url": "https://www.gov.pl/attachment/7cb7e140-5e4d-49ab-8f05-cc8673a5edb5",
+      "category": "kprm_pierwsza",
+      "sha256": "0e8a0cf5c9c390edfc5a8868f57fcec2c539f37738c1775f9bed06e98389f217",
+      "bytes": 916741,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_02_arkusz_pierwszej_oceny_arkusz_pierwszej_oceny_docx_0_04mb.docx",
+      "url": "https://www.gov.pl/attachment/7e4a9f2b-8d46-49d6-8452-4a2ac20991c8",
+      "category": "kprm_pierwsza",
+      "sha256": "12a6f89a8bb8b667e2e20b6efd504259c6cc061b36460b8d9b87fed50a5b1721",
+      "bytes": 37144,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_03_formularz_sprawozdania_formularz_sprawozdania_docx_0_02mb.docx",
+      "url": "https://www.gov.pl/attachment/4df24842-fe4a-475a-be91-e352b5411427",
+      "category": "kprm_pierwsza",
+      "sha256": "aee7617e87287d9aeaedd0b074ff2d81a971acf3a29d033b338aef847b7bfbec",
+      "bytes": 25345,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_04_opisy_elementow_oceny_opisy_elementow_oceny_docx_0_02mb.docx",
+      "url": "https://www.gov.pl/attachment/41bb46c0-4c2a-4629-8117-5f250f11a743",
+      "category": "kprm_pierwsza",
+      "sha256": "384269fd93876f31d72d179e4510e4f6a554167d0df13958dc05e1e40392800c",
+      "bytes": 24959,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_05_arkusz_pierwszej_oceny_arkusz_pierwszej_oceny_xlsx_0_05mb.xlsx",
+      "url": "https://www.gov.pl/attachment/93810c63-5489-413e-8bc3-0a33bc80aad6",
+      "category": "kprm_pierwsza",
+      "sha256": "266008e62c5ff36c780ec5c3f668af3f020d22c364ea1ca59f4cbcca9f951658",
+      "bytes": 57170,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_06_arkusze_ocen_instrukcja_uzytkownika_arkusze_ocen_instrukcja_uzytkownika_pdf.pdf",
+      "url": "https://www.gov.pl/attachment/204db777-33ed-411c-9f36-b634ab1d0c0f",
+      "category": "kprm_pierwsza",
+      "sha256": "9324bdf18bb10a609c6fda40d93f0b7019b99f4f5a5bce8e7f4cb9385c8d92ba",
+      "bytes": 796503,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_07_pierwsza_ocena_w_sluzbie_cywilnej_poradnik_z_2016_r_pierwsza_ocena_w_sluzbi.pdf",
+      "url": "https://www.gov.pl/attachment/d3940d0e-83d3-4946-a7c1-53dc74d6ef83",
+      "category": "kprm_pierwsza",
+      "sha256": "484cfcd0ed43d389d0ad61aa9bbe3c19ca2d02be378d785117cd93e909215307",
+      "bytes": 3361854,
+      "status": "downloaded"
+    },
+    {
+      "filename": "kprm_pierwsza_08_rozporzadzenie_o_pierwszej_ocenie_z_2009_r_rozporzadzenie_o_pierwszej_oceni.pdf",
+      "url": "https://www.gov.pl/attachment/73e92ef6-0d02-4584-8a9b-91b2e58e6b6e",
+      "category": "kprm_pierwsza",
+      "sha256": "8e5a52392fec97cf0fd8f2f33f2acf7cb7c96fe683f547803bac20a64b441fa0",
+      "bytes": 813921,
+      "status": "downloaded"
+    }
+  ]
+}
